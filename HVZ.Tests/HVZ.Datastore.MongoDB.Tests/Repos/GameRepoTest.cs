@@ -17,8 +17,9 @@ public class GameRepoTest : MongoTestBase
     public async Task create_then_read_are_equal()
     {
         GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
         string userid = "0";
-        Game createdGame = await gameRepo.CreateGame(userid);
+        Game createdGame = await gameRepo.CreateGame(gameName, userid);
         Game foundGame = await gameRepo.Collection.Find(g => g.UserId == userid).FirstAsync();
 
         Assert.That(createdGame.Id, Is.EqualTo(foundGame.Id));
@@ -30,10 +31,25 @@ public class GameRepoTest : MongoTestBase
     public async Task test_find_by_id()
     {
         GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
         string userid = "1";
-        Game createdGame = await gameRepo.CreateGame(userid);
+        Game createdGame = await gameRepo.CreateGame(gameName, userid);
         Game? foundGame = await gameRepo.FindById(createdGame.Id);
         Game? notFoundGame = await gameRepo.FindById(string.Empty);
+
+        Assert.That(foundGame, Is.EqualTo(createdGame));
+        Assert.That(notFoundGame, Is.Null);
+    }
+
+    [Test]
+    public async Task test_find_by_name()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "1";
+        Game createdGame = await gameRepo.CreateGame(gameName, userid);
+        Game? foundGame = await gameRepo.FindByName(gameName);
+        Game? notFoundGame = await gameRepo.FindByName(string.Empty);
 
         Assert.That(foundGame, Is.EqualTo(createdGame));
         Assert.That(notFoundGame, Is.Null);

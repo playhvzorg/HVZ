@@ -5,6 +5,10 @@ namespace HVZ.Models;
 public class Game
 {
     /// <summary>
+    /// Unique name of this game.
+    /// </summary>
+    public string Name { get; init; }
+    /// <summary>
     /// Unique identifier of this specific game
     /// </summary>
     public string Id { get; init; }
@@ -72,8 +76,9 @@ public class Game
     /// </summary>
     public DefaultPlayerRole DefaultRole { get; init; }
 
-    public Game(string id, string userid, Instant createdat, GameState state, HashSet<User> humans, HashSet<User> zombies, HashSet<User> ozs)
+    public Game(string name, string id, string userid, Instant createdat, GameState state, HashSet<User> humans, HashSet<User> zombies, HashSet<User> ozs)
     {
+        Name = name;
         Id = id;
         UserId = userid;
         CreatedAt = createdat;
@@ -82,5 +87,21 @@ public class Game
         Humans = humans;
         Zombies = zombies;
         Ozs = ozs;
+    }
+
+    public override string ToString()
+    {
+        return $"HVZ.Game@{Name}.{Id}";
+    }
+    
+    public override bool Equals(object? obj)
+    {
+        //TODO: this can likely be improved
+        return obj != null && this.ToString().Equals(obj.ToString());
+    }
+
+    public override int GetHashCode()
+    {
+        return ToString().GetHashCode();
     }
 }

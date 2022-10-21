@@ -15,6 +15,7 @@ public class GameRepo : IGameRepo
     {
         BsonClassMap.RegisterClassMap<Game>(cm =>
         {
+            cm.MapProperty(g => g.Name);
             cm.MapIdProperty(g => g.Id)
                 .SetIdGenerator(StringObjectIdGenerator.Instance)
                 .SetSerializer(ObjectIdAsStringSerializer.Instance);
@@ -32,9 +33,10 @@ public class GameRepo : IGameRepo
         _clock = clock;
     }
 
-    public async Task<Game> CreateGame(string userid)
+    public async Task<Game> CreateGame(string name, string userid)
     {
         Game game = new Game(
+            name: name,
             id: string.Empty,
             userid: userid,
             createdat: _clock.GetCurrentInstant(),
@@ -49,4 +51,7 @@ public class GameRepo : IGameRepo
 
     public async Task<Game?> FindById(string id) =>
         id == "" ? null : await Collection.Find<Game>(g => g.Id == id).FirstOrDefaultAsync();
+
+    public async Task<Game?> FindByName(string name) =>
+        await Collection.Find<Game>(g => g.Name == name).FirstOrDefaultAsync();
 }
