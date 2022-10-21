@@ -93,7 +93,7 @@ public class Game
     {
         return $"HVZ.Game@{Name}.{Id}";
     }
-    
+
     public override bool Equals(object? obj)
     {
         //TODO: this can likely be improved
