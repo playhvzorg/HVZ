@@ -54,4 +54,25 @@ public class GameRepoTest : MongoTestBase
         Assert.That(foundGame, Is.EqualTo(createdGame));
         Assert.That(notFoundGame, Is.Null);
     }
+
+    [Test]
+    public async Task test_gamecreated_event()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        Game? eventGame = null;
+        string gameName = "test";
+        string userid = "0";
+
+        List<Object> Events = new List<object>();
+
+        gameRepo.GameCreated += delegate (object? sender, GameCreatedEventArgs args)
+        {
+            eventGame = args.game;
+        };
+
+        Game createdGame = await gameRepo.CreateGame(gameName, userid);
+
+        Assert.That(eventGame, Is.Not.Null);
+        Assert.That(createdGame, Is.EqualTo(eventGame));
+    }
 }

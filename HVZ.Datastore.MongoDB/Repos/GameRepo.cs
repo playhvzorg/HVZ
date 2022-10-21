@@ -10,6 +10,7 @@ public class GameRepo : IGameRepo
     private const string CollectionName = "Games";
     public readonly IMongoCollection<Game> Collection;
     private readonly IClock _clock;
+    public event EventHandler<GameCreatedEventArgs>? GameCreated;
 
     static GameRepo()
     {
@@ -61,6 +62,9 @@ public class GameRepo : IGameRepo
             ozs: new HashSet<User>()
             );
         await Collection.InsertOneAsync(game);
+
+        GameCreatedEventArgs gameCreatedEventArgs = new GameCreatedEventArgs(game);
+        OnGameCreated(gameCreatedEventArgs);
         return game;
     }
 
@@ -69,4 +73,13 @@ public class GameRepo : IGameRepo
 
     public async Task<Game?> FindByName(string name) =>
         await Collection.Find<Game>(g => g.Name == name).FirstOrDefaultAsync();
+
+    protected virtual void OnGameCreated(GameCreatedEventArgs g)
+    {
+        EventHandler<GameCreatedEventArgs>? handler = GameCreated;
+        if (handler != null)
+        {
+            handler(this, g);
+        }
+    }
 }

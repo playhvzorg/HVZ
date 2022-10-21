@@ -19,4 +19,15 @@ public interface IGameRepo
     /// </summary>
     /// <returns>The game with the given name, or Null if no game is found</returns>
     public Task<Game?> FindByName(string name);
+
+    public event EventHandler<GameCreatedEventArgs> GameCreated;
+}
+
+public class GameCreatedEventArgs : EventArgs
+{
+    public Game game { get; init; }
+    public GameCreatedEventArgs(Game g)
+    {
+        game = g;
+    }
 }
