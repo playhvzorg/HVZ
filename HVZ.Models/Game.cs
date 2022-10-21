@@ -19,9 +19,8 @@ public class Game
     public Instant CreatedAt { get; init; }
     public enum GameState
     {
-        registration,
-        play,
-        finished,
+        Inactive,
+        Active,
     }
     /// <summary>
     /// current state of the game
@@ -76,14 +75,14 @@ public class Game
     /// </summary>
     public DefaultPlayerRole DefaultRole { get; init; }
 
-    public Game(string name, string id, string userid, Instant createdat, GameState state, HashSet<User> humans, HashSet<User> zombies, HashSet<User> ozs)
+    public Game(string name, string id, string userid, Instant createdat, GameState state, DefaultPlayerRole defaultrole, HashSet<User> humans, HashSet<User> zombies, HashSet<User> ozs)
     {
         Name = name;
         Id = id;
         UserId = userid;
         CreatedAt = createdat;
         State = state;
-        DefaultRole = DefaultPlayerRole.Human;
+        DefaultRole = defaultrole;
         Humans = humans;
         Zombies = zombies;
         Ozs = ozs;

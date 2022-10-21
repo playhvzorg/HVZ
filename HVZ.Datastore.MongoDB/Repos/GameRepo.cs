@@ -54,7 +54,8 @@ public class GameRepo : IGameRepo
             id: string.Empty,
             userid: userid,
             createdat: _clock.GetCurrentInstant(),
-            state: Game.GameState.registration,
+            state: Game.GameState.Inactive,
+            defaultrole: Game.DefaultPlayerRole.Human,
             humans: new HashSet<User>(),
             zombies: new HashSet<User>(),
             ozs: new HashSet<User>()
