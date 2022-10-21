@@ -9,8 +9,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+<<<<<<< HEAD
       - name: install resharper
         run: dotnet tool install -g JetBrains.ReSharper.GlobalTools
+=======
+>>>>>>> master
       - name: build solution before analysis
         run: dotnet build
       - name: determine changed files
