@@ -47,15 +47,6 @@ public class GameRepo : IGameRepo
         return game;
     }
 
-    public async Task<Game?> FindById(string id)
-    {
-        try
-        {
-            return await Collection.Find<Game>(g => g.Id == id).FirstOrDefaultAsync();
-        }
-        catch (System.FormatException)
-        {
-            return null;
-        }
-    }
+    public async Task<Game?> FindById(string id) =>
+        id == "" ? null : await Collection.Find<Game>(g => g.Id == id).FirstOrDefaultAsync();
 }

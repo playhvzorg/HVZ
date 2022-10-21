@@ -35,7 +35,7 @@ public class GameRepoTest : MongoTestBase
         Game? foundGame = await gameRepo.FindById(createdGame.Id);
         Game? notFoundGame = await gameRepo.FindById(string.Empty);
 
-        Assert.That(foundGame, Is.Not.Null);
+        Assert.That(foundGame, Is.EqualTo(createdGame));
         Assert.That(notFoundGame, Is.Null);
     }
 }
