@@ -53,7 +53,7 @@ public class GameRepo : IGameRepo
         {
             return await Collection.Find<Game>(g => g.Id == id).FirstOrDefaultAsync();
         }
-        catch(System.FormatException)
+        catch (System.FormatException)
         {
             return null;
         }

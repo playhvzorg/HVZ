@@ -12,7 +12,7 @@ public class GameRepoTest : MongoTestBase
 {
     public GameRepo CreateGameRepo() =>
             new GameRepo(CreateTemporaryDatabase(), Mock.Of<IClock>());
-    
+
     [Test]
     public async Task create_then_read_are_equal()
     {

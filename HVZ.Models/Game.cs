@@ -72,7 +72,7 @@ public class Game
     /// </summary>
     public DefaultPlayerRole DefaultRole { get; init; }
 
-    public Game(string id, string userid, Instant createdat, GameState state, HashSet<User> humans, HashSet<User>zombies, HashSet<User> ozs)
+    public Game(string id, string userid, Instant createdat, GameState state, HashSet<User> humans, HashSet<User> zombies, HashSet<User> ozs)
     {
         Id = id;
         UserId = userid;
