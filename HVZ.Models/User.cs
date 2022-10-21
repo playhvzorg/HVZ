@@ -23,9 +23,6 @@ public class User
     /// </summary>
     public Instant CreatedAt { get; init; }
 
-    /// <summary>
-    /// Class containing information about a specific user
-    /// </summary>
     public User(string id, string firstname, string lastname, string email)
     {
         Id = id;
