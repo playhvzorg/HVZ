@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using NUnit.Framework;
+using HVZ.Datastore.MongoDB.Serializers;
 
 namespace HVZ.Datastore.MongoDB.Tests
 {
@@ -27,6 +28,7 @@ namespace HVZ.Datastore.MongoDB.Tests
         [OneTimeSetUp]
         public void SetUpMongoClient()
         {
+            CustomSerializers.RegisterAll();
             // try to connect to a mongodb running on the default port
             MongoClientSettings settings = MongoClientSettings
                 .FromConnectionString($"mongodb://localhost:27017/?replicaSet={ReplicaSetName}");

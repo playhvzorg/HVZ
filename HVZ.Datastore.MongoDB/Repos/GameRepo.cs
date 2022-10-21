@@ -20,6 +20,7 @@ public class GameRepo : IGameRepo
                 .SetIdGenerator(StringObjectIdGenerator.Instance)
                 .SetSerializer(ObjectIdAsStringSerializer.Instance);
             cm.MapProperty(g => g.UserId);
+            cm.MapProperty(g => g.CreatedAt);
             cm.MapProperty(g => g.DefaultRole);
             cm.MapProperty(g => g.Humans);
             cm.MapProperty(g => g.Zombies);
@@ -31,6 +32,19 @@ public class GameRepo : IGameRepo
         database.CreateCollection(CollectionName);
         Collection = database.GetCollection<Game>(CollectionName);
         _clock = clock;
+        InitIndexes();
+    }
+
+    public void InitIndexes()
+    {
+        Collection.Indexes.CreateMany(new[]
+        {
+            new CreateIndexModel<Game>(Builders<Game>.IndexKeys.Ascending(g => g.CreatedAt)),
+            new CreateIndexModel<Game>(Builders<Game>.IndexKeys.Ascending(g => g.Name)),
+            new CreateIndexModel<Game>(Builders<Game>.IndexKeys.Ascending(g => g.Id)),
+        }
+
+        );
     }
 
     public async Task<Game> CreateGame(string name, string userid)
