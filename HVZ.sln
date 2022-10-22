@@ -9,9 +9,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HVZ.Models", "HVZ.Models\HV
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HVZ.Web", "HVZ.Web\HVZ.Web.csproj", "{A015B3E2-3E3A-4504-A20F-EB7A2F26610D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HVZ.Datastore", "HVZ.Datastore\HVZ.Datastore.csproj", "{DDA3D690-D9B1-4404-8F3A-4448ABCAE214}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HVZ.Persistence", "HVZ.Persistence\HVZ.Persistence.csproj", "{DDA3D690-D9B1-4404-8F3A-4448ABCAE214}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HVZ.Datastore.MongoDB", "HVZ.Datastore.MongoDB\HVZ.Datastore.MongoDB.csproj", "{4AF84EDD-F4B7-4315-9EE4-63EAECCA25FC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HVZ.Persistence.MongoDB", "HVZ.Persistence.MongoDB\HVZ.Persistence.MongoDB.csproj", "{4AF84EDD-F4B7-4315-9EE4-63EAECCA25FC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HVZ.Tests", "HVZ.Tests\HVZ.Tests.csproj", "{66120091-6BF5-4998-88CF-2B70DE8033C4}"
 EndProject

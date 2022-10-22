@@ -3,9 +3,9 @@ using NUnit.Framework;
 using NodaTime;
 using Moq;
 using HVZ.Models;
-using HVZ.Datastore.MongoDB.Repos;
+using HVZ.Persistence.MongoDB.Repos;
 using MongoDB.Driver;
-namespace HVZ.Datastore.MongoDB.Tests;
+namespace HVZ.Persistence.MongoDB.Tests;
 
 [Parallelizable(ParallelScope.All)]
 public class GameRepoTest : MongoTestBase

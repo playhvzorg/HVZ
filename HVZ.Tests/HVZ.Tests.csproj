@@ -18,8 +18,8 @@
     <PackageReference Include="Moq" Version="4.18.2"/>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\HVZ.Datastore.MongoDB\HVZ.Datastore.MongoDB.csproj"/>
-    <ProjectReference Include="..\HVZ.Datastore\HVZ.Datastore.csproj"/>
+    <ProjectReference Include="..\HVZ.Persistence.MongoDB\HVZ.Persistence.MongoDB.csproj"/>
+    <ProjectReference Include="..\HVZ.Persistence\HVZ.Persistence.csproj"/>
     <ProjectReference Include="..\HVZ.Models\HVZ.Models.csproj"/>
   </ItemGroup>
 

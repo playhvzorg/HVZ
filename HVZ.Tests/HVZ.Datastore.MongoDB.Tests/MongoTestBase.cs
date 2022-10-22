@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using NUnit.Framework;
-using HVZ.Datastore.MongoDB.Serializers;
+using HVZ.Persistence.MongoDB.Serializers;
 
-namespace HVZ.Datastore.MongoDB.Tests
+namespace HVZ.Persistence.MongoDB.Tests
 {
     /// <summary>
     /// Base class for tests that need to operate on an actual MongoDB server.

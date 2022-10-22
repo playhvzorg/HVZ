@@ -2,7 +2,7 @@
 
 using MongoDB.Bson.Serialization;
 
-namespace HVZ.Datastore.MongoDB.Serializers
+namespace HVZ.Persistence.MongoDB.Serializers
 {
     /// <summary>
     /// Offers a convenient way to register all serializers that should be globally registered

@@ -3,7 +3,7 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using NodaTime;
 
-namespace HVZ.Datastore.MongoDB.Serializers
+namespace HVZ.Persistence.MongoDB.Serializers
 {
     public class InstantSerializer : SerializerBase<Instant>
     {

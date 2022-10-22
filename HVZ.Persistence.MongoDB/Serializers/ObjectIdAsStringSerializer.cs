@@ -3,7 +3,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 
-namespace HVZ.Datastore.MongoDB.Serializers;
+namespace HVZ.Persistence.MongoDB.Serializers;
 
 /// <summary>
 /// A serializer for representing Ids as <see cref="ObjectId"/> in the database but as <see cref="string"/> in code.

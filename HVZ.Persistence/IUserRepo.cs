@@ -1,4 +1,4 @@
-﻿namespace HVZ.Datastore;
+﻿namespace HVZ.Persistence;
 using HVZ.Models;
 public interface IUserRepo
 {

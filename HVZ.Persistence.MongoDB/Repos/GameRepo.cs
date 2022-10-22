@@ -2,15 +2,15 @@
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.IdGenerators;
 using HVZ.Models;
-using HVZ.Datastore.MongoDB.Serializers;
+using HVZ.Persistence.MongoDB.Serializers;
 using NodaTime;
-namespace HVZ.Datastore.MongoDB.Repos;
+namespace HVZ.Persistence.MongoDB.Repos;
 public class GameRepo : IGameRepo
 {
     private const string CollectionName = "Games";
     public readonly IMongoCollection<Game> Collection;
     private readonly IClock _clock;
-    
+
     /// <summary>
     /// This event fires when a new game is added to the repo
     /// </summary>
@@ -78,7 +78,7 @@ public class GameRepo : IGameRepo
     public async Task<Game?> FindByName(string name) =>
         await Collection.Find<Game>(g => g.Name == name).FirstOrDefaultAsync();
 
-    
+
     protected virtual void OnGameCreated(GameCreatedEventArgs g)
     {
         EventHandler<GameCreatedEventArgs>? handler = GameCreated;
