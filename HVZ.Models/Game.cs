@@ -16,76 +16,76 @@ public class Game
     /// ID of the user who created this game
     /// </summary>
     public string UserId { get; init; }
+    /// <summary>
+    /// Time that this game was created
+    /// </summary>
     public Instant CreatedAt { get; init; }
-    public enum GameState
-    {
-        Inactive,
-        Active,
-    }
     /// <summary>
-    /// current state of the game
+    /// Weather the game is currently active and tags should be processed
     /// </summary>
-    public GameState State { get; init; }
+    public Boolean IsActive { get; init; }
     /// <summary>
-    /// Users who are a human in this game
+    /// Players who are a human in this game
     /// </summary>
-    public HashSet<User> Humans { get; init; }
-    /// <summary>
-    /// Users who are zombies in this game
-    /// </summary>
-    public HashSet<User> Zombies { get; init; }
-    /// <summary>
-    /// Users who are OZs in this game
-    /// </summary>
-    /// <value></value>
-    public HashSet<User> Ozs { get; init; }
-    /// <summary>
-    /// All Users in this game
-    /// </summary>
-    /// <value></value>
-    public HashSet<User> Players
+    public HashSet<Player> Humans
     {
         get
         {
-            return Humans.Concat(Zombies).Concat(Ozs).ToHashSet<User>();
+            return Players.Where(P => P.Role == Player.gameRole.Human).ToHashSet();
         }
     }
     /// <summary>
-    /// Users who are Zombies or OZs
+    /// Players who are zombies in this game
     /// </summary>
-    /// <value></value>
-    public HashSet<User> ZombiesAndOzs
+    public HashSet<Player> Zombies
     {
         get
         {
-            return Zombies.Concat(Ozs).ToHashSet<User>();
+            return Players.Where(P => P.Role == Player.gameRole.Zombie).ToHashSet();
+        }
+    }
+    /// <summary>
+    /// Players who are OZs in this game
+    /// </summary>
+    /// <value></value>
+    public HashSet<Player> Ozs
+    {
+        get
+        {
+            return Players.Where(P => P.Role == Player.gameRole.Oz).ToHashSet();
+        }
+    }
+    /// <summary>
+    /// All Players in this game
+    /// </summary>
+    /// <value></value>
+    public HashSet<Player> Players { get; set; }
+    /// <summary>
+    /// Players who are Zombies or OZs
+    /// </summary>
+    /// <value></value>
+    public HashSet<Player> ZombiesAndOzs
+    {
+        get
+        {
+            return Players.Where(P => P.Role == Player.gameRole.Human || P.Role == Player.gameRole.Oz).ToHashSet();
         }
     }
 
     /// <summary>
-    /// The role to put new people in when they join a game
+    /// The role to put new people in when they join this game
     /// </summary>
-    public enum DefaultPlayerRole
-    {
-        Human,
-        Zombie
-    }
-    /// <summary>
-    /// The default role to put new people in when they join this game
-    /// </summary>
-    public DefaultPlayerRole DefaultRole { get; init; }
+    public Player.gameRole DefaultRole { get; init; }
 
-    public Game(string name, string id, string userid, Instant createdat, GameState state, DefaultPlayerRole defaultrole, HashSet<User> humans, HashSet<User> zombies, HashSet<User> ozs)
+    public Game(string name, string id, string userid, Instant createdat, Boolean isActive, Player.gameRole defaultrole, HashSet<Player> players)
     {
         Name = name;
         Id = id;
         UserId = userid;
         CreatedAt = createdat;
-        State = state;
+        IsActive = isActive;
         DefaultRole = defaultrole;
-        Humans = humans;
-        Zombies = zombies;
-        Ozs = ozs;
+        Players = players;
     }
 
     public override string ToString()

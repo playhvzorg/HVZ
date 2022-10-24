@@ -12,21 +12,34 @@ public interface IGameRepo
     /// Find a game by its Id
     /// </summary>
     /// <returns>The game with the given ID, or Null if no game is found</returns>
-    public Task<Game?> FindById(string id);
+    public Task<Game?> FindGameById(string id);
 
     /// <summary>
     /// Find a game from its name
     /// </summary>
     /// <returns>The game with the given name, or Null if no game is found</returns>
-    public Task<Game?> FindByName(string name);
+    public Task<Game?> FindGameByName(string name);
 
-    public event EventHandler<GameCreatedEventArgs> GameCreated;
+    /// <summary>
+    /// Find a player belonging to a specific game by their ID
+    /// </summary>
+    /// <param name="gameName"></param>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    public Task<Player?> FindPlayerByUserId(string gameName, string userId);
+
+    public event EventHandler<GameUpdatedEventArgs> GameCreated;
+    public event EventHandler<GameUpdatedEventArgs> PlayerJoinedGame;
+    public event EventHandler<GameUpdatedEventArgs> PlayerRoleChanged;
+    public event EventHandler<GameUpdatedEventArgs> TagLogged;
+    public event EventHandler<GameUpdatedEventArgs> GameUpdated;
+    
 }
 
-public class GameCreatedEventArgs : EventArgs
+public class GameUpdatedEventArgs : EventArgs
 {
     public Game game { get; init; }
-    public GameCreatedEventArgs(Game g)
+    public GameUpdatedEventArgs(Game g)
     {
         game = g;
     }
