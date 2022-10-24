@@ -21,19 +21,58 @@ public interface IGameRepo
     public Task<Game?> FindGameByName(string name);
 
     /// <summary>
-    /// Find a player belonging to a specific game by their ID
+    /// Find a player in a game by their global UserId
     /// </summary>
-    /// <param name="gameName"></param>
-    /// <param name="userId"></param>
-    /// <returns></returns>
+    /// <returns>The player with the given userId, or Null if no player is found</returns>
     public Task<Player?> FindPlayerByUserId(string gameName, string userId);
 
+    /// <summary>
+    /// Find a player in a game by their game-specific ID
+    /// </summary>
+    /// <returns>The player with the given userId, or Null if no player is found</returns>
+    public Task<Player?> FindPlayerByGameId(string gameName, string gameId);
+
+    /// <summary>
+    /// Add a new player to an existing game
+    /// </summary>
+    public Task<Game> AddPlayer(string gameName, string userId);
+
+    /// <summary>
+    /// Sets isActive for a game
+    /// </summary>
+    public Task<Game> SetActive(string gameName, bool active);
+
+    /// <summary>
+    /// Set the <see cref="HVZ.Models.Player.gameRole"/> of a player
+    /// </summary>
+    public Task<Game> SetPlayerToRole(string gameName, string userId, Player.gameRole role);
+
+    /// <summary>
+    /// Log a tag in the specified game
+    /// </summary>
+    public Task<Game> LogTag(string gameName, string taggerUserId, string taggeeGameId);
+
+    /// <summary>
+    /// Event that fires when a new game is created
+    /// </summary>
     public event EventHandler<GameUpdatedEventArgs> GameCreated;
+    /// <summary>
+    /// Event that fires when a player joins a game
+    /// </summary>
     public event EventHandler<GameUpdatedEventArgs> PlayerJoinedGame;
+    /// <summary>
+    /// Event that fires when a player's role is changed for a game
+    /// </summary>
     public event EventHandler<GameUpdatedEventArgs> PlayerRoleChanged;
+    /// <summary>
+    /// Event that first when a tag is logged in a game
+    /// </summary>
     public event EventHandler<GameUpdatedEventArgs> TagLogged;
+    /// <summary>
+    /// Event that fires when a game is updated, such as changing isActive status
+    /// </summary>
     public event EventHandler<GameUpdatedEventArgs> GameUpdated;
-    
+
 }
 
 public class GameUpdatedEventArgs : EventArgs

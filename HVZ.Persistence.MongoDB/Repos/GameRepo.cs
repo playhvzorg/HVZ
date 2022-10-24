@@ -166,13 +166,7 @@ public class GameRepo : IGameRepo
         OnPlayerRoleChanged(new(game));
         return newGame;
     }
-    /// <summary>
-    /// Log a tag in the given game.
-    /// </summary>
-    /// <param name="gameName"></param>
-    /// <param name="taggerUserId"></param>
-    /// <param name="taggeeGameId"></param>
-    /// <returns></returns>
+
     public async Task<Game> LogTag(string gameName, string taggerUserId, string taggeeGameId)
     {
         if (taggerUserId == taggeeGameId)
@@ -225,7 +219,7 @@ public class GameRepo : IGameRepo
         } while (game.Players.Where(p => p.GameId == id.ToString()).Count() > 0);
         return id.ToString();
     }
-    public virtual void OnGameCreated(GameUpdatedEventArgs g)
+    protected virtual void OnGameCreated(GameUpdatedEventArgs g)
     {
         EventHandler<GameUpdatedEventArgs>? handler = GameCreated;
         if (handler != null)
@@ -241,7 +235,7 @@ public class GameRepo : IGameRepo
             handler(this, g);
         }
     }
-     protected virtual void OnPlayerRoleChanged(GameUpdatedEventArgs g)
+    protected virtual void OnPlayerRoleChanged(GameUpdatedEventArgs g)
     {
         EventHandler<GameUpdatedEventArgs>? handler = PlayerRoleChanged;
         if (handler != null)
