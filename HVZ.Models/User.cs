@@ -7,13 +7,9 @@ public class User
     /// </summary>
     public string Id { get; init; }
     /// <summary>
-    /// Legal first name of the user
+    /// Given name of the user
     /// </summary>
-    public string FirstName { get; init; }
-    /// <summary>
-    /// Legal last name of the user
-    /// </summary>
-    public string LastName { get; init; }
+    public string Name { get; init; }
     /// <summary>
     /// Email address of the user
     /// </summary>
@@ -23,11 +19,10 @@ public class User
     /// </summary>
     public Instant CreatedAt { get; init; }
 
-    public User(string id, string firstname, string lastname, string email)
+    public User(string id, string name, string lastname, string email)
     {
         Id = id;
-        FirstName = firstname;
-        LastName = lastname;
+        Name = name;
         Email = email;
     }
 }

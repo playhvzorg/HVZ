@@ -11,9 +11,6 @@ public class GameRepo : IGameRepo
     public readonly IMongoCollection<Game> Collection;
     private readonly IClock _clock;
 
-    /// <summary>
-    /// This event fires when a new game is added to the repo
-    /// </summary>
     public event EventHandler<GameUpdatedEventArgs>? GameCreated;
     public event EventHandler<GameUpdatedEventArgs>? PlayerJoinedGame;
     public event EventHandler<GameUpdatedEventArgs>? PlayerRoleChanged;
@@ -60,9 +57,7 @@ public class GameRepo : IGameRepo
             new CreateIndexModel<Game>(Builders<Game>.IndexKeys.Ascending(g => g.CreatedAt)),
             new CreateIndexModel<Game>(Builders<Game>.IndexKeys.Ascending(g => g.Name)),
             new CreateIndexModel<Game>(Builders<Game>.IndexKeys.Ascending(g => g.Id)),
-        }
-
-        );
+        });
     }
 
     public async Task<Game> CreateGame(string name, string userid)
