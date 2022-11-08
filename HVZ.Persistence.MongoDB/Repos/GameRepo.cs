@@ -162,9 +162,9 @@ public class GameRepo : IGameRepo
         return newGame;
     }
 
-    public async Task<Game> LogTag(string gameName, string taggerUserId, string taggeeGameId)
+    public async Task<Game> LogTag(string gameName, string taggerUserId, string tagRecieverGameId)
     {
-        if (taggerUserId == taggeeGameId)
+        if (taggerUserId == tagRecieverGameId)
             throw new ArgumentException("userIds are equal, players cannot tag themselves");
 
         Game? game = await FindGameByName(gameName);
@@ -177,20 +177,20 @@ public class GameRepo : IGameRepo
         if (game.Players.Where(p => p.UserId == taggerUserId).Count() == 0)
             throw new ArgumentException($"Player {taggerUserId} not found in Game {gameName}!");
 
-        if (game.Players.Where(p => p.GameId == taggeeGameId).Count() == 0)
-            throw new ArgumentException($"Player {taggeeGameId} not found in Game {gameName}!");
+        if (game.Players.Where(p => p.GameId == tagRecieverGameId).Count() == 0)
+            throw new ArgumentException($"Player {tagRecieverGameId} not found in Game {gameName}!");
 
         var Players = game.Players;
         Player.gameRole taggerRole = Players.Where(p => p.UserId == taggerUserId).First().Role;
         if (taggerRole != Player.gameRole.Zombie && taggerRole != Player.gameRole.Oz)
             throw new ArgumentException($"Tagger {taggerUserId} is not a zombie or OZ!");
 
-        Player.gameRole taggeeRole = Players.Where(p => p.GameId == taggeeGameId).First().Role;
-        if (taggeeRole != Player.gameRole.Human)
-            throw new ArgumentException($"Taggee {taggeeGameId} is not Human!");
+        Player.gameRole tagRecieverRole = Players.Where(p => p.GameId == tagRecieverGameId).First().Role;
+        if (tagRecieverRole != Player.gameRole.Human)
+            throw new ArgumentException($"tagReciever {tagRecieverGameId} is not Human!");
 
         Players.Where(p => p.UserId == taggerUserId).First().Tags += 1;
-        Players.Where(p => p.GameId == taggeeGameId).First().Role = Player.gameRole.Zombie;
+        Players.Where(p => p.GameId == tagRecieverGameId).First().Role = Player.gameRole.Zombie;
 
         Game newGame = await Collection.FindOneAndUpdateAsync<Game>(g => g.Name == gameName,
             Builders<Game>.Update.Set(g => g.Players, Players),

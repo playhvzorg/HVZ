@@ -50,7 +50,7 @@ public interface IGameRepo
     /// <summary>
     /// Log a tag in the specified game
     /// </summary>
-    public Task<Game> LogTag(string gameName, string taggerUserId, string taggeeGameId);
+    public Task<Game> LogTag(string gameName, string taggerUserId, string tagRecieverGameId);
 
     /// <summary>
     /// Event that fires when a new game is created
