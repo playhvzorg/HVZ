@@ -2,17 +2,27 @@
 namespace HVZ.Models;
 public class User
 {
+    /// <summary>
+    /// User's unique identification
+    /// </summary>
     public string Id { get; init; }
-    public string FirstName { get; init; }
-    public string LastName { get; init; }
+    /// <summary>
+    /// Given name of the user
+    /// </summary>
+    public string Name { get; init; }
+    /// <summary>
+    /// Email address of the user
+    /// </summary>
     public string Email { get; init; }
+    /// <summary>
+    /// Time this user was created
+    /// </summary>
     public Instant CreatedAt { get; init; }
 
-    public User(string id, string firstname, string lastname, string email)
+    public User(string id, string name, string lastname, string email)
     {
         Id = id;
-        FirstName = firstname;
-        LastName = lastname;
+        Name = name;
         Email = email;
     }
 }

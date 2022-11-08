@@ -1,11 +1,16 @@
 namespace HVZ.Web;
 public class Webapp
 {
+    WebApplication app;
     public Webapp(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
-        var app = builder.Build();
+        app = builder.Build();
         app.MapGet("/", () => "Hello World!");
-        app.Run();
+    }
+
+    public Task RunAsnyc()
+    {
+        return app.RunAsync();
     }
 }
