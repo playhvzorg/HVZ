@@ -10,7 +10,7 @@ public class Webapp
         var builder = WebApplication.CreateBuilder(
             new WebApplicationOptions()
             {
-                ApplicationName = "HVZ.Web"
+                ApplicationName = "HVZ.Web",
             }
         );
 
