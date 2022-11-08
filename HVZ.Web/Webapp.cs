@@ -38,7 +38,6 @@ public class Webapp
         app.UseRouting();
 
         app.MapBlazorHub();
-
         app.MapFallbackToPage("/_Host");
 
         return app.RunAsync();
