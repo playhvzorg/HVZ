@@ -3,7 +3,7 @@ namespace HVZ.Core;
 
 internal static class Program
 {
-    static void Main(string[] args)
+    public static void Main(string[] args)
     {
         MainAsync(args).GetAwaiter().GetResult();
     }
