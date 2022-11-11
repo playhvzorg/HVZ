@@ -2,10 +2,9 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using HVZ.Web.Data;
 namespace HVZ.Web;
-public class Webapp
+internal static class Program
 {
-    WebApplication app;
-    public Webapp(string[] args)
+        public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(
             new WebApplicationOptions()
@@ -18,11 +17,8 @@ public class Webapp
         builder.Services.AddRazorPages();
         builder.Services.AddServerSideBlazor();
         builder.Services.AddSingleton<WeatherForecastService>();
-        app = builder.Build();
-    }
+        var app = builder.Build();
 
-    public Task RunAsnyc()
-    {
         // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
         {
@@ -40,8 +36,9 @@ public class Webapp
         app.MapBlazorHub();
         app.MapFallbackToPage("/_Host");
 
-        return app.RunAsync();
+        app.Run();
     }
+
 }
 
 
