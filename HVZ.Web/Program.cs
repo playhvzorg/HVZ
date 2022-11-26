@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-
 using Auth0.AspNetCore.Authentication;
-
 using HVZ.Web.Data;
+
 namespace HVZ.Web;
 internal static class Program
 {
