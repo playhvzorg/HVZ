@@ -25,7 +25,8 @@ public class GameRepo : IGameRepo
             cm.MapIdProperty(g => g.Id)
                 .SetIdGenerator(StringObjectIdGenerator.Instance)
                 .SetSerializer(ObjectIdAsStringSerializer.Instance);
-            cm.MapProperty(g => g.UserId);
+            cm.MapProperty(g => g.CreatorId);
+            cm.MapProperty(g => g.OrgId);
             cm.MapProperty(g => g.CreatedAt);
             cm.MapProperty(g => g.DefaultRole);
             cm.MapProperty(g => g.Players);
@@ -60,12 +61,16 @@ public class GameRepo : IGameRepo
         });
     }
 
-    public async Task<Game> CreateGame(string name, string userid)
+    public async Task<Game> CreateGame(string name, string creatorid)
     {
+        //TODO check user org
+        //if user isn't an org admin, disallow game creation
+        //disallow creation if there is an active game
+        //set active game in the org to this (block before returning from this method)
         Game game = new Game(
             name: name,
             id: string.Empty,
-            userid: userid,
+            creatorid: creatorid,
             createdat: _clock.GetCurrentInstant(),
             isActive: false,
             defaultrole: Player.gameRole.Human,
@@ -128,6 +133,7 @@ public class GameRepo : IGameRepo
 
     public async Task<Game> SetActive(string gameName, bool active)
     {
+        //TODO disallow if there is an active game in the org this game belongs to
         Game? game = await FindGameByName(gameName);
         if (game == null)
             throw new ArgumentException($"Game {gameName} not found!");

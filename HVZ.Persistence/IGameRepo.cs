@@ -5,9 +5,9 @@ public interface IGameRepo
     /// <summary>
     /// Add a new game to the repo
     /// </summary>
-    /// <param name="userid">The ID of the user who is creating this game</param>
+    /// <param name="creatorUserId">The ID of the user who is creating this game</param>
     /// <returns>The newly created game</returns>
-    public Task<Game> CreateGame(string Name, string userid);
+    public Task<Game> CreateGame(string Name, string creatorUserId);
     /// <summary>
     /// Find a game by its Id
     /// </summary>

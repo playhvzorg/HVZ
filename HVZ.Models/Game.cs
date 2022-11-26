@@ -15,7 +15,11 @@ public class Game
     /// <summary>
     /// ID of the user who created this game
     /// </summary>
-    public string UserId { get; init; }
+    public string CreatorId { get; init; }
+    /// <summary>
+    /// ID of the organization this game belongs to
+    /// </summary>
+    public string OrgId { get; init; }
     /// <summary>
     /// Time that this game was created
     /// </summary>
@@ -77,11 +81,12 @@ public class Game
     /// </summary>
     public Player.gameRole DefaultRole { get; init; }
 
-    public Game(string name, string id, string userid, Instant createdat, Boolean isActive, Player.gameRole defaultrole, HashSet<Player> players)
+    public Game(string name, string id, string creatorid, string orgid, Instant createdat, Boolean isActive, Player.gameRole defaultrole, HashSet<Player> players)
     {
         Name = name;
         Id = id;
-        UserId = userid;
+        CreatorId = creatorid;
+        OrgId = orgid;
         CreatedAt = createdat;
         IsActive = isActive;
         DefaultRole = defaultrole;
