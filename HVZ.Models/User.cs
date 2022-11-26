@@ -1,11 +1,12 @@
 ﻿using NodaTime;
 namespace HVZ.Models;
-public class User
+public class User : IdEquatable<User>
 {
     /// <summary>
     /// User's unique identification
     /// </summary>
     public string Id { get; init; }
+    protected override object EqualityId => Id;
     /// <summary>
     /// Given name of the user
     /// </summary>

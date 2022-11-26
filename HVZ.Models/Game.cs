@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using NodaTime;
 namespace HVZ.Models;
 
-public class Game
+public class Game : IdEquatable<Game>
 {
     /// <summary>
     /// Unique name of this game.
@@ -98,14 +98,5 @@ public class Game
         return $"HVZ.Game@{Name}.{Id}";
     }
 
-    public override bool Equals(object? obj)
-    {
-        //TODO: this can likely be improved
-        return obj != null && this.ToString().Equals(obj.ToString());
-    }
-
-    public override int GetHashCode()
-    {
-        return ToString().GetHashCode();
-    }
+    protected override object EqualityId => ToString();
 }
