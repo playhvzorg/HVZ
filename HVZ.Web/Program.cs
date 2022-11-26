@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+
+using Auth0.AspNetCore.Authentication;
+
 using HVZ.Web.Data;
 namespace HVZ.Web;
 internal static class Program
@@ -16,6 +19,15 @@ internal static class Program
         // Add services to the container.
         builder.Services.AddRazorPages();
         builder.Services.AddServerSideBlazor();
+        builder.Services.AddHttpClient();
+
+        builder.Services
+            .AddAuth0WebAppAuthentication( options => {
+                options.Domain = builder.Configuration["Auth0:Domain"];
+                options.ClientId = builder.Configuration["Auth0:ClientId"];
+                options.Scope = "openid profile email";
+            });
+
         builder.Services.AddSingleton<WeatherForecastService>();
         var app = builder.Build();
 
@@ -32,6 +44,9 @@ internal static class Program
         app.UseStaticFiles();
 
         app.UseRouting();
+
+        app.UseAuthentication();
+        app.UseAuthorization();
 
         app.MapBlazorHub();
         app.MapFallbackToPage("/_Host");
