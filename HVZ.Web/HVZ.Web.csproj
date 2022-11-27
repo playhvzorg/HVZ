@@ -11,4 +11,9 @@
     <PackageReference Include="Auth0.AspNetCore.Authentication" Version="1.0.4" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\HVZ.Persistence.MongoDB\HVZ.Persistence.MongoDB.csproj"/>
+    <ProjectReference Include="..\HVZ.Models\HVZ.Models.csproj"/>
+  </ItemGroup>
+
 </Project>

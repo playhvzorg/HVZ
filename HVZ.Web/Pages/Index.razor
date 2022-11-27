@@ -1,9 +1,37 @@
-﻿@page "/"
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@using Auth0.AspNetCore.Authentication
+@inject NavigationManager Navigation
+
+@page "/"
 
 <PageTitle>Index</PageTitle>
 
-<h1>Hello, world!</h1>
+<CascadingAuthenticationState>
 
-Welcome to your new app.
+    <AuthorizeView>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+        <Authorized>
+            <h1>
+                Hello, @context.User.Claims.FirstOrDefault(c => c.Type == "name")?.Value!
+            </h1>
+
+            <p>email: @context.User.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value.Split("|")[1] </p>
+            <p>nickname: @context.User.Claims.FirstOrDefault(c => c.Type == "nickname")?.Value </p>
+            <h3>Claims</h3>
+            @foreach (var claim in context.User.Claims)
+            {
+                <p>@claim.Type</p>
+                <p>@claim.Value</p>
+            }
+            
+        </Authorized>
+        <NotAuthorized>
+            <a href="Account/Login">Login</a>
+        </NotAuthorized>
+
+    </AuthorizeView>
+
+</CascadingAuthenticationState>
+

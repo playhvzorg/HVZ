@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Auth0.AspNetCore.Authentication;
 using HVZ.Web.Data;
+using HVZ.Persistence.MongoDB.Repos;
 
 namespace HVZ.Web;
 internal static class Program
@@ -28,6 +29,7 @@ internal static class Program
             });
 
         builder.Services.AddSingleton<WeatherForecastService>();
+        builder.Services.AddSingleton<GameRepo>();
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
