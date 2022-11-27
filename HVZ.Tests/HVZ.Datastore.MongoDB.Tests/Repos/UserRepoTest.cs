@@ -10,7 +10,7 @@ public class UserRepoTest : MongoTestBase
 {
     public UserRepo CreateUserRepo() =>
         new UserRepo(CreateTemporaryDatabase(), Mock.Of<IClock>());
-    
+
     [Test]
     public async Task create_then_read_are_equal()
     {
@@ -64,7 +64,7 @@ public class UserRepoTest : MongoTestBase
         string userName2 = "hamilton";
         string userEmail2 = "hamilton@playhvz.org";
         await userRepo.CreateUser(userName2, userEmail2);
-        
+
         User[] noUsers = await userRepo.FindUserByName("john");
         User[] oneUser = await userRepo.FindUserByName(userName2);
         User[] twoUsers = await userRepo.FindUserByName(userName1);

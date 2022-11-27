@@ -18,7 +18,7 @@ public class Organization : IdEquatable<Organization>
     /// ID of the user who owns this org.
     /// </summary>
     public string OwnerId { get; set; }
-    
+
     /// <summary>
     /// Set of userids who are moderators of this org.
     /// </summary>
@@ -37,13 +37,13 @@ public class Organization : IdEquatable<Organization>
     /// <summary>
     /// The game that is currently active within this org.
     /// </summary>
-    public string? ActiveGameId { get ; set; }
+    public string? ActiveGameId { get; set; }
 
     /// <summary>
     /// Time this org was created at.
     /// </summary>
     public Instant CreatedAt { get; init; }
-    
+
     public Organization(string id, string name, string ownerid, HashSet<string> moderators, HashSet<string> administrators, HashSet<Game> games, string? activegameid, Instant createdat)
     {
         Id = id;

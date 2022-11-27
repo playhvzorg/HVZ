@@ -42,7 +42,7 @@ public class OrgRepo : IOrgRepo
 
     public void InitIndexes()
     {
-        Collection.Indexes.CreateMany( new[]
+        Collection.Indexes.CreateMany(new[]
         {
             new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.Id)),
             new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.OwnerId)),
@@ -58,7 +58,7 @@ public class OrgRepo : IOrgRepo
             name: name,
             ownerid: creatorUserId,
             moderators: new(),
-            administrators: new(){creatorUserId},
+            administrators: new() { creatorUserId },
             games: new(),
             activegameid: null,
             createdat: _clock.GetCurrentInstant()
@@ -74,7 +74,7 @@ public class OrgRepo : IOrgRepo
     public async Task<Organization> GetOrgById(string orgId)
     {
         Organization? org = await FindOrgById(orgId);
-        if(org == null)
+        if (org == null)
             throw new ArgumentException($"Org with id {orgId} not found!");
         return (Organization)org;
     }
@@ -90,14 +90,14 @@ public class OrgRepo : IOrgRepo
     public async Task<Organization> SetActiveGameOfOrg(string orgId, string gameId)
     {
         Organization org = await GetOrgById(orgId);
-        if(org.ActiveGameId == gameId)
+        if (org.ActiveGameId == gameId)
             return org;
         else
             return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.ActiveGameId, gameId),
-            new() {ReturnDocument = ReturnDocument.After});
+            new() { ReturnDocument = ReturnDocument.After });
     }
-    
+
     public async Task<Game?> FindActiveGameOfOrg(string orgId)
     {
         Organization org = await GetOrgById(orgId);
@@ -114,24 +114,24 @@ public class OrgRepo : IOrgRepo
     {
         Organization org = await GetOrgById(orgId);
         await _userRepo.GetUserById(userId); //sanity check that the user exists
-        
+
         org.Administrators.Add(userId);
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Administrators, org.Administrators),
-            new(){ ReturnDocument = ReturnDocument.After}
+            new() { ReturnDocument = ReturnDocument.After }
             );
     }
 
     public async Task<Organization> RemoveAdmin(string orgId, string userId)
     {
         Organization org = await GetOrgById(orgId);
-        if(org.OwnerId == userId)
+        if (org.OwnerId == userId)
             throw new ArgumentException($"User with ID {userId} is the owner of org with id {org.Id}, cannot remove them from this org's admins.");
-        
+
         org.Administrators.Remove(userId);
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Administrators, org.Administrators),
-            new(){ ReturnDocument = ReturnDocument.After}
+            new() { ReturnDocument = ReturnDocument.After }
             );
     }
 
@@ -146,7 +146,7 @@ public class OrgRepo : IOrgRepo
         Organization org = await GetOrgById(orgId);
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.OwnerId, newOwnerId),
-            new(){ ReturnDocument = ReturnDocument.After}
+            new() { ReturnDocument = ReturnDocument.After }
             );
     }
 
@@ -154,22 +154,22 @@ public class OrgRepo : IOrgRepo
     {
         Organization org = await GetOrgById(orgId);
         await _userRepo.GetUserById(userId); //sanity check that the user exists
-        
+
         org.Moderators.Add(userId);
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Moderators, org.Moderators),
-            new(){ ReturnDocument = ReturnDocument.After}
+            new() { ReturnDocument = ReturnDocument.After }
             );
     }
 
     public async Task<Organization> RemoveModerator(string orgId, string userId)
     {
         Organization org = await GetOrgById(orgId);
-        
+
         org.Moderators.Remove(userId);
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Moderators, org.Moderators),
-            new(){ ReturnDocument = ReturnDocument.After}
+            new() { ReturnDocument = ReturnDocument.After }
             );
     }
 }

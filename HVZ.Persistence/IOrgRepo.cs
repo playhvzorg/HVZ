@@ -13,7 +13,7 @@ public interface IOrgRepo
     public Task<Organization> GetOrgByName(string name);
 
     public Task<Organization> SetActiveGameOfOrg(string orgId, string gameId);
-    
+
     public Task<Game?> FindActiveGameOfOrg(string orgId);
 
     public Task<HashSet<string>> GetAdminsOfOrg(string orgId);

@@ -14,7 +14,7 @@ public class UserRepo : IUserRepo
 
     static UserRepo()
     {
-        BsonClassMap.RegisterClassMap<User>( cm =>
+        BsonClassMap.RegisterClassMap<User>(cm =>
         {
             cm.MapIdProperty(u => u.Id)
                 .SetIdGenerator(StringObjectIdGenerator.Instance)
@@ -35,7 +35,7 @@ public class UserRepo : IUserRepo
 
     public void InitIndexes()
     {
-        Collection.Indexes.CreateMany( new[]
+        Collection.Indexes.CreateMany(new[]
         {
             new CreateIndexModel<User>(Builders<User>.IndexKeys.Ascending(u => u.Id)),
             new CreateIndexModel<User>(Builders<User>.IndexKeys.Ascending(u => u.Name)),
@@ -46,9 +46,9 @@ public class UserRepo : IUserRepo
     public async Task<User> CreateUser(string name, string email)
     {
         //Ensure email is Unique
-        if(await Collection.Find(u => u.Email == email).AnyAsync())
+        if (await Collection.Find(u => u.Email == email).AnyAsync())
             throw new ArgumentException($"There is already a user registered with the email {email}");
-        
+
         User user = new(
             id: string.Empty,
             name: name,
@@ -61,20 +61,20 @@ public class UserRepo : IUserRepo
 
     public async Task<User?> FindUserById(string userId)
         => userId == string.Empty ? null : await Collection.Find(u => u.Id == userId).FirstAsync();
-    
+
     public async Task<User[]> FindUserByName(string name)
     {
-        if(name == string.Empty)
+        if (name == string.Empty)
             throw new ArgumentException("Name must not be empty");
-        
+
         var users = await Collection.Find(u => u.Name.ToLower().Contains(name.ToLower())).ToListAsync();
         return users.ToArray();
     }
-    
+
     public async Task<User> GetUserById(string userId)
     {
         User? user = await FindUserById(userId);
-        if(user ==  null)
+        if (user == null)
             throw new ArgumentException($"User with ID {userId} not found!");
         return (User)user;
     }

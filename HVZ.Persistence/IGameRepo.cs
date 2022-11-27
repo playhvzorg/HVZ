@@ -26,7 +26,7 @@ public interface IGameRepo
     /// </summary>
     /// <returns>The game with the given name, or Null if no game is found</returns>
     public Task<Game?> FindGameByName(string name);
-    
+
     /// <summary>
     /// Get a game by its name
     /// </summary>

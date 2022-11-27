@@ -16,9 +16,9 @@ public class OrgRepotest : MongoTestBase
     [SetUp]
     public void SetUp()
     {
-    userRepoMock = new Mock<IUserRepo>();
-    gameRepoMock = new Mock<IGameRepo>();
-    orgRepo = new OrgRepo(CreateTemporaryDatabase(), Mock.Of<IClock>(), userRepoMock.Object, gameRepoMock.Object);
+        userRepoMock = new Mock<IUserRepo>();
+        gameRepoMock = new Mock<IGameRepo>();
+        orgRepo = new OrgRepo(CreateTemporaryDatabase(), Mock.Of<IClock>(), userRepoMock.Object, gameRepoMock.Object);
 
     }
 
@@ -28,7 +28,7 @@ public class OrgRepotest : MongoTestBase
         string orgname = "test";
         string userid = "0";
 
-        
+
         Organization createdOrg = await orgRepo.CreateOrg(orgname, userid);
         Organization foundOrg = await orgRepo.Collection.Find(o => o.OwnerId == userid).FirstAsync();
 
@@ -59,9 +59,9 @@ public class OrgRepotest : MongoTestBase
 
         Organization createdOrg = await orgRepo.CreateOrg(orgname, userid);
         Organization foundOrg = await orgRepo.GetOrgById(createdOrg.Id);
-        
+
         Assert.ThrowsAsync<ArgumentException>(() => orgRepo.GetOrgById("none"));
-        
+
     }
 
     [Test]
@@ -89,7 +89,7 @@ public class OrgRepotest : MongoTestBase
         Organization org = await orgRepo.CreateOrg(orgname, userid);
 
         Assert.That(org.ActiveGameId, Is.Null);
-        
+
         org = await orgRepo.SetActiveGameOfOrg(org.Id, gameid);
 
         Assert.That(org.ActiveGameId, Is.EqualTo(gameid));
@@ -131,7 +131,7 @@ public class OrgRepotest : MongoTestBase
         string userid1 = "1";
         string userid2 = "2";
         Organization org = await orgRepo.CreateOrg(orgname, userid1);
-        
+
         org = await orgRepo.AddAdmin(org.Id, userid2);
         Assert.That(org.Administrators.Contains(userid2), Is.True);
 
@@ -158,7 +158,7 @@ public class OrgRepotest : MongoTestBase
 
         Assert.ThrowsAsync<ArgumentException>(() => orgRepo.RemoveAdmin(org.Id, userid));
     }
-    
+
     [Test]
     public async Task test_getorgmods()
     {
@@ -177,7 +177,7 @@ public class OrgRepotest : MongoTestBase
         string orgname = "test";
         string userid1 = "1";
         Organization org = await orgRepo.CreateOrg(orgname, userid1);
-        
+
         org = await orgRepo.AddModerator(org.Id, userid1);
         Assert.That(org.Moderators.Contains(userid1), Is.True);
 

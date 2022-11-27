@@ -96,7 +96,7 @@ public class GameRepo : IGameRepo
     }
     public async Task<Game?> FindGameByName(string name) =>
         await Collection.Find<Game>(g => g.Name == name).FirstOrDefaultAsync();
-    
+
     public async Task<Game> GetGameByName(string name)
     {
         Game? game = await FindGameByName(name);
