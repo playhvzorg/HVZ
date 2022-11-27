@@ -32,8 +32,3 @@ Open `appsettings.json` and add the `Auth0` block replacing `YOUR_AUTH0_DOMAIN` 
 ```
 
 > Be sure to avoid pushing your ClientID!
-
-## Useful Resources
-
-* [Auth0 With Blazor](https://auth0.com/blog/what-is-blazor-tutorial-on-building-webapp-with-authentication/#Securing-the-Application-with-Auth0)
-* [OpenID Connect Scopes](https://auth0.com/docs/get-started/apis/scopes/openid-connect-scopes)
