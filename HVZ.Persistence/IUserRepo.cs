@@ -6,16 +6,21 @@ public interface IUserRepo
     /// Create a new user in the repo
     /// </summary>
     /// <returns>The newly created user</returns>
-    public User CreateUser(string firstname, string lastname, string email);
+    public Task<User> CreateUser(string name, string email);
     /// <summary>
     /// Find a player from their ID
     /// </summary>
     /// <returns>The found user or Null if no user found</returns>
-    public User? FindById(string id);
+    public Task<User?> FindUserById(string id);
     /// <summary>
-    /// Find all users with the given first and last name
-    /// Null can be passed if only first or last name is known
+    /// Find all users with the given name
     /// </summary>
-    /// <returns>List of users found or Null if there are none</returns>
-    public User[]? FindByName(string? firstname, string? lastname);
+    /// <returns>List of users found which may be empty</returns>
+    public Task<User[]> FindUserByName(string name);
+
+    /// <summary>
+    /// Get a user by their ID
+    /// </summary>
+    /// <returns>The user. Throws ArgumentException when no user found</returns>
+    public Task<User> GetUserById(string id);
 }

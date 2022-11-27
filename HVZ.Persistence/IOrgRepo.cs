@@ -6,9 +6,14 @@ public interface IOrgRepo
 
     public Task<Organization?> FindOrgById(string orgId);
 
+    public Task<Organization> GetOrgById(string orgId);
+
     public Task<Organization?> FindOrgByName(string name);
 
+    public Task<Organization> GetOrgByName(string name);
+
     public Task<Organization> SetActiveGameOfOrg(string orgId, string gameId);
+    
     public Task<Game?> FindActiveGameOfOrg(string orgId);
 
     public Task<HashSet<string>> GetAdminsOfOrg(string orgId);
