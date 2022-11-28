@@ -1,4 +1,5 @@
 using MongoDB.Driver;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.IdGenerators;
 using HVZ.Models;
@@ -27,7 +28,10 @@ public class UserRepo : IUserRepo
 
     public UserRepo(IMongoDatabase database, IClock clock)
     {
-        database.CreateCollection(CollectionName);
+        var filter = new BsonDocument("name", CollectionName);
+        var collections = database.ListCollections(new ListCollectionsOptions { Filter = filter });
+        if (!collections.Any())
+            database.CreateCollection(CollectionName);
         Collection = database.GetCollection<User>(CollectionName);
         _clock = clock;
         InitIndexes();

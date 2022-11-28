@@ -1,9 +1,11 @@
 ﻿using MongoDB.Driver;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.IdGenerators;
 using HVZ.Models;
 using HVZ.Persistence.MongoDB.Serializers;
 using NodaTime;
+
 namespace HVZ.Persistence.MongoDB.Repos;
 public class GameRepo : IGameRepo
 {
@@ -44,8 +46,11 @@ public class GameRepo : IGameRepo
         });
     }
     public GameRepo(IMongoDatabase database, IClock clock)
-    {
-        database.CreateCollection(CollectionName);
+    {   
+        var filter = new BsonDocument("name", CollectionName);
+        var collections = database.ListCollections(new ListCollectionsOptions { Filter = filter });
+        if (!collections.Any())
+            database.CreateCollection(CollectionName);
         Collection = database.GetCollection<Game>(CollectionName);
         _clock = clock;
         InitIndexes();

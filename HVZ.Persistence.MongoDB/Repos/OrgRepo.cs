@@ -1,4 +1,5 @@
 using MongoDB.Driver;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.IdGenerators;
 using HVZ.Models;
@@ -32,7 +33,10 @@ public class OrgRepo : IOrgRepo
 
     public OrgRepo(IMongoDatabase database, IClock clock, IUserRepo userRepo, IGameRepo gameRepo)
     {
-        database.CreateCollection(CollectionName);
+        var filter = new BsonDocument("name", CollectionName);
+        var collections = database.ListCollections(new ListCollectionsOptions { Filter = filter });
+        if (!collections.Any())
+            database.CreateCollection(CollectionName);
         Collection = database.GetCollection<Organization>(CollectionName);
         _userRepo = userRepo;
         _gameRepo = gameRepo;
