@@ -41,7 +41,13 @@ internal static class Program
             builder.Configuration["DatabaseSettings:DatabaseName"]
         );
 
-        builder.Services.AddSingleton<IGameRepo>(new GameRepo(mongoDatabase, SystemClock.Instance));
+        IGameRepo gameRepo = new GameRepo(mongoDatabase, SystemClock.Instance);
+        IUserRepo userRepo = new UserRepo(mongoDatabase, SystemClock.Instance);
+        IOrgRepo  orgRepo  = new OrgRepo(mongoDatabase, SystemClock.Instance, userRepo, gameRepo);
+
+        builder.Services.AddSingleton<IGameRepo>(gameRepo);
+        builder.Services.AddSingleton<IUserRepo>(userRepo);
+        builder.Services.AddSingleton<IOrgRepo>(orgRepo);
 
         #endregion
         builder.Services.AddSingleton<WeatherForecastService>();
