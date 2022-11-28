@@ -5,7 +5,7 @@ namespace HVZ.Models;
 /// Represents all of the info about a user in a specific game.
 /// One User may be a Player in multiple different Games.
 /// </summary>
-public class Player
+public class Player : IdEquatable<Player>
 {
     /// <summary>
     /// The userid of the Player, matching to their User
@@ -16,6 +16,8 @@ public class Player
     /// Id of the player in a specific game
     /// </summary>
     public string GameId { get; set; }
+
+    protected override object EqualityId => UserId + "@" + GameId;
 
     public enum gameRole
     {

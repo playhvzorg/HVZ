@@ -5,9 +5,10 @@ public interface IGameRepo
     /// <summary>
     /// Add a new game to the repo
     /// </summary>
-    /// <param name="userid">The ID of the user who is creating this game</param>
+    /// <param name="creatorUserId">The ID of the user who is creating this game</param>
+    /// <param name="orgid">The ID of the Organization this game belongs to</param>
     /// <returns>The newly created game</returns>
-    public Task<Game> CreateGame(string Name, string userid);
+    public Task<Game> CreateGame(string Name, string creatorUserId, string orgid);
     /// <summary>
     /// Find a game by its Id
     /// </summary>
@@ -15,10 +16,22 @@ public interface IGameRepo
     public Task<Game?> FindGameById(string id);
 
     /// <summary>
+    /// Get a game by its Id
+    /// </summary>
+    /// <returns>The game with the given ID. Throws an exception when no game found</returns>
+    public Task<Game> GetGameById(string id);
+
+    /// <summary>
     /// Find a game from its name
     /// </summary>
     /// <returns>The game with the given name, or Null if no game is found</returns>
     public Task<Game?> FindGameByName(string name);
+
+    /// <summary>
+    /// Get a game by its name
+    /// </summary>
+    /// <returns>The game with the given name. Throws an exception when no game found</returns>
+    public Task<Game> GetGameByName(string name);
 
     /// <summary>
     /// Find a player in a game by their global UserId
