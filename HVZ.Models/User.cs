@@ -20,7 +20,7 @@ public class User : IdEquatable<User>
     /// </summary>
     public Instant CreatedAt { get; init; }
 
-    public User(string id, string name, string lastname, string email)
+    public User(string id, string name, string email)
     {
         Id = id;
         Name = name;
