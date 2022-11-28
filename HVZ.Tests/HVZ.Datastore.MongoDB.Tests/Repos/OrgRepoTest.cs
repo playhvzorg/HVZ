@@ -184,4 +184,20 @@ public class OrgRepotest : MongoTestBase
         org = await orgRepo.RemoveModerator(org.Id, userid1);
         Assert.That(org.Moderators.Contains(userid1), Is.False);
     }
+    [Test]
+    public async Task test_setorgowner()
+    {
+        string orgname = "test";
+        string userid1 = "1";
+        string userid2 = "2";
+        Organization org = await orgRepo.CreateOrg(orgname, userid1);
+
+        //this should fail because userid2 is not an admin in the org
+        Assert.ThrowsAsync<ArgumentException>(async () => await orgRepo.SetOwner(org.Id, userid2));
+
+        await orgRepo.AddAdmin(org.Id, userid2);
+        org = await orgRepo.SetOwner(org.Id, userid2);
+
+        Assert.That(org.OwnerId, Is.EqualTo(userid2));
+    }
 }
