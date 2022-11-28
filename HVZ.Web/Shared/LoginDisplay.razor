@@ -9,21 +9,12 @@
     <AuthorizeView>
 
         <Authorized>
-            Hello, @context.User.Claims.FirstOrDefault(c => c.Type == "user_id")?.Value !
-            <a href="Account/Logout">Logout</a>
-            <button @onclick="PrintConsoleInfo" class="btn btn-primary"> Click to print somme console stuff </button>
+            <a href="Account/Logout" class="btn btn-primary">Logout</a>
         </Authorized>
         <NotAuthorized>
-            <a href="Account/Login">Login</a>
+            <a href="Account/Login" class="btn btn-primary">Login</a>
         </NotAuthorized>
 
     </AuthorizeView>
 
 </CascadingAuthenticationState>
-
-@code {
-    void PrintConsoleInfo()
-    {
-        Console.WriteLine("Hello");
-    }
-}

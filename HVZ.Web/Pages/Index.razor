@@ -16,19 +16,9 @@
             <h1>
                 Hello, @context.User.Claims.FirstOrDefault(c => c.Type == "name")?.Value!
             </h1>
-
-            <p>email: @context.User.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value.Split("|")[1] </p>
-            <p>nickname: @context.User.Claims.FirstOrDefault(c => c.Type == "nickname")?.Value </p>
-            <h3>Claims</h3>
-            @foreach (var claim in context.User.Claims)
-            {
-                <p>@claim.Type</p>
-                <p>@claim.Value</p>
-            }
-            
         </Authorized>
         <NotAuthorized>
-            <a href="Account/Login">Login</a>
+            <a href="Account/Login" class="btn btn-primary btn-lg">Login</a>
         </NotAuthorized>
 
     </AuthorizeView>

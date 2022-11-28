@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PorjectReference Include="..\HVZ.Persistence\HVZ.Persistence.csproj" />
     <ProjectReference Include="..\HVZ.Persistence.MongoDB\HVZ.Persistence.MongoDB.csproj"/>
     <ProjectReference Include="..\HVZ.Models\HVZ.Models.csproj"/>
   </ItemGroup>
