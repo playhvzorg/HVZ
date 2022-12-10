@@ -6,6 +6,7 @@ using HVZ.Web.Identity.Models;
 
 namespace HVZ.Web.Pages
 {
+    [Authorize]
     public class LogoutModel : PageModel
     {
         private SignInManager<ApplicationUser> signInManager;
@@ -15,7 +16,7 @@ namespace HVZ.Web.Pages
             this.signInManager = signInManager;
         }
 
-        [Authorize]
+
         public async Task<IActionResult> OnGet()
         {
             await signInManager.SignOutAsync();
