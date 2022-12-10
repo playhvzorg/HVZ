@@ -5,7 +5,6 @@ using HVZ.Persistence.MongoDB.Repos;
 using HVZ.Web.Identity;
 using HVZ.Web.Identity.Models;
 using HVZ.Web.Settings;
-using HVZ.Web.Services;
 using MongoDB.Driver;
 using NodaTime;
 
@@ -25,16 +24,6 @@ internal static class Program
         builder.Services.AddRazorPages();
         builder.Services.AddServerSideBlazor();
         builder.Services.AddHttpClient();
-        
-        #region Images
-
-        ImageServiceOptions options = new();
-        builder.Configuration.GetSection(
-            nameof(ImageServiceOptions)
-        ).Bind(options);
-        builder.Services.AddSingleton<ImageService>();
-
-        #endregion
 
         #region Persistence
         var mongoClient = new MongoClient(
