@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using NodaTime;
 namespace HVZ.Models;
 
-public class Game
+public class Game : IdEquatable<Game>
 {
     /// <summary>
     /// Unique name of this game.
@@ -11,11 +11,15 @@ public class Game
     /// <summary>
     /// Unique identifier of this specific game
     /// </summary>
-    public string Id { get; init; }
+    public string GameId { get; init; }
     /// <summary>
     /// ID of the user who created this game
     /// </summary>
-    public string UserId { get; init; }
+    public string CreatorId { get; init; }
+    /// <summary>
+    /// ID of the organization this game belongs to
+    /// </summary>
+    public string OrgId { get; init; }
     /// <summary>
     /// Time that this game was created
     /// </summary>
@@ -77,11 +81,12 @@ public class Game
     /// </summary>
     public Player.gameRole DefaultRole { get; init; }
 
-    public Game(string name, string id, string userid, Instant createdat, Boolean isActive, Player.gameRole defaultrole, HashSet<Player> players)
+    public Game(string name, string gameid, string creatorid, string orgid, Instant createdat, Boolean isActive, Player.gameRole defaultrole, HashSet<Player> players)
     {
         Name = name;
-        Id = id;
-        UserId = userid;
+        GameId = gameid;
+        CreatorId = creatorid;
+        OrgId = orgid;
         CreatedAt = createdat;
         IsActive = isActive;
         DefaultRole = defaultrole;
@@ -90,17 +95,8 @@ public class Game
 
     public override string ToString()
     {
-        return $"HVZ.Game@{Name}.{Id}";
+        return $"HVZ.Game@{Name}.{GameId}";
     }
 
-    public override bool Equals(object? obj)
-    {
-        //TODO: this can likely be improved
-        return obj != null && this.ToString().Equals(obj.ToString());
-    }
-
-    public override int GetHashCode()
-    {
-        return ToString().GetHashCode();
-    }
+    protected override object EqualityId => ToString();
 }
