@@ -27,7 +27,8 @@ public class OrgRepo : IOrgRepo
             cm.MapProperty(o => o.Administrators);
             cm.MapProperty(o => o.Games);
             cm.MapProperty(o => o.ActiveGameId);
-            cm.MapProperty(o => o.CreatedAt);
+            cm.MapProperty(o => o.CreatedAt)
+                .SetSerializer(InstantSerializer.Instance);
         });
     }
 

@@ -22,7 +22,8 @@ public class UserRepo : IUserRepo
                 .SetSerializer(ObjectIdAsStringSerializer.Instance);
             cm.MapProperty(u => u.Name);
             cm.MapProperty(u => u.Email);
-            cm.MapProperty(u => u.CreatedAt);
+            cm.MapProperty(u => u.CreatedAt)
+                .SetSerializer(InstantSerializer.Instance);
         });
     }
 
