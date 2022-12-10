@@ -230,9 +230,10 @@ public class OrgRepotest : MongoTestBase
     public async Task test_setorgowner()
     {
         string orgname = "test";
+        string orgurl = "testurl";
         string userid1 = "1";
         string userid2 = "2";
-        Organization org = await orgRepo.CreateOrg(orgname, userid1);
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid1);
 
         //this should fail because userid2 is not an admin in the org
         Assert.ThrowsAsync<ArgumentException>(async () => await orgRepo.SetOwner(org.Id, userid2));
