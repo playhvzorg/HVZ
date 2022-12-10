@@ -108,7 +108,7 @@ public class OrgRepotest : MongoTestBase
         string userid = "0";
 
         Organization createdOrg = await orgRepo.CreateOrg(orgname, orgurl, userid);
-        Organization foundOrg = await orgRepo.GetOrgByUrl(createdOrg.Id);
+        Organization foundOrg = await orgRepo.GetOrgByUrl(orgurl);
 
         Assert.ThrowsAsync<ArgumentException>(() => orgRepo.GetOrgByUrl("none"));
     }
