@@ -1,0 +1,13 @@
+@using HVZ.Web.Services
+@inject ImageService ImageService
+
+<img src="@ImageService.GetThumbnailMedium(Id)" onerror="this.src='images/default_user_thumbnail_medium.jpeg'" style="@style" alt="">
+
+@code
+{
+    [Parameter]
+    public string Id { get; set; } = "";
+
+    [Parameter]
+    public string style { get; set; } = "";
+}

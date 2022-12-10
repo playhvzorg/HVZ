@@ -4,6 +4,8 @@ using Auth0.AspNetCore.Authentication;
 using HVZ.Web.Data;
 using HVZ.Persistence;
 using HVZ.Persistence.MongoDB.Repos;
+using HVZ.Web.Settings;
+using HVZ.Web.Services;
 using MongoDB.Driver;
 using HVZ.Models;
 using NodaTime;
@@ -25,12 +27,15 @@ internal static class Program
         builder.Services.AddServerSideBlazor();
         builder.Services.AddHttpClient();
 
-        builder.Services
-            .AddAuth0WebAppAuthentication( options => {
-                options.Domain = builder.Configuration["Auth0:Domain"];
-                options.ClientId = builder.Configuration["Auth0:ClientId"];
-                options.Scope = "openid profile email";
-            });
+        #region Images
+
+        ImageServiceOptions options = new();
+        builder.Configuration.GetSection(
+            nameof(ImageServiceOptions)
+        ).Bind(options);
+        builder.Services.AddSingleton<ImageService>();
+
+        #endregion
         
         #region Persistence
         var mongoClient = new MongoClient(
