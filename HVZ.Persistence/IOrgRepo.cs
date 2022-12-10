@@ -2,11 +2,15 @@ namespace HVZ.Persistence;
 using HVZ.Models;
 public interface IOrgRepo
 {
-    public Task<Organization> CreateOrg(string name, string creatorUserId);
+    public Task<Organization> CreateOrg(string name, string url, string creatorUserId);
 
     public Task<Organization?> FindOrgById(string orgId);
 
     public Task<Organization> GetOrgById(string orgId);
+
+    public Task<Organization?> FindOrgByUrl(string url);
+
+    public Task<Organization> GetOrgByUrl(string url);
 
     public Task<Organization?> FindOrgByName(string name);
 

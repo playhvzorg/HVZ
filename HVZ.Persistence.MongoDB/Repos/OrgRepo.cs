@@ -22,6 +22,7 @@ public class OrgRepo : IOrgRepo
                 .SetIdGenerator(StringObjectIdGenerator.Instance)
                 .SetSerializer(ObjectIdAsStringSerializer.Instance);
             cm.MapProperty(o => o.Name);
+            cm.MapProperty(o => o.Url);
             cm.MapProperty(o => o.OwnerId);
             cm.MapProperty(o => o.Moderators);
             cm.MapProperty(o => o.Administrators);
@@ -55,9 +56,9 @@ public class OrgRepo : IOrgRepo
         });
     }
 
-    public async Task<Organization> CreateOrg(string name, string creatorUserId)
+    public async Task<Organization> CreateOrg(string name, string url, string creatorUserId)
     {
-        await _userRepo.GetUserById(creatorUserId);
+        // await _userRepo.GetUserById(creatorUserId);
         Organization org = new(
             id: string.Empty,
             name: name,
@@ -66,7 +67,8 @@ public class OrgRepo : IOrgRepo
             administrators: new() { creatorUserId },
             games: new(),
             activegameid: null,
-            createdat: _clock.GetCurrentInstant()
+            createdat: _clock.GetCurrentInstant(),
+            url: url
         );
         await Collection.InsertOneAsync(org);
 
@@ -81,6 +83,17 @@ public class OrgRepo : IOrgRepo
         Organization? org = await FindOrgById(orgId);
         if (org == null)
             throw new ArgumentException($"Org with id {orgId} not found!");
+        return (Organization)org;
+    }
+
+    public async Task<Organization?> FindOrgByUrl(string url)
+        => url == string.Empty ? null : await Collection.Find<Organization>(o => o.Url == url).FirstAsync();
+
+    public async Task<Organization> GetOrgByUrl(string url)
+    {
+        Organization? org = await FindOrgById(url);
+        if(org == null)
+            throw new ArgumentException($"Org with url {url} not found!");
         return (Organization)org;
     }
 

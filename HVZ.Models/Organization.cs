@@ -10,6 +10,11 @@ public class Organization : IdEquatable<Organization>
     protected override object EqualityId => Id;
 
     /// <summary>
+    /// URL parameter of the org.
+    /// </summary>
+    public string Url { get; set; }
+
+    /// <summary>
     /// Name of the org.
     /// </summary>
     public string Name { get; set; }
@@ -44,7 +49,7 @@ public class Organization : IdEquatable<Organization>
     /// </summary>
     public Instant CreatedAt { get; init; }
 
-    public Organization(string id, string name, string ownerid, HashSet<string> moderators, HashSet<string> administrators, HashSet<Game> games, string? activegameid, Instant createdat)
+    public Organization(string id, string name, string ownerid, HashSet<string> moderators, HashSet<string> administrators, HashSet<Game> games, string? activegameid, Instant createdat, string url)
     {
         Id = id;
         Name = name;
@@ -54,5 +59,6 @@ public class Organization : IdEquatable<Organization>
         Games = games;
         ActiveGameId = activegameid;
         CreatedAt = createdat;
+        Url = url;
     }
 }
