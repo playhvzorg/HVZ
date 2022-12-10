@@ -47,7 +47,7 @@ public class GameRepo : IGameRepo
         });
     }
     public GameRepo(IMongoDatabase database, IClock clock)
-    {   
+    {
         var filter = new BsonDocument("name", CollectionName);
         var collections = database.ListCollections(new ListCollectionsOptions { Filter = filter });
         if (!collections.Any())
