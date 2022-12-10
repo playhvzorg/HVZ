@@ -26,10 +26,11 @@ public class OrgRepotest : MongoTestBase
     public async Task create_then_read_are_equal()
     {
         string orgname = "test";
+        string orgurl = "testurl";
         string userid = "0";
 
 
-        Organization createdOrg = await orgRepo.CreateOrg(orgname, userid);
+        Organization createdOrg = await orgRepo.CreateOrg(orgname, orgurl, userid);
         Organization foundOrg = await orgRepo.Collection.Find(o => o.OwnerId == userid).FirstAsync();
 
         Assert.That(createdOrg, Is.EqualTo(foundOrg));
@@ -41,9 +42,10 @@ public class OrgRepotest : MongoTestBase
     public async Task test_findorgbyid()
     {
         string orgname = "test";
+        string orgurl = "testurl";
         string userid = "0";
 
-        Organization createdOrg = await orgRepo.CreateOrg(orgname, userid);
+        Organization createdOrg = await orgRepo.CreateOrg(orgname, orgurl, userid);
         Organization? foundOrg = await orgRepo.FindOrgById(createdOrg.Id);
         Organization? notFoundOrg = await orgRepo.FindOrgById(string.Empty);
 
@@ -52,12 +54,14 @@ public class OrgRepotest : MongoTestBase
         Assert.That(notFoundOrg, Is.Null);
     }
 
+    [Test]
     public async Task test_getorgbyid()
     {
         string orgname = "test";
+        string orgurl = "testurl";
         string userid = "0";
 
-        Organization createdOrg = await orgRepo.CreateOrg(orgname, userid);
+        Organization createdOrg = await orgRepo.CreateOrg(orgname, orgurl, userid);
         Organization foundOrg = await orgRepo.GetOrgById(createdOrg.Id);
 
         Assert.ThrowsAsync<ArgumentException>(() => orgRepo.GetOrgById("none"));
@@ -68,9 +72,10 @@ public class OrgRepotest : MongoTestBase
     public async Task test_findorgbyname()
     {
         string orgname = "test";
+        string orgurl = "testurl";
         string userid = "0";
 
-        Organization createdOrg = await orgRepo.CreateOrg(orgname, userid);
+        Organization createdOrg = await orgRepo.CreateOrg(orgname, orgurl, userid);
         Organization? foundOrg = await orgRepo.FindOrgByName(orgname);
         Organization? notFoundOrg = await orgRepo.FindOrgByName(string.Empty);
 
@@ -80,13 +85,43 @@ public class OrgRepotest : MongoTestBase
     }
 
     [Test]
+    public async Task test_findorgbyurl()
+    {
+        string orgname = "test";
+        string orgurl = "testurl";
+        string userid = "0";
+
+        Organization createdOrg = await orgRepo.CreateOrg(orgname, orgurl, userid);
+        Organization? foundOrg = await orgRepo.FindOrgByUrl(orgurl);
+        Organization? notFoundOrg = await orgRepo.FindOrgByName(string.Empty);
+
+        Assert.That(createdOrg, Is.EqualTo(foundOrg));
+        Assert.That(foundOrg, Is.Not.Null);
+        Assert.That(notFoundOrg, Is.Null);
+    }
+
+    [Test]
+    public async Task test_getorgbyurl()
+    {
+        string orgname = "test";
+        string orgurl = "testurl";
+        string userid = "0";
+
+        Organization createdOrg = await orgRepo.CreateOrg(orgname, orgurl, userid);
+        Organization foundOrg = await orgRepo.GetOrgByUrl(createdOrg.Id);
+
+        Assert.ThrowsAsync<ArgumentException>(() => orgRepo.GetOrgByUrl("none"));
+    }
+
+    [Test]
     public async Task test_setactivegameoforg()
     {
         string orgname = "test";
+        string orgurl = "testurl";
         string userid = "0";
         string gameid = "1";
 
-        Organization org = await orgRepo.CreateOrg(orgname, userid);
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
 
         Assert.That(org.ActiveGameId, Is.Null);
 
@@ -99,9 +134,10 @@ public class OrgRepotest : MongoTestBase
     public async Task test_getactivegameoforg()
     {
         string orgname = "test";
+        string orgurl = "testurl";
         string userid = "0";
         string gameid = "1";
-        Organization org = await orgRepo.CreateOrg(orgname, userid);
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
         Game newGame = new("test", gameid, userid, org.Id, Instant.MinValue, true, Player.gameRole.Human, new HashSet<Player>());
         gameRepoMock.Setup(repo => repo.FindGameById("1")).ReturnsAsync(newGame);
         await orgRepo.SetActiveGameOfOrg(org.Id, gameid);
@@ -116,8 +152,9 @@ public class OrgRepotest : MongoTestBase
     public async Task test_getorgadmins()
     {
         string orgname = "test";
+        string orgurl = "testurl";
         string userid1 = "1";
-        Organization org = await orgRepo.CreateOrg(orgname, userid1);
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid1);
 
         var admins = await orgRepo.GetAdminsOfOrg(org.Id);
 
@@ -128,9 +165,10 @@ public class OrgRepotest : MongoTestBase
     public async Task test_addremoveorgadmin()
     {
         string orgname = "test";
+        string orgurl = "testurl";
         string userid1 = "1";
         string userid2 = "2";
-        Organization org = await orgRepo.CreateOrg(orgname, userid1);
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid1);
 
         org = await orgRepo.AddAdmin(org.Id, userid2);
         Assert.That(org.Administrators.Contains(userid2), Is.True);
@@ -143,8 +181,9 @@ public class OrgRepotest : MongoTestBase
     public async Task test_orgcreatorisadmin()
     {
         string orgname = "test";
+        string orgurl = "testurl";
         string userid = "0";
-        Organization org = await orgRepo.CreateOrg(orgname, userid);
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
 
         Assert.That(org.Administrators.Contains(userid), Is.True);
     }
@@ -153,8 +192,9 @@ public class OrgRepotest : MongoTestBase
     public async Task test_removeOrgOwnerFromAdminThrowsException()
     {
         string orgname = "test";
+        string orgurl = "testurl";
         string userid = "0";
-        Organization org = await orgRepo.CreateOrg(orgname, userid);
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
 
         Assert.ThrowsAsync<ArgumentException>(() => orgRepo.RemoveAdmin(org.Id, userid));
     }
@@ -163,8 +203,9 @@ public class OrgRepotest : MongoTestBase
     public async Task test_getorgmods()
     {
         string orgname = "test";
+        string orgurl = "testurl";
         string userid1 = "1";
-        Organization org = await orgRepo.CreateOrg(orgname, userid1);
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid1);
 
         var mods = await orgRepo.GetModsOfOrg(org.Id);
 
@@ -175,8 +216,9 @@ public class OrgRepotest : MongoTestBase
     public async Task test_addremoveorgmod()
     {
         string orgname = "test";
+        string orgurl = "testurl";
         string userid1 = "1";
-        Organization org = await orgRepo.CreateOrg(orgname, userid1);
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid1);
 
         org = await orgRepo.AddModerator(org.Id, userid1);
         Assert.That(org.Moderators.Contains(userid1), Is.True);
