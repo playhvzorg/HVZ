@@ -1,13 +1,12 @@
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
-using Auth0.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
 using HVZ.Web.Data;
 using HVZ.Persistence;
 using HVZ.Persistence.MongoDB.Repos;
+using HVZ.Web.Identity;
+using HVZ.Web.Identity.Models;
 using HVZ.Web.Settings;
 using HVZ.Web.Services;
 using MongoDB.Driver;
-using HVZ.Models;
 using NodaTime;
 
 namespace HVZ.Web;
@@ -26,7 +25,7 @@ internal static class Program
         builder.Services.AddRazorPages();
         builder.Services.AddServerSideBlazor();
         builder.Services.AddHttpClient();
-
+        
         #region Images
 
         ImageServiceOptions options = new();
@@ -36,7 +35,7 @@ internal static class Program
         builder.Services.AddSingleton<ImageService>();
 
         #endregion
-        
+
         #region Persistence
         var mongoClient = new MongoClient(
             builder.Configuration["DatabaseSettings:ConnectionString"]
@@ -53,6 +52,7 @@ internal static class Program
         builder.Services.AddSingleton<IGameRepo>(gameRepo);
         builder.Services.AddSingleton<IUserRepo>(userRepo);
         builder.Services.AddSingleton<IOrgRepo>(orgRepo);
+
 
         #endregion
 
@@ -93,6 +93,7 @@ internal static class Program
         app.UseAuthorization();
 
         app.MapBlazorHub();
+        // app.MapControllers(); // Enable for API
         app.MapFallbackToPage("/_Host");
 
         app.Run();

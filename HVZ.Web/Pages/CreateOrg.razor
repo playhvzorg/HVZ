@@ -1,0 +1,107 @@
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Authentication
+@using HVZ.Web.Identity.Models
+@inject IOrgRepo OrgRepo
+@inject RoleManager<ApplicationRole> RoleManager
+@inject UserManager<ApplicationUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@page "/createorg"
+
+
+<div class="container">
+    <div class="row">
+        <h1>Create new organization</h1>
+    </div>
+    <div class="row">
+        <div class="col-6">
+            <div class="form-group">
+                <div class="form-floating">
+                    <input @bind="OrgName" @bind:event="oninput" class="form-control mb-1" placeholder="Organization name">
+                    <label for="orgNameFoating">Organization name</label>
+                </div>
+                <p class="text-muted mb-3">Org URL: <code class="p-2">https://www.playhvz.org/org/<span style="border: 1px; border-radius: 5px; border-style: solid">@orgUrl</span>/</code></p>
+
+                <button @onclick="CreateNewOrg" class="btn btn-primary">Create</button>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+@code {
+    
+    private string orgName = "";
+    private string orgUrl = "";
+    private bool validOrgName;
+
+    public string OrgName {
+        get
+        {
+            return orgName; 
+        }
+        set
+        {
+            orgName = value.Replace("/", string.Empty);
+            orgUrl = FormatOrgUrl(value);
+        } 
+    }
+
+    @* Remove special characters from org url *@
+    private string FormatOrgUrl(string value) => value
+        .ToLower()
+        .Replace("&", "and")
+        .Replace(" ", string.Empty)
+        .Replace("/", string.Empty)
+        .Replace("%", string.Empty)
+        .Replace("?", string.Empty)
+        .Replace("<", string.Empty)
+        .Replace(">", string.Empty)
+        .Replace("'", string.Empty)
+        .Replace(".", string.Empty)
+        .Replace(";", string.Empty)
+        .Replace(":", string.Empty)
+        .Replace(",", string.Empty)
+        .Replace("`", string.Empty)
+        .Replace("~", string.Empty)
+        .Replace("!", string.Empty)
+        .Replace("@", string.Empty)
+        .Replace("#", string.Empty)
+        .Replace("$", string.Empty)
+        .Replace("^", string.Empty)
+        .Replace("*", string.Empty)
+        .Replace("(", string.Empty)
+        .Replace(")", string.Empty)
+        .Replace("[", string.Empty)
+        .Replace("]", string.Empty)
+        .Replace("{", string.Empty)
+        .Replace("}", string.Empty)
+        .Replace("=", string.Empty)
+        .Replace("+", string.Empty)
+        .Replace("|", string.Empty)
+        .Replace("\"", string.Empty)
+        .Replace("\\", string.Empty);
+
+    private void UpdateOrgUrl()
+    {
+        orgUrl = orgName;
+    }
+
+    async Task CreateNewOrg()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+        var id = authState.User.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value;
+        var email = authState.User.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value;
+        // Email cannot be null, but dotnet does not now that
+        var authUser = await UserManager.FindByEmailAsync(email ?? "");
+
+        if(orgName == string.Empty || orgName == null)
+            return;
+        
+        @* TODO check that org with name or URL does not exist already and update validation *@
+
+        var org = await OrgRepo.CreateOrg(orgName, orgUrl, id ?? "");
+    }
+
+}

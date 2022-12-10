@@ -1,9 +1,8 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
-@using Microsoft.AspNetCore.Authentication
-@using Microsoft.AspNetCore.Authentication.Cookies
-@using Auth0.AspNetCore.Authentication
+@using HVZ.Web.Services
 @inject NavigationManager Navigation
-
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ImageService ImageService
 @page "/"
 
 <PageTitle>Index</PageTitle>
@@ -14,8 +13,28 @@
 
         <Authorized>
             <h1>
-                Hello, @context.User.Claims.FirstOrDefault(c => c.Type == "name")?.Value!
+                Hello, @context.User.Claims.FirstOrDefault(c => c.Type == "FirstName")?.Value!
             </h1>
+            <p>Your databaseid: @context.User.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value</p>
+            
+            <div class="form-group">
+                <label for="formFile" class="form-label mt-4">Default file input example</label>
+                <InputFile OnChange="LoadFile" accept="image/*" />
+            </div>
+
+            <button class="btn btn-secondary" @onclick="@( async() => await SaveFile())">Save</button>
+
+            <div class="mt-3">
+                <div>
+                    <ThumbnailSmall Id="@userId" />
+                </div>
+                <div>
+                    <ThumbnailMedium Id="@userId" />
+                </div>
+                <div>
+                    <ThumbnailLarge Id="@userId" />
+                </div>
+            </div>
         </Authorized>
         <NotAuthorized>
             <a href="Account/Login" class="btn btn-primary btn-lg">Login</a>
@@ -25,3 +44,35 @@
 
 </CascadingAuthenticationState>
 
+@code {
+
+    private ClaimsPrincipal? user;
+    private string? userId = "";
+    private string userThumbSmall = "";
+    private string userThumbMedium = "";
+    private string userThumbLarge = "";
+    private IBrowserFile? file;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        user = authState.User;
+
+        userId = user.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value;
+    }
+
+    @* Called when the user loads a new file in the input *@
+    private void LoadFile(InputFileChangeEventArgs e)
+    {
+        file = e.File;
+    }
+
+    @* Save file from the input to disc with the user's ID as the filename *@
+    private async Task SaveFile()
+    {
+        if(file != null && userId != null)
+        {
+            await ImageService.SaveImage(file, userId);
+        }
+    }
+}

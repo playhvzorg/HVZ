@@ -51,21 +51,21 @@ namespace HVZ.Web.Services
             {
                 SKBitmap src = SKBitmap.Decode(stream);
 
-                SaveBitmap(
+                await SaveBitmap(
                     CropSquare(src, 64),
                     Path.Combine(uploadPath, $"{imageName}_thumbnail_small.jpeg"),
                     SKEncodedImageFormat.Jpeg,
                     100
                 );
 
-                SaveBitmap(
+                await SaveBitmap(
                     CropSquare(src, 128),
                     Path.Combine(uploadPath, $"{imageName}_thumbnail_medium.jpeg"),
                     SKEncodedImageFormat.Jpeg,
                     100
                 );
 
-                SaveBitmap(
+                await SaveBitmap(
                     CropSquare(src, 256),
                     Path.Combine(uploadPath, $"{imageName}_thumbnail_large.jpeg"),
                     SKEncodedImageFormat.Jpeg,

@@ -1,0 +1,48 @@
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IOrgRepo OrgRepo
+
+@inherits LayoutComponentBase
+
+<CascadingValue Value="@isAdmin" Name="isAdmin">
+    <CascadingValue Value="@isMod" Name="isMod">
+        @ChildContent
+    </CascadingValue>
+</CascadingValue>
+
+
+@code
+{
+
+    [Parameter]
+    public string? OrgId { get; set; } = "";
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private string? userId = "";
+    private bool isAdmin;
+    private bool isMod;
+    private bool shouldRender = false;
+
+    protected override bool ShouldRender()
+    {
+        return shouldRender;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        
+        var authState = AuthenticationStateProvider.GetAuthenticationStateAsync().Result;
+
+        userId = authState.User.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value;
+        
+        if(OrgId != null && userId != null)
+        {
+            var admins = await OrgRepo.GetAdminsOfOrg(OrgId);
+            var mods = await OrgRepo.GetModsOfOrg(OrgId);
+            isAdmin = admins.Contains(userId);
+            isMod = mods.Contains(userId) || isAdmin;
+            shouldRender = true;
+        }
+    }
+}
