@@ -53,6 +53,7 @@ public class OrgRepo : IOrgRepo
             new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.Id)),
             new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.OwnerId)),
             new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.Name)),
+            new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.Url)),
         });
     }
 
@@ -76,7 +77,7 @@ public class OrgRepo : IOrgRepo
     }
 
     public async Task<Organization?> FindOrgById(string orgId)
-        => orgId == string.Empty ? null : await Collection.Find<Organization>(o => o.Id == orgId).FirstAsync();
+        => orgId == string.Empty ? null : await Collection.Find<Organization>(o => o.Id == orgId).FirstOrDefaultAsync();
 
     public async Task<Organization> GetOrgById(string orgId)
     {
@@ -87,7 +88,7 @@ public class OrgRepo : IOrgRepo
     }
 
     public async Task<Organization?> FindOrgByUrl(string url)
-        => url == string.Empty ? null : await Collection.Find<Organization>(o => o.Url == url).FirstAsync();
+        => url == string.Empty ? null : await Collection.Find<Organization>(o => o.Url == url).FirstOrDefaultAsync();
 
     public async Task<Organization> GetOrgByUrl(string url)
     {
@@ -98,7 +99,7 @@ public class OrgRepo : IOrgRepo
     }
 
     public async Task<Organization?> FindOrgByName(string name)
-        => name == string.Empty ? null : await Collection.Find<Organization>(o => o.Name == name).FirstAsync();
+        => name == string.Empty ? null : await Collection.Find<Organization>(o => o.Name == name).FirstOrDefaultAsync();
 
     public Task<Organization> GetOrgByName(string name)
     {

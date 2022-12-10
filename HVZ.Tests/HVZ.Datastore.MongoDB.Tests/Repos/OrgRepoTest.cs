@@ -64,7 +64,7 @@ public class OrgRepotest : MongoTestBase
         Organization createdOrg = await orgRepo.CreateOrg(orgname, orgurl, userid);
         Organization foundOrg = await orgRepo.GetOrgById(createdOrg.Id);
 
-        Assert.ThrowsAsync<ArgumentException>(() => orgRepo.GetOrgById("none"));
+        Assert.ThrowsAsync<ArgumentException>(() => orgRepo.GetOrgById("000000000000000000000000"));
 
     }
 
@@ -93,7 +93,7 @@ public class OrgRepotest : MongoTestBase
 
         Organization createdOrg = await orgRepo.CreateOrg(orgname, orgurl, userid);
         Organization? foundOrg = await orgRepo.FindOrgByUrl(orgurl);
-        Organization? notFoundOrg = await orgRepo.FindOrgByName(string.Empty);
+        Organization? notFoundOrg = await orgRepo.FindOrgByUrl(string.Empty);
 
         Assert.That(createdOrg, Is.EqualTo(foundOrg));
         Assert.That(foundOrg, Is.Not.Null);
