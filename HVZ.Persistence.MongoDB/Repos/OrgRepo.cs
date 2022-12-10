@@ -92,7 +92,7 @@ public class OrgRepo : IOrgRepo
     public async Task<Organization> GetOrgByUrl(string url)
     {
         Organization? org = await FindOrgByUrl(url);
-        if(org == null)
+        if (org == null)
             throw new ArgumentException($"Org with url {url} not found!");
         return (Organization)org;
     }
