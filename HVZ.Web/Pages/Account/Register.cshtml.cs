@@ -34,15 +34,15 @@ namespace HVZ.Web.Pages
 
         public async Task<IActionResult> OnPostAsync()
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return Page();
             }
 
-            if(User != null)
+            if (User != null)
             {
                 ApplicationUser? authUser = await userManager.FindByEmailAsync(User.Email);
-                if ( authUser != null )
+                if (authUser != null)
                 {
                     ModelState.AddModelError("User.Email", "User with this email already exists");
                     return Page();
@@ -66,13 +66,13 @@ namespace HVZ.Web.Pages
                     authUser,
                     User.Password
                 );
-                if(result.Succeeded)
+                if (result.Succeeded)
                 {
                     // Log the user in
                     Microsoft.AspNetCore.Identity.SignInResult signInResult = await signInManager.PasswordSignInAsync(
                         authUser, User.Password, false, false
                     );
-                    if(signInResult.Succeeded)
+                    if (signInResult.Succeeded)
                     {
                         return Redirect(this.redirectURL);
                     }
@@ -80,7 +80,7 @@ namespace HVZ.Web.Pages
                 else
                 {
                     // TODO: Delete dbUser from the Users database
-                    foreach(IdentityError error in result.Errors)
+                    foreach (IdentityError error in result.Errors)
                     {
                         System.Console.WriteLine($"{error.Code}:{error.Description}");
                     }

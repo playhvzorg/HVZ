@@ -11,7 +11,7 @@ using NodaTime;
 namespace HVZ.Web;
 internal static class Program
 {
-        public static void Main(string[] args)
+    public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(
             new WebApplicationOptions()
@@ -36,7 +36,7 @@ internal static class Program
 
         IGameRepo gameRepo = new GameRepo(mongoDatabase, SystemClock.Instance);
         IUserRepo userRepo = new UserRepo(mongoDatabase, SystemClock.Instance);
-        IOrgRepo  orgRepo  = new OrgRepo(mongoDatabase, SystemClock.Instance, userRepo, gameRepo);
+        IOrgRepo orgRepo = new OrgRepo(mongoDatabase, SystemClock.Instance, userRepo, gameRepo);
 
         builder.Services.AddSingleton<IGameRepo>(gameRepo);
         builder.Services.AddSingleton<IUserRepo>(userRepo);
@@ -54,7 +54,7 @@ internal static class Program
                 mongoIdentitySettings?.ConnectionString, mongoIdentitySettings?.Name
             );
         builder.Services.AddScoped<
-            IUserClaimsPrincipalFactory<ApplicationUser>, 
+            IUserClaimsPrincipalFactory<ApplicationUser>,
             ApplicationClaimsPrincipalFactory
         >();
 

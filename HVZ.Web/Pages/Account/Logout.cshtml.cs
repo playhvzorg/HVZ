@@ -12,14 +12,14 @@ namespace HVZ.Web.Pages
 
         public LogoutModel(SignInManager<ApplicationUser> signInManager)
         {
-          this.signInManager = signInManager;
+            this.signInManager = signInManager;
         }
 
         [Authorize]
         public async Task<IActionResult> OnGet()
         {
-          await signInManager.SignOutAsync();
-          return Redirect("/");
+            await signInManager.SignOutAsync();
+            return Redirect("/");
         }
     }
 }
