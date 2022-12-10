@@ -93,7 +93,7 @@
 
         var id = authState.User.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value;
         var email = authState.User.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value;
-        // Email cannot be null, but dotnet does not now that
+        // Email cannot be null, but dotnet does not know that
         var authUser = await UserManager.FindByEmailAsync(email ?? "");
 
         if(orgName == string.Empty || orgName == null)
