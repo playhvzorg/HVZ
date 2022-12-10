@@ -73,7 +73,7 @@ public class PasswordValidationAttribute : ValidationAttribute
         if (!digitsPattern.IsMatch(password))
         {
             failed = true;
-            errors.Add($"{MinDigits} numeric character{Plural(MinDigits)}");
+            errors.Add($"{MinDigits} number{Plural(MinDigits)}");
         }
 
         // Number of alphanumeric characters
@@ -81,7 +81,7 @@ public class PasswordValidationAttribute : ValidationAttribute
         if (!specialPattern.IsMatch(password))
         {
             failed = true;
-            errors.Add($"{MinSpecial} non alphanumeric character{Plural(MinSpecial)}");
+            errors.Add($"{MinSpecial} symbol{Plural(MinSpecial)}");
         }
 
         if (failed)
