@@ -20,7 +20,8 @@ namespace HVZ.Web.Identity.Models
 
         [Required]
         [DataType(DataType.Password)]
-        [RegularExpression("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z\\d]).{8,}$", ErrorMessage = "Password does not meet minimum requirements TODO: Create custom validator")]
+        // [RegularExpression("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z\\d]).{8,}$", ErrorMessage = "Password does not meet minimum requirements TODO: Create custom validator")]
+        [PasswordValidation]
         public string Password { get; set; } = "";
 
         [DataType(DataType.Password)]
