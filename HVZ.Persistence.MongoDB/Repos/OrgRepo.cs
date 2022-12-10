@@ -159,9 +159,11 @@ public class OrgRepo : IOrgRepo
         return org.Moderators;
     }
 
-    public async Task<Organization> AssignOwner(string orgId, string newOwnerId)
+    public async Task<Organization> SetOwner(string orgId, string newOwnerId)
     {
         Organization org = await GetOrgById(orgId);
+        if (!org.Administrators.Contains(newOwnerId))
+            throw new ArgumentException($"user {newOwnerId} is not an org administrator in org {orgId}");
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.OwnerId, newOwnerId),
             new() { ReturnDocument = ReturnDocument.After }
