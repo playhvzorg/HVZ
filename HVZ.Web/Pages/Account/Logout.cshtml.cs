@@ -6,20 +6,20 @@ using HVZ.Web.Identity.Models;
 
 namespace HVZ.Web.Pages
 {
-  public class LogoutModel : PageModel
-  {
-    private SignInManager<ApplicationUser> signInManager;
-
-    public LogoutModel(SignInManager<ApplicationUser> signInManager)
+    public class LogoutModel : PageModel
     {
-      this.signInManager = signInManager;
-    }
+        private SignInManager<ApplicationUser> signInManager;
 
-    [Authorize]
-    public async Task<IActionResult> OnGet()
-    {
-      await signInManager.SignOutAsync();
-      return Redirect("/");
+        public LogoutModel(SignInManager<ApplicationUser> signInManager)
+        {
+          this.signInManager = signInManager;
+        }
+
+        [Authorize]
+        public async Task<IActionResult> OnGet()
+        {
+          await signInManager.SignOutAsync();
+          return Redirect("/");
+        }
     }
-  }
 }

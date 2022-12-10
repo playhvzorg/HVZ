@@ -3,24 +3,19 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 <CascadingAuthenticationState>
-
     <AuthorizeView>
-
         <Authorized>
             <a href="Account/Logout" class="btn btn-primary">Logout</a>
         </Authorized>
         <NotAuthorized>
             <a href="Account/Login" class="btn btn-primary">Login</a>
         </NotAuthorized>
-
     </AuthorizeView>
-
 </CascadingAuthenticationState>
 
 
 @code {
     private string? id = "1234";
-
 
     protected override async Task OnInitializedAsync()
     {

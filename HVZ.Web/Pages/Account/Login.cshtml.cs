@@ -28,21 +28,21 @@ namespace HVZ.Web.Pages
         }
 
         public async Task<IActionResult> OnPostAsync()
-        {         
+        {
 
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return Page();
             }
 
-            if(User != null)
+            if (User != null)
             {
                 // Sign in and redirect to home
                 ApplicationUser? authUser = await userManager.FindByEmailAsync(User.Email);
-                if(authUser != null)
+                if (authUser != null)
                 {
                     Microsoft.AspNetCore.Identity.SignInResult result = await signInManager.PasswordSignInAsync(authUser, User.Password, User.RememberMe, false);
-                    if(result.Succeeded)
+                    if (result.Succeeded)
                     {
                         return Redirect("/" + redirectUrl);
                     }

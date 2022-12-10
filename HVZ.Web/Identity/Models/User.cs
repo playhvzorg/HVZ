@@ -13,7 +13,7 @@ namespace HVZ.Web.Identity.Models
         [Required]
         [Display(Name = "Last Name")]
         public string LastName { get; set; } = "";
-        
+
         [Required]
         [EmailAddress(ErrorMessage = "Invalid Email")]
         public string Email { get; set; } = "";
