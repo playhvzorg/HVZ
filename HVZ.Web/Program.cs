@@ -55,6 +55,22 @@ internal static class Program
         builder.Services.AddSingleton<IOrgRepo>(orgRepo);
 
         #endregion
+
+        #region Identity
+
+        var mongoIdentitySettings = builder.Configuration.GetSection(nameof(MongoIdentityConfig)).Get<MongoIdentityConfig>();
+        builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
+            .AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>
+            (
+                mongoIdentitySettings?.ConnectionString, mongoIdentitySettings?.Name
+            );
+        builder.Services.AddScoped<
+            IUserClaimsPrincipalFactory<ApplicationUser>, 
+            ApplicationClaimsPrincipalFactory
+        >();
+
+        #endregion
+
         builder.Services.AddSingleton<WeatherForecastService>();
 
         var app = builder.Build();

@@ -1,23 +1,25 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Authentication;
-using Auth0.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
+using HVZ.Web.Identity.Models;
 
 namespace HVZ.Web.Pages
 {
   public class LogoutModel : PageModel
   {
-    [Authorize]
-    public async Task OnGet()
-    {
-      var authenticationProperties = new LogoutAuthenticationPropertiesBuilder()
-           .WithRedirectUri("/")
-           .Build();
+    private SignInManager<ApplicationUser> signInManager;
 
-      await HttpContext.SignOutAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
-      await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+    public LogoutModel(SignInManager<ApplicationUser> signInManager)
+    {
+      this.signInManager = signInManager;
+    }
+
+    [Authorize]
+    public async Task<IActionResult> OnGet()
+    {
+      await signInManager.SignOutAsync();
+      return Redirect("/");
     }
   }
 }
