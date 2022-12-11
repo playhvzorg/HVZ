@@ -38,17 +38,17 @@
                 <form method="post">
                     <div class="text-danger" asp-validation-summary="All"></div>
                     <div class="form-floating mb-3">
-                        <input asp-for="User.Email" type="email" class="form-control" placeholder="name@example.com">
+                        <input asp-for="UserModel.Email" type="email" class="form-control" placeholder="name@example.com">
                         <label for="floatingEmail">Email</label>
                     </div>
 
                     <div class="form-floating mb-3">
-                        <input asp-for="User.Password" class="form-control" placeholder="Password">
+                        <input asp-for="UserModel.Password" class="form-control" placeholder="Password">
                         <label for="floatingPass">Password</label>
                     </div>
 
                     <div class="form-check form-switch">
-                        <input asp-for="User.RememberMe" class="form-check-input" id="remember">
+                        <input asp-for="UserModel.RememberMe" class="form-check-input" id="remember">
                         <label for="remember" class="form-check-label mb-3">Remember me</label>
                     </div>
                     

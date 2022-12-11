@@ -13,13 +13,13 @@ namespace HVZ.Web.Pages
         private string redirectUrl = "/";
 
         [BindProperty]
-        public new SignInUserModel User { get; set; }
+        public SignInUserModel UserModel { get; set; }
 
         public LoginModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
-            this.User = new();
+            this.UserModel = new();
         }
 
         public void OnGet(string returnUrl = "/")
@@ -35,25 +35,25 @@ namespace HVZ.Web.Pages
                 return Page();
             }
 
-            if (User != null)
+            if (UserModel != null)
             {
                 // Sign in and redirect to home
-                ApplicationUser? authUser = await userManager.FindByEmailAsync(User.Email);
+                ApplicationUser? authUser = await userManager.FindByEmailAsync(UserModel.Email);
                 if (authUser != null)
                 {
-                    Microsoft.AspNetCore.Identity.SignInResult result = await signInManager.PasswordSignInAsync(authUser, User.Password, User.RememberMe, false);
+                    Microsoft.AspNetCore.Identity.SignInResult result = await signInManager.PasswordSignInAsync(authUser, UserModel.Password, UserModel.RememberMe, false);
                     if (result.Succeeded)
                     {
                         return Redirect("/" + redirectUrl);
                     }
                     else
                     {
-                        ModelState.AddModelError(nameof(User.Email), "Login Failed: Invalid Email or Password");
+                        ModelState.AddModelError(nameof(UserModel.Email), "Login Failed: Invalid Email or Password");
                     }
                 }
                 else
                 {
-                    ModelState.AddModelError(nameof(User.Email), "Login Failed: Invalid Email or Password");
+                    ModelState.AddModelError(nameof(UserModel.Email), "Login Failed: Invalid Email or Password");
                 }
             }
 

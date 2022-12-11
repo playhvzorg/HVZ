@@ -17,7 +17,7 @@ namespace HVZ.Web.Pages
         private string redirectURL = "/";
 
         [BindProperty]
-        public new AuthUserModel UserModel { get; set; }
+        public AuthUserModel UserModel { get; set; }
 
         public RegisterModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IUserRepo userRepo)
         {
