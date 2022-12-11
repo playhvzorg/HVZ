@@ -44,7 +44,7 @@ namespace HVZ.Web.Pages
                     Microsoft.AspNetCore.Identity.SignInResult result = await signInManager.PasswordSignInAsync(authUser, UserModel.Password, UserModel.RememberMe, false);
                     if (result.Succeeded)
                     {
-                        return Redirect("/" + redirectUrl);
+                        return Redirect(redirectUrl);
                     }
                     else
                     {
