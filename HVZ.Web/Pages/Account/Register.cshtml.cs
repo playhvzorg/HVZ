@@ -17,14 +17,14 @@ namespace HVZ.Web.Pages
         private string redirectURL = "/";
 
         [BindProperty]
-        public new AuthUserModel User { get; set; }
+        public new AuthUserModel UserModel { get; set; }
 
         public RegisterModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IUserRepo userRepo)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
             this.userRepo = userRepo;
-            this.User = new();
+            this.UserModel = new();
         }
 
         public void OnGet(string redirectURL = "/")
@@ -39,9 +39,9 @@ namespace HVZ.Web.Pages
                 return Page();
             }
 
-            if (User != null)
+            if (UserModel != null)
             {
-                ApplicationUser? authUser = await userManager.FindByEmailAsync(User.Email);
+                ApplicationUser? authUser = await userManager.FindByEmailAsync(UserModel.Email);
                 if (authUser != null)
                 {
                     ModelState.AddModelError("User.Email", "User with this email already exists");
@@ -49,28 +49,28 @@ namespace HVZ.Web.Pages
                 }
 
                 HVZ.Models.User dbUser = await userRepo.CreateUser(
-                    $"{User.FirstName} {User.LastName}",
-                    User.Email
+                    $"{UserModel.FirstName} {UserModel.LastName}",
+                    UserModel.Email
                 );
 
                 authUser = new ApplicationUser
                 {
-                    FirstName = User.FirstName,
-                    LastName = User.LastName,
-                    Email = User.Email,
+                    FirstName = UserModel.FirstName,
+                    LastName = UserModel.LastName,
+                    Email = UserModel.Email,
                     DatabaseId = dbUser.Id,
-                    UserName = User.Email
+                    UserName = UserModel.Email
                 };
 
                 IdentityResult result = await userManager.CreateAsync(
                     authUser,
-                    User.Password
+                    UserModel.Password
                 );
                 if (result.Succeeded)
                 {
                     // Log the user in
                     Microsoft.AspNetCore.Identity.SignInResult signInResult = await signInManager.PasswordSignInAsync(
-                        authUser, User.Password, false, false
+                        authUser, UserModel.Password, false, false
                     );
                     if (signInResult.Succeeded)
                     {
