@@ -13,8 +13,6 @@
             <h1>
                 Hello, @context.User.Claims.FirstOrDefault(c => c.Type == "FirstName")?.Value!
             </h1>
-            <p>Your databaseid: @context.User.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value</p>
-
         </Authorized>
         <NotAuthorized>
             <a href="Account/Login" class="btn btn-primary btn-lg">Login</a>
@@ -26,19 +24,10 @@
 
 @code {
 
-    private ClaimsPrincipal? user;
-    private string? userId = "";
-    private string userThumbSmall = "";
-    private string userThumbMedium = "";
-    private string userThumbLarge = "";
-    private IBrowserFile? file;
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        user = authState.User;
 
-        userId = user.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value;
     }
 
 }
