@@ -1,7 +1,7 @@
 @using HVZ.Models
 @using HVZ.Persistence
 
-@inject IGameRepo IGameRepo
+@inject IGameRepo GameRepo
 @inject NavigationManager Navigation
 
 @page "/games/new"
@@ -22,7 +22,7 @@
 
     async Task CreateNewGame()
     {
-        await IGameRepo.CreateGame("gaming", "1234", "org1234");
+        await GameRepo.CreateGame("gaming", "1234", "org1234");
         System.Console.WriteLine("Creating Game");
     }
 }
