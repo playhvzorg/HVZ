@@ -53,7 +53,6 @@ namespace HVZ.Web.Pages
                 }
                 else
                 {
-                    System.Console.WriteLine("Wrong email");
                     ModelState.AddModelError(nameof(User.Email), "Login Failed: Invalid Email or Password");
                 }
             }
