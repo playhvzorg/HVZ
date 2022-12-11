@@ -86,7 +86,7 @@ public class PasswordValidationAttribute : ValidationAttribute
 
         if (failed)
         {
-            return new ValidationResult($"Password must contain at least {ConcatList(errors)}");
+            return new ValidationResult($"Password is missing the following requirements: at least {ConcatList(errors)}");
         }
 
         return ValidationResult.Success;
