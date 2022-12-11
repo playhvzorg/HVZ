@@ -45,11 +45,7 @@
     private bool shouldRender = false;
     protected override async Task OnInitializedAsync()
     {
-        @* shouldRender = false; *@
-        @* This needs to be synchronous or razor will flip its shit *@
-        @* organization = OrgRepo.FindOrgByName("Test Org 1").Result; *@
-        organization = await OrgRepo.FindOrgByName("Test Org 1");
-        @* shouldRender = true; *@
+        organization = await OrgRepo.FindOrgByUrl(Url??"");
     }
 }
 
