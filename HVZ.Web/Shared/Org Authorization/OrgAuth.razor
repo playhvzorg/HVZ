@@ -22,14 +22,12 @@
     private string? userId = "";
     private bool isAdmin;
     private bool isMod;
-    private bool shouldRender = false;
 
-    protected override bool ShouldRender()
-    {
-        return shouldRender;
-    }
+    private bool IsAdmin() => OrgRepo.GetAdminsOfOrg(OrgId??string.Empty).Result.Contains(userId??"");
 
-    protected override async Task OnParametersSetAsync()
+    private bool IsMod() => OrgRepo.GetModsOfOrg(OrgId??string.Empty).Result.Contains(userId??"");
+
+    protected override void OnParametersSet()
     {
         
         var authState = AuthenticationStateProvider.GetAuthenticationStateAsync().Result;
@@ -38,11 +36,8 @@
         
         if(OrgId != null && userId != null)
         {
-            var admins = await OrgRepo.GetAdminsOfOrg(OrgId);
-            var mods = await OrgRepo.GetModsOfOrg(OrgId);
-            isAdmin = admins.Contains(userId);
-            isMod = mods.Contains(userId) || isAdmin;
-            shouldRender = true;
+            isAdmin = IsAdmin();
+            isMod = isAdmin || IsMod();
         }
     }
 }
