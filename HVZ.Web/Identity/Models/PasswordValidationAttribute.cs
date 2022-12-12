@@ -29,7 +29,7 @@ public class PasswordValidationAttribute : ValidationAttribute
         this.MinSpecial = minSpecial;
 
         // Throw an error if required characters are more than the minimum characters
-        if(MinLowercase + MinUppercase + MinDigits + MinSpecial > MinCharacters)
+        if (MinLowercase + MinUppercase + MinDigits + MinSpecial > MinCharacters)
         {
             throw new ArgumentException("Required number of characters is greater than minimum number of characters");
         }
@@ -37,7 +37,7 @@ public class PasswordValidationAttribute : ValidationAttribute
 
     private string Plural(int charCount) => charCount == 1 ? "" : "s";
 
-    private string ConcatList(List<string> strings) => strings.Count == 1 ? strings[0] : String.Join(", ", strings.Take(strings.Count - 1)) + " and " + strings[strings.Count-1];
+    private string ConcatList(List<string> strings) => strings.Count == 1 ? strings[0] : String.Join(", ", strings.Take(strings.Count - 1)) + " and " + strings[strings.Count - 1];
 
     protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
     {
