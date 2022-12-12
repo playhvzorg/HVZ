@@ -42,7 +42,6 @@
     public string? Url { get; set; } = "";
 
     private HVZ.Models.Organization? organization;
-    private bool shouldRender = false;
     protected override async Task OnInitializedAsync()
     {
         organization = await OrgRepo.FindOrgByUrl(Url??"");
