@@ -5,7 +5,7 @@ public interface IOrgRepo
     public Task<Organization> CreateOrg(string name, string url, string creatorUserId);
 
     /// <summary>
-    /// Find an org by its Id. Returns Null when no org found
+    /// Find an org by its Id. Returns Null when no org found.
     /// </summary>
     public Task<Organization?> FindOrgById(string orgId);
 
@@ -14,10 +14,19 @@ public interface IOrgRepo
     /// </summary>
     public Task<Organization> GetOrgById(string orgId);
 
+    /// <summary>
+    /// Get an org by its Url Parameter. Returns Null when no org found.
+    /// </summary>
     public Task<Organization?> FindOrgByUrl(string url);
 
+    /// <summary>
+    /// Get an org by its Url Parameter. Throws an exception if no org found.
+    /// </summary>
     public Task<Organization> GetOrgByUrl(string url);
 
+    /// <summary>
+    /// Get an org by its Name. Returns Null when no org found.
+    /// </summary>
     public Task<Organization?> FindOrgByName(string name);
 
     /// <summary>

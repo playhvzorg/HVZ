@@ -73,4 +73,19 @@ public class UserRepoTest : MongoTestBase
         Assert.That(oneUser.Length, Is.EqualTo(1));
         Assert.That(twoUsers.Length, Is.EqualTo(2));
     }
+
+    [Test]
+    public async Task test_deleteUser()
+    {
+        UserRepo userRepo = CreateUserRepo();
+        string userName = "karl";
+        string userEmail = "karl@karl.com";
+        User createdUser = await userRepo.CreateUser(userName, userEmail);
+
+        User foundUser = await userRepo.GetUserById(createdUser.Id);
+
+        await userRepo.DeleteUser(createdUser.Id);
+
+        Assert.ThrowsAsync<ArgumentException>(() => userRepo.GetUserById(createdUser.Id));
+    }
 }

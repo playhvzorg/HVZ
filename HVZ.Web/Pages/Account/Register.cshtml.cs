@@ -79,7 +79,7 @@ namespace HVZ.Web.Pages
                 }
                 else
                 {
-                    // TODO: Delete dbUser from the Users database
+                    await userRepo.DeleteUser(dbUser.Id);
                     foreach (IdentityError error in result.Errors)
                     {
                         System.Console.WriteLine($"{error.Code}:{error.Description}");

@@ -65,7 +65,7 @@ public class UserRepo : IUserRepo
     }
 
     public async Task<User?> FindUserById(string userId)
-        => userId == string.Empty ? null : await Collection.Find(u => u.Id == userId).FirstAsync();
+        => userId == string.Empty ? null : await Collection.Find(u => u.Id == userId).FirstOrDefaultAsync();
 
     public async Task<User[]> FindUserByName(string name)
     {
@@ -84,5 +84,9 @@ public class UserRepo : IUserRepo
         return (User)user;
     }
 
+    public async Task DeleteUser(string userId)
+    {
+        await Collection.FindOneAndDeleteAsync(u => u.Id == userId);
+    }
 
 }
