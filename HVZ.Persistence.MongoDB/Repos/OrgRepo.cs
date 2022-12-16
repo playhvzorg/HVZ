@@ -193,4 +193,16 @@ public class OrgRepo : IOrgRepo
             new() { ReturnDocument = ReturnDocument.After }
             );
     }
+
+    public async Task<bool> IsAdminOfOrg(string orgId, string userId)
+    {
+        var admins = await GetAdminsOfOrg(orgId);
+        return admins.Contains(userId);
+    }
+
+    public async Task<bool> IsModOfOrg(string orgId, string userId)
+    {
+        var mods = await GetModsOfOrg(orgId);
+        return mods.Contains(userId);
+    }
 }

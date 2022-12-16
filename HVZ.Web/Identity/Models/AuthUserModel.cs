@@ -20,7 +20,6 @@ namespace HVZ.Web.Identity.Models
 
         [Required]
         [DataType(DataType.Password)]
-        // [RegularExpression("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z\\d]).{8,}$", ErrorMessage = "Password does not meet minimum requirements TODO: Create custom validator")]
         [PasswordValidation]
         public string Password { get; set; } = "";
 
@@ -33,16 +32,4 @@ namespace HVZ.Web.Identity.Models
         public bool AgreeToTOS { get; set; }
     }
 
-    public class SignInUserModel
-    {
-        [Required]
-        [EmailAddress(ErrorMessage = "Invalid Email")]
-        public string Email { get; set; } = "";
-
-        [Required]
-        [DataType(DataType.Password)]
-        public string Password { get; set; } = "";
-
-        public bool RememberMe { get; set; }
-    }
 }

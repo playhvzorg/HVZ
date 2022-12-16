@@ -22,22 +22,23 @@
     private string? userId = "";
     private bool isAdmin;
     private bool isMod;
+    private bool shouldRender;
 
-    private bool IsAdmin() => OrgRepo.GetAdminsOfOrg(OrgId??string.Empty).Result.Contains(userId??"");
+    protected override bool ShouldRender() => shouldRender;
 
-    private bool IsMod() => OrgRepo.GetModsOfOrg(OrgId??string.Empty).Result.Contains(userId??"");
-
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
-        
         var authState = AuthenticationStateProvider.GetAuthenticationStateAsync().Result;
 
         userId = authState.User.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value;
         
         if(OrgId != null && userId != null)
         {
-            isAdmin = IsAdmin();
-            isMod = isAdmin || IsMod();
+            isAdmin = await OrgRepo.IsAdminOfOrg(OrgId, userId);
+            isMod = isAdmin || await OrgRepo.IsModOfOrg(OrgId, userId);
+            shouldRender = true;
         }
+
+        shouldRender = true;
     }
 }

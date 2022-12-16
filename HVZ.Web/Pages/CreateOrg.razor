@@ -1,13 +1,12 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.Components.Authorization
-@using Microsoft.AspNetCore.Authentication
 @using HVZ.Web.Identity.Models
 @inject IOrgRepo OrgRepo
-@inject RoleManager<ApplicationRole> RoleManager
 @inject UserManager<ApplicationUser> UserManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
 @page "/createorg"
-
+@attribute [Authorize]
 
 <div class="container">
     <div class="row">
@@ -87,21 +86,25 @@
         orgUrl = orgName;
     }
 
+    [Authorize]
     async Task CreateNewOrg()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-
-        var id = authState.User.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value;
         var email = authState.User.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value;
         // Email cannot be null, but dotnet does not know that
         var authUser = await UserManager.FindByEmailAsync(email ?? "");
+
+        if(authUser == null)
+            // Something has gone seriously wrong
+            return;
 
         if(orgName == string.Empty || orgName == null)
             return;
         
         @* TODO check that org with name or URL does not exist already and update validation *@
 
-        var org = await OrgRepo.CreateOrg(orgName, orgUrl, id ?? "");
+        var org = await OrgRepo.CreateOrg(orgName, orgUrl, authUser.DatabaseId);
+        Navigation.NavigateTo($"/org/{orgUrl}", true);
     }
 
 }

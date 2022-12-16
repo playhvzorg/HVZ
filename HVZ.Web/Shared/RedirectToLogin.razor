@@ -3,7 +3,8 @@
 @code {
     protected override void OnInitialized()
     {
-        Navigation.NavigateTo("Identity/Account/Login?returnUrl=" +
-            Uri.EscapeDataString(Navigation.Uri), true);
+        string uri = Navigation.ToBaseRelativePath(Navigation.Uri);
+        Navigation.NavigateTo("Account/Login?returnUrl=/" +
+            uri, true);
     }
 }

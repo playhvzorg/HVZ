@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Components;
 using HVZ.Web.Identity.Models;
 
 namespace HVZ.Web.Pages
@@ -10,24 +11,27 @@ namespace HVZ.Web.Pages
     {
         private UserManager<ApplicationUser> userManager;
         private SignInManager<ApplicationUser> signInManager;
-        private string redirectUrl = "/";
+        private NavigationManager navigation;
+        private string redirectUrl;
 
         [BindProperty]
         public SignInUserModel UserModel { get; set; }
 
-        public LoginModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        public LoginModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, NavigationManager navigation)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
             this.UserModel = new();
+            this.navigation = navigation;
         }
 
         public void OnGet(string returnUrl = "/")
         {
             this.redirectUrl = returnUrl;
+            System.Console.WriteLine(this.redirectUrl);
         }
 
-        public async Task<IActionResult> OnPostAsync()
+        public async Task<IActionResult> OnPostAsync(string returnUrl = "/")
         {
 
             if (!ModelState.IsValid)
@@ -44,7 +48,7 @@ namespace HVZ.Web.Pages
                     Microsoft.AspNetCore.Identity.SignInResult result = await signInManager.PasswordSignInAsync(authUser, UserModel.Password, UserModel.RememberMe, false);
                     if (result.Succeeded)
                     {
-                        return Redirect(redirectUrl);
+                        return Redirect(returnUrl);
                     }
                     else
                     {
