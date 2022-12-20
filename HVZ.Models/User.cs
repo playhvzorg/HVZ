@@ -10,7 +10,7 @@ public class User : IdEquatable<User>
     /// <summary>
     /// Given name of the user
     /// </summary>
-    public string Name { get; init; }
+    public string FullName { get; init; }
     /// <summary>
     /// Email address of the user
     /// </summary>
@@ -20,10 +20,10 @@ public class User : IdEquatable<User>
     /// </summary>
     public Instant CreatedAt { get; init; }
 
-    public User(string id, string name, string email)
+    public User(string id, string fullName, string email)
     {
         Id = id;
-        Name = name;
+        FullName = fullName;
         Email = email;
     }
 }

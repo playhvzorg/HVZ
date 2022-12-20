@@ -36,22 +36,10 @@
                 </ul>
                 <form method="post">
                     <div class="text-danger" asp-validation-summary="None"></div>
-                    <div class="row mt-3">
-                        <div class="col-md">
-                            <div class="form-floating mb-3">
-                                <input asp-for="UserModel.FirstName" class="form-control" placeholder="First">
-                                <label for="floatingFName">First Name</label>
-                                <span class="text-danger" asp-validation-for="UserModel.FirstName"></span>
-                            </div>
-                            
-                        </div>
-                        <div class="col-md">
-                            <div class="form-floating mb-3">
-                                <input asp-for="UserModel.LastName" class="form-control" placeholder="Last">
-                                <label for="floatingLName">Last Name</label>
-                                <span class="text-danger" asp-validation-for="UserModel.LastName"></span>
-                            </div>
-                        </div>
+                    <div class="form-floating mb-3">
+                        <input asp-for="UserModel.FullName" class="form-control" placeholder="Full Name">
+                        <label for="floatingFName">Full Name</label>
+                        <span class="text-danger" asp-validation-for="UserModel.FullName"></span>
                     </div>
                     <div class="form-floating mb-3">
                         <input asp-for="UserModel.Email" class="form-control" placeholder="name@example.com">

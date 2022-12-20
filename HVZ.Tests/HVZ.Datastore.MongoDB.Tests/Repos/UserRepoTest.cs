@@ -19,7 +19,7 @@ public class UserRepoTest : MongoTestBase
         string userEmail = "ham@breakfast.club";
 
         User createdUser = await userRepo.CreateUser(userName, userEmail);
-        User foundUser = await userRepo.Collection.Find(u => u.Name == userName).FirstAsync();
+        User foundUser = await userRepo.Collection.Find(u => u.FullName == userName).FirstAsync();
 
         Assert.That(createdUser.Id, Is.Not.EqualTo(string.Empty));
         Assert.That(createdUser.Id, Is.EqualTo(foundUser.Id));

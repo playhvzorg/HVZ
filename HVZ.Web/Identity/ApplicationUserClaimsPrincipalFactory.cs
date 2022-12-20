@@ -21,8 +21,7 @@ namespace HVZ.Web.Identity
 
             // Claims that we will likely need
             identity.AddClaim(new Claim("DatabaseId", user.DatabaseId));
-            identity.AddClaim(new Claim("FirstName", user.FirstName));
-            identity.AddClaim(new Claim("LastName", user.LastName));
+            identity.AddClaim(new Claim("FullName", user.FullName));
 
             return identity;
         }

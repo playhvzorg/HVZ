@@ -49,14 +49,13 @@ namespace HVZ.Web.Pages
                 }
 
                 HVZ.Models.User dbUser = await userRepo.CreateUser(
-                    $"{UserModel.FirstName} {UserModel.LastName}",
+                    UserModel.FullName,
                     UserModel.Email
                 );
 
                 authUser = new ApplicationUser
                 {
-                    FirstName = UserModel.FirstName,
-                    LastName = UserModel.LastName,
+                    FullName = UserModel.FullName,
                     Email = UserModel.Email,
                     DatabaseId = dbUser.Id,
                     UserName = UserModel.Email
