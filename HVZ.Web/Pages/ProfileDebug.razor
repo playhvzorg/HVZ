@@ -1,0 +1,40 @@
+@using Microsoft.AspNetCore.Components.Authorization
+@inject NavigationManager Navigation
+@attribute [Authorize]
+
+@page "/profile/debug"
+
+<PageTitle>Profile</PageTitle>
+
+<CascadingAuthenticationState>
+
+    <AuthorizeView>
+
+        <Authorized>
+
+            <h1>Hello, @context.User.Claims.FirstOrDefault(c => c.Type == "name")?.Value</h1>
+
+            <h3>These are your claims: </h3>
+
+            <table class="table">
+
+                <thead>
+                    <tr>
+                        <td scope="col">Type</td>
+                        <td scope="col">Value</td>
+                    </tr>
+                </thead>
+                @foreach (var claim in context.User.Claims)
+                {
+                    <tr>
+                        <td>@claim.Type</td>
+                        <td>@claim.Value</td>
+                    </tr>
+                }
+            </table>
+
+        </Authorized>
+
+    </AuthorizeView>
+
+</CascadingAuthenticationState>

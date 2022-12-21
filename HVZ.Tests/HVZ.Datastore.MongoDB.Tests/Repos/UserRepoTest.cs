@@ -19,7 +19,7 @@ public class UserRepoTest : MongoTestBase
         string userEmail = "ham@breakfast.club";
 
         User createdUser = await userRepo.CreateUser(userName, userEmail);
-        User foundUser = await userRepo.Collection.Find(u => u.Name == userName).FirstAsync();
+        User foundUser = await userRepo.Collection.Find(u => u.FullName == userName).FirstAsync();
 
         Assert.That(createdUser.Id, Is.Not.EqualTo(string.Empty));
         Assert.That(createdUser.Id, Is.EqualTo(foundUser.Id));
@@ -72,5 +72,20 @@ public class UserRepoTest : MongoTestBase
         Assert.That(noUsers.Length, Is.EqualTo(0));
         Assert.That(oneUser.Length, Is.EqualTo(1));
         Assert.That(twoUsers.Length, Is.EqualTo(2));
+    }
+
+    [Test]
+    public async Task test_deleteUser()
+    {
+        UserRepo userRepo = CreateUserRepo();
+        string userName = "karl";
+        string userEmail = "karl@karl.com";
+        User createdUser = await userRepo.CreateUser(userName, userEmail);
+
+        User foundUser = await userRepo.GetUserById(createdUser.Id);
+
+        await userRepo.DeleteUser(createdUser.Id);
+
+        Assert.ThrowsAsync<ArgumentException>(() => userRepo.GetUserById(createdUser.Id));
     }
 }

@@ -1,4 +1,4 @@
-﻿using MongoDB.Driver;
+using MongoDB.Driver;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.IdGenerators;
@@ -29,7 +29,8 @@ public class GameRepo : IGameRepo
                 .SetSerializer(ObjectIdAsStringSerializer.Instance);
             cm.MapProperty(g => g.CreatorId);
             cm.MapProperty(g => g.OrgId);
-            cm.MapProperty(g => g.CreatedAt);
+            cm.MapProperty(g => g.CreatedAt)
+                .SetSerializer(InstantSerializer.Instance);
             cm.MapProperty(g => g.DefaultRole);
             cm.MapProperty(g => g.Players);
             cm.MapProperty(g => g.IsActive);

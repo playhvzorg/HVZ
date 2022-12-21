@@ -7,11 +7,13 @@ public interface IUserRepo
     /// </summary>
     /// <returns>The newly created user</returns>
     public Task<User> CreateUser(string name, string email);
+
     /// <summary>
     /// Find a player from their ID
     /// </summary>
     /// <returns>The found user or Null if no user found</returns>
     public Task<User?> FindUserById(string id);
+
     /// <summary>
     /// Find all users with the given name
     /// </summary>
@@ -23,4 +25,9 @@ public interface IUserRepo
     /// </summary>
     /// <returns>The user. Throws ArgumentException when no user found</returns>
     public Task<User> GetUserById(string id);
+
+    /// <summary>
+    /// Delete a user with the given Id.
+    /// </summary
+    public Task DeleteUser(string id);
 }

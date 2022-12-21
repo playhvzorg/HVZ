@@ -20,9 +20,10 @@ public class UserRepo : IUserRepo
             cm.MapIdProperty(u => u.Id)
                 .SetIdGenerator(StringObjectIdGenerator.Instance)
                 .SetSerializer(ObjectIdAsStringSerializer.Instance);
-            cm.MapProperty(u => u.Name);
+            cm.MapProperty(u => u.FullName);
             cm.MapProperty(u => u.Email);
-            cm.MapProperty(u => u.CreatedAt);
+            cm.MapProperty(u => u.CreatedAt)
+                .SetSerializer(InstantSerializer.Instance);
         });
     }
 
@@ -42,7 +43,7 @@ public class UserRepo : IUserRepo
         Collection.Indexes.CreateMany(new[]
         {
             new CreateIndexModel<User>(Builders<User>.IndexKeys.Ascending(u => u.Id)),
-            new CreateIndexModel<User>(Builders<User>.IndexKeys.Ascending(u => u.Name)),
+            new CreateIndexModel<User>(Builders<User>.IndexKeys.Ascending(u => u.FullName)),
             new CreateIndexModel<User>(Builders<User>.IndexKeys.Ascending(u => u.Email))
         });
     }
@@ -53,9 +54,12 @@ public class UserRepo : IUserRepo
         if (await Collection.Find(u => u.Email == email).AnyAsync())
             throw new ArgumentException($"There is already a user registered with the email {email}");
 
+        // Ensure that there are no leading or trailing whitespace characters
+        name = name.Trim();
+
         User user = new(
             id: string.Empty,
-            name: name,
+            fullName: name,
             email: email
         );
 
@@ -64,14 +68,14 @@ public class UserRepo : IUserRepo
     }
 
     public async Task<User?> FindUserById(string userId)
-        => userId == string.Empty ? null : await Collection.Find(u => u.Id == userId).FirstAsync();
+        => userId == string.Empty ? null : await Collection.Find(u => u.Id == userId).FirstOrDefaultAsync();
 
     public async Task<User[]> FindUserByName(string name)
     {
         if (name == string.Empty)
             throw new ArgumentException("Name must not be empty");
 
-        var users = await Collection.Find(u => u.Name.ToLower().Contains(name.ToLower())).ToListAsync();
+        var users = await Collection.Find(u => u.FullName.ToLower().Contains(name.ToLower())).ToListAsync();
         return users.ToArray();
     }
 
@@ -83,5 +87,9 @@ public class UserRepo : IUserRepo
         return (User)user;
     }
 
+    public async Task DeleteUser(string userId)
+    {
+        await Collection.FindOneAndDeleteAsync(u => u.Id == userId);
+    }
 
 }
