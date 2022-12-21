@@ -53,7 +53,7 @@ public class UserRepo : IUserRepo
         //Ensure email is Unique
         if (await Collection.Find(u => u.Email == email).AnyAsync())
             throw new ArgumentException($"There is already a user registered with the email {email}");
-        
+
         // Ensure that there are no leading or trailing whitespace characters
         name = name.Trim();
 
