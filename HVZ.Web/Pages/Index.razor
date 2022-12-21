@@ -1,0 +1,33 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@page "/"
+
+<PageTitle>Index</PageTitle>
+
+<CascadingAuthenticationState>
+
+    <AuthorizeView>
+
+        <Authorized>
+            <h1>
+                Hello, @context.User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value!
+            </h1>
+        </Authorized>
+        <NotAuthorized>
+            <a href="Account/Login" class="btn btn-primary btn-lg">Login</a>
+        </NotAuthorized>
+
+    </AuthorizeView>
+
+</CascadingAuthenticationState>
+
+@code {
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+}

@@ -2,13 +2,10 @@ namespace HVZ.Persistence;
 using HVZ.Models;
 public interface IOrgRepo
 {
-    /// <summary>
-    /// Create a new organization
-    /// </summary>
-    public Task<Organization> CreateOrg(string name, string creatorUserId);
+    public Task<Organization> CreateOrg(string name, string url, string creatorUserId);
 
     /// <summary>
-    /// Find an org by its Id. Returns Null when no org found
+    /// Find an org by its Id. Returns Null when no org found.
     /// </summary>
     public Task<Organization?> FindOrgById(string orgId);
 
@@ -18,7 +15,17 @@ public interface IOrgRepo
     public Task<Organization> GetOrgById(string orgId);
 
     /// <summary>
-    /// Find an org by its name. Returns null when no org found.
+    /// Get an org by its Url Parameter. Returns Null when no org found.
+    /// </summary>
+    public Task<Organization?> FindOrgByUrl(string url);
+
+    /// <summary>
+    /// Get an org by its Url Parameter. Throws an exception if no org found.
+    /// </summary>
+    public Task<Organization> GetOrgByUrl(string url);
+
+    /// <summary>
+    /// Get an org by its Name. Returns Null when no org found.
     /// </summary>
     public Task<Organization?> FindOrgByName(string name);
 
@@ -75,4 +82,19 @@ public interface IOrgRepo
     /// </summary>
     public Task<Organization> RemoveAdmin(string orgId, string userId);
 
+    /// <summary>
+    /// Check if the user is an admin for the given org
+    /// </summary>
+    /// <param name="orgId"></param>
+    /// <param name="userId"></param>
+    /// <returns>Whether the user is an admin</returns>
+    public Task<bool> IsAdminOfOrg(string orgId, string userId);
+
+    /// <summary>
+    /// Check if the user is an moderator for the given org
+    /// </summary>
+    /// <param name="orgId"></param>
+    /// <param name="userId"></param>
+    /// <returns>Whether the user is an moderator</returns>
+    public Task<bool> IsModOfOrg(string orgId, string userId);
 }

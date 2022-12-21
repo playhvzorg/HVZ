@@ -22,12 +22,14 @@ public class OrgRepo : IOrgRepo
                 .SetIdGenerator(StringObjectIdGenerator.Instance)
                 .SetSerializer(ObjectIdAsStringSerializer.Instance);
             cm.MapProperty(o => o.Name);
+            cm.MapProperty(o => o.Url);
             cm.MapProperty(o => o.OwnerId);
             cm.MapProperty(o => o.Moderators);
             cm.MapProperty(o => o.Administrators);
             cm.MapProperty(o => o.Games);
             cm.MapProperty(o => o.ActiveGameId);
-            cm.MapProperty(o => o.CreatedAt);
+            cm.MapProperty(o => o.CreatedAt)
+                .SetSerializer(InstantSerializer.Instance);
         });
     }
 
@@ -51,12 +53,13 @@ public class OrgRepo : IOrgRepo
             new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.Id)),
             new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.OwnerId)),
             new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.Name)),
+            new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.Url)),
         });
     }
 
-    public async Task<Organization> CreateOrg(string name, string creatorUserId)
+    public async Task<Organization> CreateOrg(string name, string url, string creatorUserId)
     {
-        await _userRepo.GetUserById(creatorUserId);
+        // await _userRepo.GetUserById(creatorUserId);
         Organization org = new(
             id: string.Empty,
             name: name,
@@ -65,7 +68,8 @@ public class OrgRepo : IOrgRepo
             administrators: new() { creatorUserId },
             games: new(),
             activegameid: null,
-            createdat: _clock.GetCurrentInstant()
+            createdat: _clock.GetCurrentInstant(),
+            url: url
         );
         await Collection.InsertOneAsync(org);
 
@@ -73,7 +77,7 @@ public class OrgRepo : IOrgRepo
     }
 
     public async Task<Organization?> FindOrgById(string orgId)
-        => orgId == string.Empty ? null : await Collection.Find<Organization>(o => o.Id == orgId).FirstAsync();
+        => orgId == string.Empty ? null : await Collection.Find<Organization>(o => o.Id == orgId).FirstOrDefaultAsync();
 
     public async Task<Organization> GetOrgById(string orgId)
     {
@@ -83,8 +87,19 @@ public class OrgRepo : IOrgRepo
         return (Organization)org;
     }
 
+    public async Task<Organization?> FindOrgByUrl(string url)
+        => url == string.Empty ? null : await Collection.Find<Organization>(o => o.Url == url).FirstOrDefaultAsync();
+
+    public async Task<Organization> GetOrgByUrl(string url)
+    {
+        Organization? org = await FindOrgByUrl(url);
+        if (org == null)
+            throw new ArgumentException($"Org with url {url} not found!");
+        return (Organization)org;
+    }
+
     public async Task<Organization?> FindOrgByName(string name)
-        => name == string.Empty ? null : await Collection.Find<Organization>(o => o.Name == name).FirstAsync();
+        => name == string.Empty ? null : await Collection.Find<Organization>(o => o.Name == name).FirstOrDefaultAsync();
 
     public Task<Organization> GetOrgByName(string name)
     {
@@ -177,5 +192,17 @@ public class OrgRepo : IOrgRepo
             Builders<Organization>.Update.Set(o => o.Moderators, org.Moderators),
             new() { ReturnDocument = ReturnDocument.After }
             );
+    }
+
+    public async Task<bool> IsAdminOfOrg(string orgId, string userId)
+    {
+        var admins = await GetAdminsOfOrg(orgId);
+        return admins.Contains(userId);
+    }
+
+    public async Task<bool> IsModOfOrg(string orgId, string userId)
+    {
+        var mods = await GetModsOfOrg(orgId);
+        return mods.Contains(userId);
     }
 }
