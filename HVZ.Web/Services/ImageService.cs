@@ -15,7 +15,6 @@ namespace HVZ.Web.Services
         public ImageService(IOptions<ImageServiceOptions> options)
         {
             this.uploadPath = options.Value.UploadPath;
-            // this.uploadPath = "wwwroot\\images";
         }
 
         public string GetThumbnailSmall(string id) => $"images/{id}_thumbnail_small.jpeg";
@@ -33,7 +32,7 @@ namespace HVZ.Web.Services
             if (fileContentType[0] != "image")
             {
                 // TODO: Notify that the file is not a correct type
-                return;
+                throw new ArgumentException("File must be an image");
             }
 
             var path = Path.Combine(uploadPath, $"{imageName}.{fileContentType[1]}");
