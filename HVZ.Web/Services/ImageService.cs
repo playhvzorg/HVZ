@@ -40,7 +40,7 @@ namespace HVZ.Web.Services
             await using FileStream fs = new FileStream(path, FileMode.Create);
             await file.OpenReadStream(2048 * 2048 * 32).CopyToAsync(fs);
             fs.Close();
-            SaveThumbnails(path, imageName);
+            await SaveThumbnails(path, imageName);
         }
 
         private async void SaveThumbnails(string path, string imageName)
