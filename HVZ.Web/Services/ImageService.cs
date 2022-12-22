@@ -31,7 +31,6 @@ namespace HVZ.Web.Services
             var fileContentType = file.ContentType.Split("/");
             if (fileContentType[0] != "image")
             {
-                // TODO: Notify that the file is not a correct type
                 throw new ArgumentException("File must be an image");
             }
 
