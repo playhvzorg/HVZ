@@ -30,7 +30,7 @@ namespace HVZ.Web.Services
         {
             // Check that the file is png, jpg, or jpeg
             var fileContentType = file.ContentType.Split("/");
-            if(fileContentType[0] != "image")
+            if (fileContentType[0] != "image")
             {
                 // TODO: Notify that the file is not a correct type
                 return;
@@ -46,7 +46,7 @@ namespace HVZ.Web.Services
         private async void SaveThumbnails(string path, string imageName)
         {
             await using FileStream fs = new FileStream(path, FileMode.Open);
-            using(var stream = new SKManagedStream(fs))
+            using (var stream = new SKManagedStream(fs))
             {
                 SKBitmap src = SKBitmap.Decode(stream);
 
@@ -96,17 +96,17 @@ namespace HVZ.Web.Services
                 Bottom = src.Height
             }; // Capture entire image
 
-            if ( difference < 0 )
+            if (difference < 0)
             {
                 // Vertical image - chop top and bottom
-                cropRect.Top = -difference/2;
-                cropRect.Bottom = src.Height + (difference/2);
+                cropRect.Top = -difference / 2;
+                cropRect.Bottom = src.Height + (difference / 2);
             }
-            else if ( difference > 0 )
+            else if (difference > 0)
             {
                 // Horizontal image - cop left and right
-                cropRect.Left = difference/2;
-                cropRect.Right = src.Width - (difference/2);
+                cropRect.Left = difference / 2;
+                cropRect.Right = src.Width - (difference / 2);
             }
             // if difference is 0 image is already a square
 
