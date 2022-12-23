@@ -82,7 +82,7 @@ namespace HVZ.Web.Pages
                 else
                 {
                     await userRepo.DeleteUser(dbUser.Id);
-                    string errors= "";
+                    string errors = "";
                     foreach (IdentityError error in result.Errors)
                     {
                         errors += $"\n{error.Code}:{error.Description}";
