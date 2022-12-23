@@ -5,6 +5,7 @@ using HVZ.Persistence.MongoDB.Repos;
 using HVZ.Web.Identity;
 using HVZ.Web.Identity.Models;
 using HVZ.Web.Settings;
+using HVZ.Web.Services;
 using MongoDB.Driver;
 using NodaTime;
 
@@ -26,6 +27,7 @@ internal static class Program
         builder.Services.AddHttpClient();
 
         #region Persistence
+
         var mongoClient = new MongoClient(
             builder.Configuration["DatabaseSettings:ConnectionString"]
         );
@@ -42,7 +44,6 @@ internal static class Program
         builder.Services.AddSingleton<IUserRepo>(userRepo);
         builder.Services.AddSingleton<IOrgRepo>(orgRepo);
 
-
         #endregion
 
         #region Identity
@@ -57,6 +58,16 @@ internal static class Program
             IUserClaimsPrincipalFactory<ApplicationUser>,
             ApplicationClaimsPrincipalFactory
         >();
+
+        #endregion
+
+        #region Images
+
+        ImageServiceOptions options = new();
+        builder.Configuration.GetSection(
+            nameof(ImageServiceOptions)
+        ).Bind(options);
+        builder.Services.AddSingleton<ImageService>();
 
         #endregion
 
