@@ -41,7 +41,7 @@ namespace HVZ.Web.Services
             await SaveThumbnails(path, imageName);
         }
 
-        private async void SaveThumbnails(string path, string imageName)
+        private async Task SaveThumbnails(string path, string imageName)
         {
             await using FileStream fs = new FileStream(path, FileMode.Open);
             using (var stream = new SKManagedStream(fs))
