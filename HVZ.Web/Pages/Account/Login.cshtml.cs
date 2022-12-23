@@ -12,7 +12,7 @@ namespace HVZ.Web.Pages
         private UserManager<ApplicationUser> userManager;
         private SignInManager<ApplicationUser> signInManager;
         private NavigationManager navigation;
-        private ILogger<LoginModel> _logger;
+        private ILogger<LoginModel> logger;
         private string redirectUrl = "";
 
         [BindProperty]
@@ -24,7 +24,7 @@ namespace HVZ.Web.Pages
             this.signInManager = signInManager;
             this.UserModel = new();
             this.navigation = navigation;
-            this._logger = logger;
+            this.logger = logger;
         }
 
         public void OnGet(string returnUrl = "/")
@@ -37,7 +37,7 @@ namespace HVZ.Web.Pages
 
             if (!ModelState.IsValid)
             {
-                _logger.LogDebug("invalid model state");
+                logger.LogDebug("invalid model state");
                 return Page();
             }
 
@@ -50,11 +50,11 @@ namespace HVZ.Web.Pages
                     Microsoft.AspNetCore.Identity.SignInResult result = await signInManager.PasswordSignInAsync(authUser, UserModel.Password, UserModel.RememberMe, false);
                     if (result.Succeeded)
                     {
-                        _logger.LogDebug("Successful login");
+                        logger.LogDebug("Successful login");
                         return Redirect(returnUrl);
                     }
                 }
-                _logger.LogDebug("Unsuccessful login attempt");
+                logger.LogDebug("Unsuccessful login attempt");
                 ModelState.AddModelError(nameof(UserModel.Email), "Login Failed: Invalid Email or Password");
             }
 

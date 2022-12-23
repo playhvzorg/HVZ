@@ -14,7 +14,7 @@ namespace HVZ.Web.Pages
         private UserManager<ApplicationUser> userManager;
         private SignInManager<ApplicationUser> signInManager;
         private IUserRepo userRepo;
-        private ILogger<RegisterModel> _logger;
+        private ILogger<RegisterModel> logger;
         private string redirectURL = "/";
 
         [BindProperty]
@@ -26,7 +26,7 @@ namespace HVZ.Web.Pages
             this.signInManager = signInManager;
             this.userRepo = userRepo;
             this.UserModel = new();
-            this._logger = logger;
+            this.logger = logger;
         }
 
         public void OnGet(string redirectURL = "/")
@@ -73,7 +73,7 @@ namespace HVZ.Web.Pages
                     Microsoft.AspNetCore.Identity.SignInResult signInResult = await signInManager.PasswordSignInAsync(
                         authUser, UserModel.Password, false, false
                     );
-                    _logger.LogDebug($"New user created\nName:\t{dbUser.FullName}\nId:\t{dbUser.Id}");
+                    logger.LogDebug($"New user created\nName:\t{dbUser.FullName}\nId:\t{dbUser.Id}");
                     if (signInResult.Succeeded)
                     {
                         return Redirect(this.redirectURL);
@@ -87,7 +87,7 @@ namespace HVZ.Web.Pages
                     {
                         errors += $"\n{error.Code}:{error.Description}";
                     }
-                    _logger.LogError("Critical error creating user identity!{}", errors);
+                    logger.LogError("Critical error creating user identity!{}", errors);
                 }
             }
 

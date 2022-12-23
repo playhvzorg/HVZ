@@ -10,19 +10,19 @@ namespace HVZ.Web.Pages
     public class LogoutModel : PageModel
     {
         private SignInManager<ApplicationUser> signInManager;
-        private ILogger<LogoutModel> _logger;
+        private ILogger<LogoutModel> logger;
 
         public LogoutModel(SignInManager<ApplicationUser> signInManager, ILogger<LogoutModel> logger)
         {
             this.signInManager = signInManager;
-            this._logger = logger;
+            this.logger = logger;
         }
 
 
         public async Task<IActionResult> OnGet()
         {
             await signInManager.SignOutAsync();
-            _logger.LogDebug("Successful Logout");
+            logger.LogDebug("Successful Logout");
             return Redirect("/");
         }
     }
