@@ -14,17 +14,19 @@ namespace HVZ.Web.Pages
         private UserManager<ApplicationUser> userManager;
         private SignInManager<ApplicationUser> signInManager;
         private IUserRepo userRepo;
+        private ILogger<RegisterModel> _logger;
         private string redirectURL = "/";
 
         [BindProperty]
         public AuthUserModel UserModel { get; set; }
 
-        public RegisterModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IUserRepo userRepo)
+        public RegisterModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IUserRepo userRepo, ILogger<RegisterModel> logger)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
             this.userRepo = userRepo;
             this.UserModel = new();
+            this._logger = logger;
         }
 
         public void OnGet(string redirectURL = "/")
@@ -71,6 +73,7 @@ namespace HVZ.Web.Pages
                     Microsoft.AspNetCore.Identity.SignInResult signInResult = await signInManager.PasswordSignInAsync(
                         authUser, UserModel.Password, false, false
                     );
+                    _logger.LogDebug($"New user created\nName:\t{dbUser.FullName}\nId:\t{dbUser.Id}");
                     if (signInResult.Succeeded)
                     {
                         return Redirect(this.redirectURL);
@@ -79,10 +82,12 @@ namespace HVZ.Web.Pages
                 else
                 {
                     await userRepo.DeleteUser(dbUser.Id);
+                    string errors= "";
                     foreach (IdentityError error in result.Errors)
                     {
-                        System.Console.WriteLine($"{error.Code}:{error.Description}");
+                        errors += $"\n{error.Code}:{error.Description}";
                     }
+                    _logger.LogError("Critical error creating user identity!{}", errors);
                 }
             }
 

@@ -1,5 +1,6 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IOrgRepo OrgRepo
+@inject ILogger<OrgAuth> Logger
 
 @inherits LayoutComponentBase
 
@@ -36,6 +37,7 @@
         {
             isAdmin = await OrgRepo.IsAdminOfOrg(OrgId, userId);
             isMod = isAdmin || await OrgRepo.IsModOfOrg(OrgId, userId);
+            Logger.LogDebug($"User has admin: {isAdmin}; User has mod: {isMod}");
             shouldRender = true;
         }
 

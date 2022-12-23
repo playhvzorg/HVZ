@@ -73,6 +73,9 @@ internal static class Program
 
         builder.Services.AddSingleton<WeatherForecastService>();
 
+        builder.Logging.ClearProviders();
+        builder.Logging.AddConsole();
+
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
