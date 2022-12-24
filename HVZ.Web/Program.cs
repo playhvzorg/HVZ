@@ -63,11 +63,23 @@ internal static class Program
 
         #region Images
 
-        ImageServiceOptions options = new();
-        builder.Configuration.GetSection(
-            nameof(ImageServiceOptions)
-        ).Bind(options);
+        builder.Services.Configure<ImageServiceOptions>(
+            builder.Configuration.GetSection(
+                nameof(ImageServiceOptions)
+            )
+        );
         builder.Services.AddSingleton<ImageService>();
+
+        #endregion
+
+        #region Email
+
+        builder.Services.Configure<EmailServiceOptions>(
+            builder.Configuration.GetSection(
+                nameof(EmailServiceOptions)
+            )
+        );
+        builder.Services.AddSingleton<EmailService>();
 
         #endregion
 

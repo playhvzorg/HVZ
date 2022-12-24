@@ -1,6 +1,9 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
+@using HVZ.Web.Services
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject EmailService Email
+@* @inject ImageService Image *@
 @page "/"
 
 <PageTitle>Index</PageTitle>
@@ -13,6 +16,7 @@
             <h1>
                 Hello, @context.User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value!
             </h1>
+            <button class="btn btn-primary" @onclick="SendDebug">Send debug email</button>
         </Authorized>
         <NotAuthorized>
             <a href="Account/Login" class="btn btn-primary btn-lg">Login</a>
@@ -23,11 +27,8 @@
 </CascadingAuthenticationState>
 
 @code {
-
-
-    protected override async Task OnInitializedAsync()
+    void SendDebug()
     {
-
+        Email.SendTemplateDebug();
     }
-
 }
