@@ -16,7 +16,6 @@
             <h1>
                 Hello, @context.User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value!
             </h1>
-            <button class="btn btn-primary" @onclick="SendDebug">Send debug email</button>
         </Authorized>
         <NotAuthorized>
             <a href="Account/Login" class="btn btn-primary btn-lg">Login</a>
@@ -27,8 +26,5 @@
 </CascadingAuthenticationState>
 
 @code {
-    void SendDebug()
-    {
-        Email.SendTemplateDebug();
-    }
+    
 }
