@@ -24,14 +24,14 @@ namespace HVZ.Web.Services
             client.EnableSsl = true;
         }
 
-        public void SendDebug()
+        public void SendDebug(string email)
         {
             try
             {
                 MailMessage msg = new MailMessage();
                 msg.Subject = "Sent from my web app!";
                 msg.Body = "Hello from my web app!";
-                msg.To.Add(new MailAddress("mcninja232@gmail.com"));
+                msg.To.Add(email);
                 msg.From = address;
 
                 client.Send(msg);
@@ -44,7 +44,7 @@ namespace HVZ.Web.Services
             }
         }
 
-        public void SendTemplateDebug()
+        public void SendTemplateDebug(string email)
         {
             string htmlBody = "<link rel=\"stylesheet\" href=\"https://bootstrapbuildspace.sfo2.cdn.digitaloceanspaces.com//gIYUvFGaMeFj/iHIvwvploonO/bootstrap.min.css\" />" +
             "<h1 class=\"jumbotron\">Hello</h1>";
@@ -52,8 +52,8 @@ namespace HVZ.Web.Services
             MailMessage msg = new MailMessage();
             msg.Subject = "Sent from my web app!";
             msg.Body = htmlBody;
-            msg.To.Add(new MailAddress("mcninja232@gmail.com"));
-            msg.From = new MailAddress("mcninja232@gmail.com", "App");
+            msg.To.Add(new MailAddress(email));
+            msg.From = address;
             msg.IsBodyHtml = true;
 
             client.Send(msg);
