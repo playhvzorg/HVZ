@@ -26,6 +26,16 @@ internal static class Program
         builder.Services.AddServerSideBlazor();
         builder.Services.AddHttpClient();
 
+        #region Generic options
+
+        builder.Services.Configure<WebConfig>(
+            builder.Configuration.GetSection(
+                nameof(WebConfig)
+            )
+        );
+
+        #endregion
+
         #region Persistence
 
         var mongoClient = new MongoClient(
@@ -53,7 +63,8 @@ internal static class Program
             .AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>
             (
                 mongoIdentitySettings?.ConnectionString, mongoIdentitySettings?.Name
-            );
+            )
+            .AddDefaultTokenProviders();
         builder.Services.AddScoped<
             IUserClaimsPrincipalFactory<ApplicationUser>,
             ApplicationClaimsPrincipalFactory

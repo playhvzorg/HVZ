@@ -1,8 +1,10 @@
+using System.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using HVZ.Web.Identity.Models;
+using HVZ.Web.Services;
 using HVZ.Models;
 using HVZ.Persistence;
 
@@ -14,16 +16,18 @@ namespace HVZ.Web.Pages
         private UserManager<ApplicationUser> userManager;
         private SignInManager<ApplicationUser> signInManager;
         private IUserRepo userRepo;
+        private EmailService email;
         private string redirectURL = "/";
 
         [BindProperty]
         public AuthUserModel UserModel { get; set; }
 
-        public RegisterModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IUserRepo userRepo)
+        public RegisterModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IUserRepo userRepo, EmailService email)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
             this.userRepo = userRepo;
+            this.email = email;
             this.UserModel = new();
         }
 
@@ -67,6 +71,10 @@ namespace HVZ.Web.Pages
                 );
                 if (result.Succeeded)
                 {
+                    // Send email confirmation
+                    string token = await userManager.GenerateEmailConfirmationTokenAsync(authUser);
+                    await email.SendVerificationEmailAsync(authUser.Email, authUser.FullName, HttpUtility.UrlEncode(token));
+
                     // Log the user in
                     Microsoft.AspNetCore.Identity.SignInResult signInResult = await signInManager.PasswordSignInAsync(
                         authUser, UserModel.Password, false, false

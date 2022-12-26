@@ -12,7 +12,7 @@ namespace HVZ.Web.Pages
         private UserManager<ApplicationUser> userManager;
         private SignInManager<ApplicationUser> signInManager;
         private NavigationManager navigation;
-        private string redirectUrl;
+        private string? redirectUrl;
 
         [BindProperty]
         public SignInUserModel UserModel { get; set; }
