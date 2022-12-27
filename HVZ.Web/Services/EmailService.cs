@@ -74,9 +74,10 @@ namespace HVZ.Web.Services
             string htmlBody = String.Format(@"
             
             <div style=""font-family: Arial"">
-                <h1>Hello, {0}</h1>
+                <h1>Confirm your email</h1>
             </div>
             <hr>
+            <p style=""font: 14pt Arial;"">Hello {0}</p>
             <p style=""font: 14pt Arial;"">Thank you for signing up at playhvz.org!</p>
             <p style=""font: 14pt Arial;"">Please confirm your identity by verifying your email address</p>
 
