@@ -37,7 +37,7 @@
         {
             isAdmin = await OrgRepo.IsAdminOfOrg(OrgId, userId);
             isMod = isAdmin || await OrgRepo.IsModOfOrg(OrgId, userId);
-            Logger.LogDebug($"User has admin: {isAdmin}; User has mod: {isMod}");
+            Logger.LogDebug($"User ID: {userId}; Org ID: {OrgId}\nUser has admin: {isAdmin}; User has mod: {isMod}");
             shouldRender = true;
         }
 
