@@ -71,7 +71,6 @@ namespace HVZ.Web.Services
 
         public async Task SendVerificationEmailAsync(string to, string name, string requestId)
         {
-            // TODO: Implement
             string htmlBody = String.Format(@"
             
             <div style=""font-family: Arial"">
@@ -92,8 +91,46 @@ namespace HVZ.Web.Services
             ""
             href=""{2}Account/Verify?requestId={1}""
             target=""_blank"">Verify email</a>
-            <p style=""margin-bottom: 1px;"">Or click here:</p>
-            <p style=""margin-top: 0px;"">{2}Account/Verify?requestId={1}</p>
+            <p style=""margin-bottom: 1px; font: 14pt Arial;"">Or copy and paste this URL into your browser:</p>
+            <p style=""font: 14pt Arial;"">{2}Account/Verify?requestId={1}</p>
+            ", name, requestId, domainName);
+
+            MailMessage msg = new MailMessage();
+            msg.Subject = "PlayHVZ: Confirm email address";
+            msg.Body = htmlBody;
+            msg.To.Add(new MailAddress(to));
+            msg.From = address;
+            msg.IsBodyHtml = true;
+
+            client.SendAsync(msg, requestId);
+        }
+
+        public async Task SendPasswordChangeEmailAsync(string to, string name, string requestId)
+        {
+            string htmlBody = String.Format(@"
+
+            <div style=""font-family: Arial"">
+                <h1>Reset your password</h1>
+            </div>
+
+            <hr>
+            <p style=""font: 14pt Arial;"">Hello {0}</p>
+            <p style=""font: 14pt Arial;"">Click this button to reset your PlayHVZ account password</p>
+            <a
+            style=""
+            font: 14pt Arial;
+            text-decoration: none;
+            background-color: rgb(83, 124, 216);
+            color: white;
+            padding: 10px 14px 10px 14px;
+            border-radius: .25rem;
+            ""
+            href=""{2}Account/Reset?requestId={1}""
+            target=""_blank"">Reset password</a>
+            <p style=""margin-bottom: 1px; font: 14pt Arial;"">Or copy and paste this URL into your browser:</p>
+            <p style=""font: 14pt Arial;"">{2}Account/Reset?requestId={1}</p>
+            <hr>
+            <p style=""font: 14pt Arial;"">If you did not request a password reset, you can safely delete this email.</p>
             ", name, requestId, domainName);
 
             MailMessage msg = new MailMessage();
@@ -104,11 +141,6 @@ namespace HVZ.Web.Services
             msg.IsBodyHtml = true;
 
             client.SendAsync(msg, requestId);
-        }
-
-        public async Task SendPasswordChangeEmailAsync(string to, string requestId)
-        {
-            // TODO: Implement
         }
     }
 }
