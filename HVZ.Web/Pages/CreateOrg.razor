@@ -104,7 +104,7 @@
         
         @* TODO check that org with name or URL does not exist already and update validation *@
 
-        Logger.LogInformation($"{authUser.FullName} has created a new org: {orgName}");
+        Logger.LogInformation($"{authUser.FullName}:{authUser.DatabaseId} has created a new org: {orgName}");
 
         var org = await OrgRepo.CreateOrg(orgName, orgUrl, authUser.DatabaseId);
         Navigation.NavigateTo($"/org/{orgUrl}", true);
