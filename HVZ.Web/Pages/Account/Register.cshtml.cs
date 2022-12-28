@@ -16,7 +16,7 @@ namespace HVZ.Web.Pages
         private UserManager<ApplicationUser> userManager;
         private SignInManager<ApplicationUser> signInManager;
         private IUserRepo userRepo;
-        private EmailService email;
+        private EmailService emailService;
         private string redirectURL = "/";
 
         [BindProperty]
@@ -27,7 +27,7 @@ namespace HVZ.Web.Pages
             this.userManager = userManager;
             this.signInManager = signInManager;
             this.userRepo = userRepo;
-            this.email = email;
+            this.emailService = email;
             this.UserModel = new();
         }
 
@@ -73,7 +73,7 @@ namespace HVZ.Web.Pages
                 {
                     // Send email confirmation
                     string token = await userManager.GenerateEmailConfirmationTokenAsync(authUser);
-                    await email.SendVerificationEmailAsync(authUser.Email, authUser.FullName, HttpUtility.UrlEncode(token));
+                    await emailService.SendVerificationEmailAsync(authUser.Email, authUser.FullName, HttpUtility.UrlEncode(token));
 
                     // Log the user in
                     Microsoft.AspNetCore.Identity.SignInResult signInResult = await signInManager.PasswordSignInAsync(
