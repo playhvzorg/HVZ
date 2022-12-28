@@ -6,5 +6,5 @@
 version: 2
 updates:
   — package-ecosystem: “nuget”
-  directory: "/"
-  interval: "weekly"
+    directory: "/"
+    interval: "weekly"
