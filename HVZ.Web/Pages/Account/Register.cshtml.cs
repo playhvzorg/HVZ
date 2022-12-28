@@ -73,7 +73,7 @@ namespace HVZ.Web.Pages
                     Microsoft.AspNetCore.Identity.SignInResult signInResult = await signInManager.PasswordSignInAsync(
                         authUser, UserModel.Password, false, false
                     );
-                    logger.LogDebug($"New user created\nName:\t{dbUser.FullName}\nId:\t{dbUser.Id}");
+                    logger.LogInformation($"New user created\nName:\t{dbUser.FullName}\nId:\t{dbUser.Id}");
                     if (signInResult.Succeeded)
                     {
                         return Redirect(this.redirectURL);
