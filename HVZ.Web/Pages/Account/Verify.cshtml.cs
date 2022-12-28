@@ -9,6 +9,10 @@ namespace HVZ.Web.Pages
     {
         private UserManager<ApplicationUser> userManager;
 
+        public string Errors { get; set; } = "";
+        public string VerificationState { get; set; } = "Verifying";
+        public IEnumerable<IdentityError>? IdentityErrors { get; set; }
+
         public VerifyModel(UserManager<ApplicationUser> userManager)
         {
             this.userManager = userManager;
@@ -16,7 +20,6 @@ namespace HVZ.Web.Pages
 
         public async Task<IActionResult> OnGetAsync(string requestId)
         {
-            // TODO: Check that the user is signed in
             if (!User.Identity?.IsAuthenticated ?? false)
             {
                 return Redirect($"Account/Login?redirectURL=Account/Verify?requestId={requestId}");
@@ -26,7 +29,9 @@ namespace HVZ.Web.Pages
 
             if (appUser == null)
             {
-                // TODO: Something has gone wrong
+                // TODO: User logger LogFailure when available
+                System.Console.WriteLine($"Could not find user matching email claim: {User.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value}");
+                VerificationState = "Error";
                 return Page();
             }
 
@@ -34,17 +39,20 @@ namespace HVZ.Web.Pages
 
             if (result.Succeeded)
             {
-                System.Console.WriteLine("success");
+                VerificationState = "Success";
+                return Redirect("/");
             }
             else
             {
+                VerificationState = "Error";
+                IdentityErrors = result.Errors;
                 foreach (var error in result.Errors)
                 {
+                    // TODO: Use logger LogFailure when available
                     System.Console.WriteLine($"{error.Code}: {error.Description}");
                 }
+                return Page();
             }
-
-            return Redirect("/");
         }
     }
 }
