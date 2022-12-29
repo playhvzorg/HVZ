@@ -48,7 +48,7 @@ namespace HVZ.Web.Pages
                     if (ip == null)
                     {
                         // Figure out what went wrong
-                        if(httpContextAccessor.HttpContext == null)
+                        if (httpContextAccessor.HttpContext == null)
                         {
                             logger.LogError($"HTTP Context is null\nUser Database ID: {authUser.DatabaseId}\nUser Identity ID: {authUser.Id}\nUser Email: {authUser.Email}");
                         }
