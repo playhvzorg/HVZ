@@ -61,7 +61,6 @@ namespace HVZ.Web.Pages
                     Microsoft.AspNetCore.Identity.SignInResult result = await signInManager.PasswordSignInAsync(authUser, UserModel.Password, UserModel.RememberMe, false);
                     if (result.Succeeded)
                     {
-                        logger.LogDebug("Successful login");
                         logger.LogInformation($"User: {{\n\tName: {authUser.FullName}\n\tEmail: {authUser.Email}\n\tDatabase ID: {authUser.DatabaseId}\n\tIdentity ID: {authUser.Id} \n}}\nLogin from: {ip ?? "Could not determine IP address"}");
                         await userManager.ResetAccessFailedCountAsync(authUser);
                         return Redirect(returnUrl);
