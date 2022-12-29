@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using HVZ.Web.Data;
+using HVZ.DiscordBot;
 using HVZ.Persistence;
 using HVZ.Persistence.MongoDB.Repos;
 using HVZ.Web.Identity;
@@ -71,6 +72,29 @@ internal static class Program
 
         #endregion
 
+        #region DiscordIntegration
+
+        var discordIntegrationSettings = builder.Configuration.GetSection(nameof(DiscordIntegrationSettings)).Get<DiscordIntegrationSettings>();
+        if (discordIntegrationSettings is not null &&
+            discordIntegrationSettings.Token is not null &&
+            discordIntegrationSettings.ClientId is not null &&
+            discordIntegrationSettings.ClientSecret is not null)
+        {
+            var discordBot = new DiscordBot.DiscordBot(discordIntegrationSettings.Token);
+            Task.Run(() => discordBot.Run());
+
+            builder.Services.AddAuthentication(opt =>
+                opt.RequireAuthenticatedSignIn = true
+            ).AddCookie().AddDiscord(x =>
+            {
+                x.ClientId = discordIntegrationSettings.ClientId;
+                x.ClientSecret = discordIntegrationSettings.ClientSecret;
+                x.SaveTokens = true;
+            }
+        );
+        }
+        #endregion
+
         builder.Services.AddSingleton<WeatherForecastService>();
 
         var app = builder.Build();
@@ -91,6 +115,10 @@ internal static class Program
 
         app.UseAuthentication();
         app.UseAuthorization();
+
+        app.UseEndpoints(endpoints =>
+            endpoints.MapDefaultControllerRoute()
+        );
 
         app.MapBlazorHub();
         // app.MapControllers(); // Enable for API
