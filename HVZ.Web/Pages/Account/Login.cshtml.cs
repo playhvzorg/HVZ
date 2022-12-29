@@ -68,7 +68,7 @@ namespace HVZ.Web.Pages
                     }
                     else
                     {
-                        // Valid emai, invalid password
+                        // Valid email, invalid password
                         await userManager.AccessFailedAsync(authUser);
                         int numFailedAttempts = await userManager.GetAccessFailedCountAsync(authUser);
                         if (numFailedAttempts > 1)
