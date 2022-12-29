@@ -14,12 +14,12 @@ namespace HVZ.Web.Pages
         private SignInManager<ApplicationUser> signInManager;
         private NavigationManager navigation;
         private ILogger<LoginModel> logger;
-        private HttpContextAccessor httpContextAccessor;
+        private IHttpContextAccessor httpContextAccessor;
 
         [BindProperty]
         public SignInUserModel UserModel { get; set; }
 
-        public LoginModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, NavigationManager navigation, ILogger<LoginModel> logger, HttpContextAccessor httpContextAccessor)
+        public LoginModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, NavigationManager navigation, ILogger<LoginModel> logger, IHttpContextAccessor httpContextAccessor)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
