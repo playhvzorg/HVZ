@@ -25,6 +25,7 @@ internal static class Program
         builder.Services.AddRazorPages();
         builder.Services.AddServerSideBlazor();
         builder.Services.AddHttpClient();
+        builder.Services.AddHttpContextAccessor();
 
         #region Persistence
 
