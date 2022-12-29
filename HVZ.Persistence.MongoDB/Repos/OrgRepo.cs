@@ -5,6 +5,8 @@ using MongoDB.Bson.Serialization.IdGenerators;
 using HVZ.Models;
 using HVZ.Persistence.MongoDB.Serializers;
 using NodaTime;
+using Microsoft.Extensions.Logging;
+
 namespace HVZ.Persistence.MongoDB.Repos;
 public class OrgRepo : IOrgRepo
 {
@@ -13,6 +15,7 @@ public class OrgRepo : IOrgRepo
     public readonly IUserRepo _userRepo;
     public readonly IGameRepo _gameRepo;
     private readonly IClock _clock;
+    private readonly ILogger _logger;
 
     static OrgRepo()
     {
@@ -33,7 +36,7 @@ public class OrgRepo : IOrgRepo
         });
     }
 
-    public OrgRepo(IMongoDatabase database, IClock clock, IUserRepo userRepo, IGameRepo gameRepo)
+    public OrgRepo(IMongoDatabase database, IClock clock, IUserRepo userRepo, IGameRepo gameRepo, ILogger logger)
     {
         var filter = new BsonDocument("name", CollectionName);
         var collections = database.ListCollections(new ListCollectionsOptions { Filter = filter });
@@ -43,6 +46,7 @@ public class OrgRepo : IOrgRepo
         _userRepo = userRepo;
         _gameRepo = gameRepo;
         _clock = clock;
+        _logger = logger;
         InitIndexes();
     }
 
@@ -72,6 +76,7 @@ public class OrgRepo : IOrgRepo
             url: url
         );
         await Collection.InsertOneAsync(org);
+        _logger.LogTrace($"New organization {name} created by {creatorUserId}");
 
         return org;
     }
@@ -135,6 +140,7 @@ public class OrgRepo : IOrgRepo
         await _userRepo.GetUserById(userId); //sanity check that the user exists
 
         org.Administrators.Add(userId);
+        _logger.LogTrace($"User {userId} added to admin group of org {orgId}");
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Administrators, org.Administrators),
             new() { ReturnDocument = ReturnDocument.After }
@@ -148,6 +154,7 @@ public class OrgRepo : IOrgRepo
             throw new ArgumentException($"User with ID {userId} is the owner of org with id {org.Id}, cannot remove them from this org's admins.");
 
         org.Administrators.Remove(userId);
+        _logger.LogTrace($"User {userId} removed from admin group of org {orgId}");
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Administrators, org.Administrators),
             new() { ReturnDocument = ReturnDocument.After }
@@ -177,6 +184,7 @@ public class OrgRepo : IOrgRepo
         await _userRepo.GetUserById(userId); //sanity check that the user exists
 
         org.Moderators.Add(userId);
+        _logger.LogTrace($"User {userId} added to moderator group of org {orgId}");
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Moderators, org.Moderators),
             new() { ReturnDocument = ReturnDocument.After }
@@ -188,6 +196,7 @@ public class OrgRepo : IOrgRepo
         Organization org = await GetOrgById(orgId);
 
         org.Moderators.Remove(userId);
+        _logger.LogTrace($"User {userId} removed from moderator group of org {orgId}");
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Moderators, org.Moderators),
             new() { ReturnDocument = ReturnDocument.After }
