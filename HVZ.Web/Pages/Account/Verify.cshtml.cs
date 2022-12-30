@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Authorization;
 using HVZ.Web.Identity.Models;
 
 namespace HVZ.Web.Pages
@@ -18,14 +19,17 @@ namespace HVZ.Web.Pages
             this.userManager = userManager;
         }
 
+        [Authorize]
         public async Task<IActionResult> OnGetAsync(string requestId)
         {
             if (!User.Identity?.IsAuthenticated ?? false)
             {
-                return Redirect($"Account/Login?redirectURL=Account/Verify?requestId={requestId}");
+                return Redirect($"Login?redirectURL=Account/Verify?requestId={requestId}");
             }
 
-            ApplicationUser? appUser = await userManager.FindByEmailAsync(User.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value);
+            string? email = User.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value;
+
+            ApplicationUser? appUser = await userManager.FindByEmailAsync(email ?? "");
 
             if (appUser == null)
             {
@@ -40,7 +44,7 @@ namespace HVZ.Web.Pages
             if (result.Succeeded)
             {
                 VerificationState = "Success";
-                return Redirect("/");
+                return Redirect("/profile/debug");
             }
             else
             {
