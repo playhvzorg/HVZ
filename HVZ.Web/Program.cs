@@ -27,6 +27,16 @@ internal static class Program
         builder.Services.AddHttpClient();
         builder.Services.AddHttpContextAccessor();
 
+        #region Generic options
+
+        builder.Services.Configure<WebConfig>(
+            builder.Configuration.GetSection(
+                nameof(WebConfig)
+            )
+        );
+
+        #endregion
+
         #region Persistence
 
         var mongoClient = new MongoClient(
@@ -54,7 +64,8 @@ internal static class Program
             .AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>
             (
                 mongoIdentitySettings?.ConnectionString, mongoIdentitySettings?.Name
-            );
+            )
+            .AddDefaultTokenProviders();
         builder.Services.AddScoped<
             IUserClaimsPrincipalFactory<ApplicationUser>,
             ApplicationClaimsPrincipalFactory
@@ -64,11 +75,23 @@ internal static class Program
 
         #region Images
 
-        ImageServiceOptions options = new();
-        builder.Configuration.GetSection(
-            nameof(ImageServiceOptions)
-        ).Bind(options);
+        builder.Services.Configure<ImageServiceOptions>(
+            builder.Configuration.GetSection(
+                nameof(ImageServiceOptions)
+            )
+        );
         builder.Services.AddSingleton<ImageService>();
+
+        #endregion
+
+        #region Email
+
+        builder.Services.Configure<EmailServiceOptions>(
+            builder.Configuration.GetSection(
+                nameof(EmailServiceOptions)
+            )
+        );
+        builder.Services.AddSingleton<EmailService>();
 
         #endregion
 
