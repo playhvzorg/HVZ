@@ -1,6 +1,9 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
+@using HVZ.Web.Services
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject EmailService Email
+@* @inject ImageService Image *@
 @page "/"
 
 <PageTitle>Index</PageTitle>
@@ -21,13 +24,3 @@
     </AuthorizeView>
 
 </CascadingAuthenticationState>
-
-@code {
-
-
-    protected override async Task OnInitializedAsync()
-    {
-
-    }
-
-}

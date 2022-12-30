@@ -6,6 +6,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Navigation
 @page "/createorg"
+@inject ILogger<CreateOrg> Logger
 @attribute [Authorize]
 
 <div class="container">
@@ -102,6 +103,8 @@
             return;
         
         @* TODO check that org with name or URL does not exist already and update validation *@
+
+        Logger.LogInformation($"{authUser.FullName}:{authUser.DatabaseId} has created a new org: {orgName}");
 
         var org = await OrgRepo.CreateOrg(orgName, orgUrl, authUser.DatabaseId);
         Navigation.NavigateTo($"/org/{orgUrl}", true);
