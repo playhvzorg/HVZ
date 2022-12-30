@@ -1,0 +1,90 @@
+
+@using HVZ.Web.Shared.Org_Authorization
+@inject IGameRepo GameRepo
+@inject IOrgRepo OrgRepo
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ILogger<GameComponent> Logger
+
+@if(game is null)
+{
+    @* Create new game prompt for admins *@
+    @* Show some info about past games? *@
+    <h3>No active game</h3>
+    <OrgAuthorizedAdmin>
+        <button class="btn btn-primary btn-large">Create new game</button>
+        <input @bind="gameName" class="form-control">
+    </OrgAuthorizedAdmin>
+}
+else
+{
+    @* Game home shows user *@
+    @* Players tab shows all players *@
+    @* Settings tab shows game configurations *@
+}
+
+@code
+{
+    [Parameter]
+    public string? OrgId { get; set; }
+
+    private Organization? organization;
+    private Game? game;
+    private AuthenticationState? authState;
+
+    private string? gameName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (OrgId != null)
+        {
+            organization = await OrgRepo.FindOrgById(OrgId);
+
+            if (organization is null)
+            {
+                Logger.LogError($"Could not find org with ID: {OrgId}");
+                return;
+            }
+
+            var gameId = organization.ActiveGameId;
+
+            if (gameId is null)
+            {
+                Logger.LogDebug($"No active game in {organization.Name}");
+                return;
+            }
+
+            game = await GameRepo.FindGameById(gameId);
+
+            if (game is null)
+            {
+                Logger.LogError($"Could not find active game in {organization.Name} with ID: {gameId}");
+                return;
+            }
+
+        }
+    }
+
+    private void CreateNewGame()
+    {
+        string? userId = authState?.User.Claims.FirstOrDefault(c => c.Type == "DatbaseId")?.Value;
+
+        if (gameName == null) return;
+        if (userId == null) return;
+        if (OrgId == null) return;
+
+        game = GameRepo.CreateGame(
+            gameName,
+            userId,
+            OrgId
+        ).Result;
+
+        GameRepo.SetActive(game.Name, true);
+        GameRepo.AddPlayer(game.Name, userId);
+    }
+}
+
