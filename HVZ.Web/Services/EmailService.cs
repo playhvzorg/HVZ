@@ -26,9 +26,6 @@ namespace HVZ.Web.Services
             smtpClient.Credentials = new NetworkCredential(opts.EmailId, opts.Password);
             mailAddress = new MailAddress(opts.EmailId);
             smtpClient.EnableSsl = true;
-
-            string s = String.Format(System.IO.File.ReadAllText("Services/Templates/Sample.html"), "World");
-            System.Console.WriteLine(s);
         }
 
         
