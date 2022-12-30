@@ -22,7 +22,6 @@ namespace HVZ.Web.Pages
             this.logger = logger;
         }
 
-        [Authorize]
         public async Task<IActionResult> OnGetAsync(string requestId)
         {
             logger.LogDebug($"request ID: {requestId}");
