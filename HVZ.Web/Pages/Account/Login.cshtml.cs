@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Components;
 using HVZ.Web.Identity.Models;
+using System.Web;
 
 namespace HVZ.Web.Pages
 {
@@ -28,12 +29,10 @@ namespace HVZ.Web.Pages
         public void OnGet(string returnUrl = "/")
         {
             this.redirectUrl = returnUrl;
-            System.Console.WriteLine(this.redirectUrl);
         }
 
         public async Task<IActionResult> OnPostAsync(string returnUrl = "/")
         {
-
             if (!ModelState.IsValid)
             {
                 return Page();

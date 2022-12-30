@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Authorization;
 using HVZ.Web.Identity.Models;
+using System.Web;
 
 namespace HVZ.Web.Pages
 {
@@ -22,9 +23,10 @@ namespace HVZ.Web.Pages
         [Authorize]
         public async Task<IActionResult> OnGetAsync(string requestId)
         {
+            System.Console.WriteLine("request ID: " + requestId);
             if (!User.Identity?.IsAuthenticated ?? false)
             {
-                return Redirect($"Login?redirectURL=Account/Verify?requestId={requestId}");
+                return Redirect($"Login?returnUrl=Verify?requestId={HttpUtility.UrlEncode(HttpUtility.UrlDecode(requestId))}");
             }
 
             string? email = User.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value;
@@ -38,8 +40,8 @@ namespace HVZ.Web.Pages
                 VerificationState = "Error";
                 return Page();
             }
-
-            var result = await userManager.ConfirmEmailAsync(appUser, requestId);
+            
+            var result = await userManager.ConfirmEmailAsync(appUser, requestId.Replace(' ', '+'));
 
             if (result.Succeeded)
             {
