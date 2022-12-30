@@ -10,14 +10,16 @@ namespace HVZ.Web.Pages
     public class VerifyModel : PageModel
     {
         private UserManager<ApplicationUser> userManager;
+        private ILogger<VerifyModel> logger;
 
         public string Errors { get; set; } = "";
         public string VerificationState { get; set; } = "Verifying";
         public IEnumerable<IdentityError>? IdentityErrors { get; set; }
 
-        public VerifyModel(UserManager<ApplicationUser> userManager)
+        public VerifyModel(UserManager<ApplicationUser> userManager, ILogger<VerifyModel> logger)
         {
             this.userManager = userManager;
+            this.logger = logger;
         }
 
         [Authorize]
@@ -35,8 +37,7 @@ namespace HVZ.Web.Pages
 
             if (appUser == null)
             {
-                // TODO: User logger LogFailure when available
-                System.Console.WriteLine($"Could not find user matching email claim: {User.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value}");
+                logger.LogError($"Could not find user matching email claim: {User.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value}");
                 VerificationState = "Error";
                 return Page();
             }
@@ -54,8 +55,7 @@ namespace HVZ.Web.Pages
                 IdentityErrors = result.Errors;
                 foreach (var error in result.Errors)
                 {
-                    // TODO: Use logger LogFailure when available
-                    System.Console.WriteLine($"{error.Code}: {error.Description}");
+                    logger.LogError($"{error.Code}: {error.Description}");
                 }
                 return Page();
             }
