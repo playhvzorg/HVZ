@@ -6,34 +6,36 @@
 @inject IOrgRepo OrgRepo
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @page "/org/{url}"
+@attribute [Authorize]
 
-<h1>@organization?.Name</h1>
+<OrgAuth OrgId="@organization?.Id">
+    <div class="d-inline">
+        <h1>@organization?.Name</h1>
+    </div>
+    
+    <ul class="nav nav-pills mt-5 mb-5" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="home-tab" data-bs-toggle="pill" data-bs-target="#home"><i class="fa-solid fa-house"></i> <p class="d-inline">Home</p></button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="mods-tab" data-bs-toggle="pill" data-bs-target="#mods"><i class="fa-solid fa-users"></i> <p class="d-inline">Moderators</p></button>
+        </li>
+    </ul>
 
-<div class="container">
-    <CascadingAuthenticationState>
-        <AuthorizeView>
-            <Authorized>
-                <OrgAuth OrgId="@organization?.Id">
-                    <OrgAuthorizedAdmin>
-                        <h4>Test Admin Content</h4>
-                    </OrgAuthorizedAdmin>
-                    <OrgAuthorizedModerator>
-                        <h4>Test Mod Content</h4>
-                        <OrgAuthorizedAdmin>
-                            <h5>Nested Admin Content</h5>
-                        </OrgAuthorizedAdmin>
-                    </OrgAuthorizedModerator>
-                </OrgAuth>
-            </Authorized>
+    <div class="container">
+        <div class="tab-content">
+            <div class="tab-pane active" id="home" role="tabpanel" aria-labelledby="home-tab">
+                this is the home pane
+            </div>
+            <div class="tab-pane" id="mods" role="tabpanel" aria-labelledby="mod-tab">
+                this is the mod pane
+            </div>
+        </div>
 
-            <NotAuthorized>
-                You need to log in to view this content
-            </NotAuthorized>
-        </AuthorizeView>
-    </CascadingAuthenticationState>
-</div>
+        @* <GameComponent OrgId="@organization?.Id" /> *@
+    </div>
 
-
+</OrgAuth>
 
 @code
 {
