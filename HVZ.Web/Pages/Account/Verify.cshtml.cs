@@ -41,7 +41,7 @@ namespace HVZ.Web.Pages
                 VerificationState = VerificationState.ERROR;
                 return Page();
             }
-            
+
             var result = await userManager.ConfirmEmailAsync(appUser, requestId.Replace(' ', '+'));
 
             if (result.Succeeded)

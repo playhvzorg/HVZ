@@ -28,7 +28,7 @@ namespace HVZ.Web.Services
             smtpClient.EnableSsl = true;
         }
 
-        
+
 
         public async Task SendVerificationEmailAsync(string to, string name, string requestId)
         {
