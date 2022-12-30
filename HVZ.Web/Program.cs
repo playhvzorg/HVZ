@@ -25,6 +25,7 @@ internal static class Program
         builder.Services.AddRazorPages();
         builder.Services.AddServerSideBlazor();
         builder.Services.AddHttpClient();
+        builder.Services.AddHttpContextAccessor();
 
         #region Generic options
 
@@ -95,6 +96,9 @@ internal static class Program
         #endregion
 
         builder.Services.AddSingleton<WeatherForecastService>();
+
+        builder.Logging.ClearProviders();
+        builder.Logging.AddConsole();
 
         var app = builder.Build();
 
