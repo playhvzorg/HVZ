@@ -1,6 +1,7 @@
 @page
 @using Microsoft.AspNetCore.Components.Web
 @model HVZ.Web.Pages.VerifyModel
+@using HVZ.Web.Pages
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 @{
@@ -18,12 +19,11 @@
 
 <title>Email verification</title>
 
-<h1>@Model.VerificationState</h1>
+<h1>@Model.VerificationState.ToString()</h1>
 <hr>
 
 <div class="container">
     <environment include="Development">
-        @* TODO display detailed errors here *@
         @if (Model.IdentityErrors != null)
         {
             @foreach(var error in Model.IdentityErrors)
@@ -33,17 +33,7 @@
         }
     </environment>
 
-    <environment exclude="Development">
-        @if (Model.VerificationState == "Error")
-        {
-            <span class="text-danger">Something went wrong verifying your email.</span>
-
-            <p>Please try again</p>
-            <p>If the problem persists, contact an administrator</p>
-        }
-    </environment>
-
-    @if (Model.VerificationState == "Error")
+    @if (Model.VerificationState == VerificationState.ERROR)
     {
         <environment include="Development">
             @if (Model.IdentityErrors != null)

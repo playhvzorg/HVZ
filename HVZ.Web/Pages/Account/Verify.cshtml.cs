@@ -13,7 +13,7 @@ namespace HVZ.Web.Pages
         private ILogger<VerifyModel> logger;
 
         public string Errors { get; set; } = "";
-        public string VerificationState { get; set; } = "Verifying";
+        public VerificationState VerificationState { get; set; } = VerificationState.VERIFYING;
         public IEnumerable<IdentityError>? IdentityErrors { get; set; }
 
         public VerifyModel(UserManager<ApplicationUser> userManager, ILogger<VerifyModel> logger)
@@ -25,8 +25,8 @@ namespace HVZ.Web.Pages
         [Authorize]
         public async Task<IActionResult> OnGetAsync(string requestId)
         {
-            System.Console.WriteLine("request ID: " + requestId);
-            if (!User.Identity?.IsAuthenticated ?? false)
+            logger.LogDebug($"request ID: {requestId}");
+            if (User.Identity?.IsAuthenticated is not true)
             {
                 return Redirect($"Login?returnUrl=Verify?requestId={HttpUtility.UrlEncode(HttpUtility.UrlDecode(requestId))}");
             }
@@ -38,7 +38,7 @@ namespace HVZ.Web.Pages
             if (appUser == null)
             {
                 logger.LogError($"Could not find user matching email claim: {User.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value}");
-                VerificationState = "Error";
+                VerificationState = VerificationState.ERROR;
                 return Page();
             }
             
@@ -46,12 +46,12 @@ namespace HVZ.Web.Pages
 
             if (result.Succeeded)
             {
-                VerificationState = "Success";
+                VerificationState = VerificationState.SUCCESS;
                 return Redirect("/profile/debug");
             }
             else
             {
-                VerificationState = "Error";
+                VerificationState = VerificationState.ERROR;
                 IdentityErrors = result.Errors;
                 foreach (var error in result.Errors)
                 {
@@ -60,5 +60,12 @@ namespace HVZ.Web.Pages
                 return Page();
             }
         }
+    }
+
+    public enum VerificationState
+    {
+        VERIFYING,
+        SUCCESS,
+        ERROR
     }
 }
