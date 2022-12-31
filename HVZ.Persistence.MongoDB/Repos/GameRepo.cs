@@ -5,6 +5,7 @@ using MongoDB.Bson.Serialization.IdGenerators;
 using HVZ.Models;
 using HVZ.Persistence.MongoDB.Serializers;
 using NodaTime;
+using Microsoft.Extensions.Logging;
 
 namespace HVZ.Persistence.MongoDB.Repos;
 public class GameRepo : IGameRepo
@@ -12,6 +13,7 @@ public class GameRepo : IGameRepo
     private const string CollectionName = "Games";
     public readonly IMongoCollection<Game> Collection;
     private readonly IClock _clock;
+    private readonly ILogger _logger;
 
     public event EventHandler<GameUpdatedEventArgs>? GameCreated;
     public event EventHandler<GameUpdatedEventArgs>? PlayerJoinedGame;
@@ -46,7 +48,7 @@ public class GameRepo : IGameRepo
             cm.MapProperty(p => p.GameId);
         });
     }
-    public GameRepo(IMongoDatabase database, IClock clock)
+    public GameRepo(IMongoDatabase database, IClock clock, ILogger logger)
     {
         var filter = new BsonDocument("name", CollectionName);
         var collections = database.ListCollections(new ListCollectionsOptions { Filter = filter });
@@ -54,6 +56,7 @@ public class GameRepo : IGameRepo
             database.CreateCollection(CollectionName);
         Collection = database.GetCollection<Game>(CollectionName);
         _clock = clock;
+        this._logger = logger;
         InitIndexes();
     }
 
@@ -84,8 +87,8 @@ public class GameRepo : IGameRepo
             players: new HashSet<Player>()
             );
         await Collection.InsertOneAsync(game);
-
         GameUpdatedEventArgs gameCreatedEventArgs = new GameUpdatedEventArgs(game);
+        _logger.LogTrace($"New game created in org {orgid} by user {creatorid}");
         OnGameCreated(gameCreatedEventArgs);
         return game;
     }
@@ -143,6 +146,7 @@ public class GameRepo : IGameRepo
             Builders<Game>.Update.Set(g => g.Players, newPlayers),
             new FindOneAndUpdateOptions<Game, Game>() { ReturnDocument = ReturnDocument.After }
         );
+        _logger.LogTrace($"User {userId} added to game {gameName}");
         OnPlayerJoined(new(game));
         return newGame;
     }
@@ -156,6 +160,7 @@ public class GameRepo : IGameRepo
             Builders<Game>.Update.Set(g => g.IsActive, active),
             new FindOneAndUpdateOptions<Game, Game>() { ReturnDocument = ReturnDocument.After }
         );
+        _logger.LogTrace($"game {gameName} IsActive updated to {active}");
         OnGameUpdated(new(game));
         return newGame;
     }
@@ -176,6 +181,7 @@ public class GameRepo : IGameRepo
             Builders<Game>.Update.Set(g => g.Players, players),
             new FindOneAndUpdateOptions<Game, Game>() { ReturnDocument = ReturnDocument.After }
         );
+        _logger.LogTrace($"User {userId} updated to role {role} in game {gameName}");
         OnPlayerRoleChanged(new(game));
         return newGame;
     }
@@ -213,6 +219,7 @@ public class GameRepo : IGameRepo
             new FindOneAndUpdateOptions<Game, Game>() { ReturnDocument = ReturnDocument.After }
         );
 
+        _logger.LogTrace($"User {taggerUserId} tagged user {tagRecieverGameId} in game {gameName}");
         OnTag(new(game));
         return newGame;
     }

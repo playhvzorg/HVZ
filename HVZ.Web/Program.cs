@@ -37,6 +37,13 @@ internal static class Program
 
         #endregion
 
+        ILogger logger = LoggerFactory.Create(config =>
+            {
+                config.ClearProviders();
+                config.AddConsole();
+            }
+        ).CreateLogger("Program");
+
         #region Persistence
 
         var mongoClient = new MongoClient(
@@ -47,9 +54,9 @@ internal static class Program
             builder.Configuration["DatabaseSettings:DatabaseName"]
         );
 
-        IGameRepo gameRepo = new GameRepo(mongoDatabase, SystemClock.Instance);
-        IUserRepo userRepo = new UserRepo(mongoDatabase, SystemClock.Instance);
-        IOrgRepo orgRepo = new OrgRepo(mongoDatabase, SystemClock.Instance, userRepo, gameRepo);
+        IGameRepo gameRepo = new GameRepo(mongoDatabase, SystemClock.Instance, logger);
+        IUserRepo userRepo = new UserRepo(mongoDatabase, SystemClock.Instance, logger);
+        IOrgRepo orgRepo = new OrgRepo(mongoDatabase, SystemClock.Instance, userRepo, gameRepo, logger);
 
         builder.Services.AddSingleton<IGameRepo>(gameRepo);
         builder.Services.AddSingleton<IUserRepo>(userRepo);
@@ -96,9 +103,6 @@ internal static class Program
         #endregion
 
         builder.Services.AddSingleton<WeatherForecastService>();
-
-        builder.Logging.ClearProviders();
-        builder.Logging.AddConsole();
 
         var app = builder.Build();
 
