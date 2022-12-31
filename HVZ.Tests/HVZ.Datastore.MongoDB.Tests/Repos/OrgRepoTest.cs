@@ -3,6 +3,8 @@ using Moq;
 using HVZ.Models;
 using HVZ.Persistence.MongoDB.Repos;
 using MongoDB.Driver;
+using Microsoft.Extensions.Logging;
+
 namespace HVZ.Persistence.MongoDB.Tests;
 
 public class OrgRepotest : MongoTestBase
@@ -18,7 +20,7 @@ public class OrgRepotest : MongoTestBase
     {
         userRepoMock = new Mock<IUserRepo>();
         gameRepoMock = new Mock<IGameRepo>();
-        orgRepo = new OrgRepo(CreateTemporaryDatabase(), Mock.Of<IClock>(), userRepoMock.Object, gameRepoMock.Object);
+        orgRepo = new OrgRepo(CreateTemporaryDatabase(), Mock.Of<IClock>(), userRepoMock.Object, gameRepoMock.Object, Mock.Of<ILogger>());
 
     }
 
