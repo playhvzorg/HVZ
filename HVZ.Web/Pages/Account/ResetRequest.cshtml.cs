@@ -41,6 +41,7 @@ namespace HVZ.Web.Pages
             }
             string passwordResetToken = await userManager.GeneratePasswordResetTokenAsync(appUser);
             await emailService.SendPasswordChangeEmailAsync(appUser.Email, appUser.FullName, HttpUtility.UrlEncode(passwordResetToken), appUser.Id.ToString());
+            logger.LogInformation($"Reset password request from {appUser.Email} from {HttpContext.Connection.RemoteIpAddress?.ToString()}");
             return Page();
         }
     }

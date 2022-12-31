@@ -43,6 +43,7 @@ namespace HVZ.Web.Pages
             var result = await userManager.ResetPasswordAsync(appUser, requestId, ResetModelProperty.Password);
             if (result.Succeeded)
             {
+                logger.LogInformation($"Password reset for {appUser.Email} from {HttpContext.Connection.RemoteIpAddress?.ToString()}");
                 await signInManager.PasswordSignInAsync(appUser, ResetModelProperty.Password, false, false);
                 return Redirect("/");
             }
