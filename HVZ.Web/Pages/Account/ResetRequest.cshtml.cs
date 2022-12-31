@@ -7,7 +7,7 @@ using HVZ.Web.Services;
 using System.Web;
 namespace HVZ.Web.Pages
 {
-    public class ResetRequestPageModel:PageModel
+    public class ResetRequestPageModel : PageModel
     {
         private UserManager<ApplicationUser> userManager;
         private IHttpContextAccessor httpContextAccessor;

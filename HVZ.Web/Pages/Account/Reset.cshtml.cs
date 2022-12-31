@@ -7,7 +7,7 @@ using HVZ.Web.Services;
 using System.Web;
 namespace HVZ.Web.Pages
 {
-    public class ResetPageModel:PageModel
+    public class ResetPageModel : PageModel
     {
         private UserManager<ApplicationUser> userManager;
         private IHttpContextAccessor httpContextAccessor;
@@ -36,12 +36,12 @@ namespace HVZ.Web.Pages
             }
             ApplicationUser? appUser = await userManager.FindByIdAsync(userId);
             if (appUser == null)
-            {   
+            {
                 logger.LogDebug($"Could not find user with id: {userId}");
                 return Page();
             }
             var result = await userManager.ResetPasswordAsync(appUser, requestId, ResetModelProperty.Password);
-            if( result.Succeeded)
+            if (result.Succeeded)
             {
                 await signInManager.PasswordSignInAsync(appUser, ResetModelProperty.Password, false, false);
                 return Redirect("/");
