@@ -76,6 +76,17 @@ public class OrgRepo : IOrgRepo
         return org;
     }
 
+    public async Task<Game> CreateGame(string name, string creatorId, string orgId)
+    {
+        if (await IsAdminOfOrg(orgId, creatorId) is false)
+            throw new ArgumentException($"User {creatorId} is not an admin of org {orgId} and cannot create a game in this org.");
+        if (await FindActiveGameOfOrg(orgId) is not null)
+            throw new ArgumentException($"There is already an active game in org {orgId}, not allowing creation of a new game");
+        Game game = await _gameRepo.CreateGame(name, creatorId, orgId);
+        await SetActiveGameOfOrg(orgId, game.Id);
+        return game;
+    }
+
     public async Task<Organization?> FindOrgById(string orgId)
         => orgId == string.Empty ? null : await Collection.Find<Organization>(o => o.Id == orgId).FirstOrDefaultAsync();
 
@@ -120,7 +131,7 @@ public class OrgRepo : IOrgRepo
     public async Task<Game?> FindActiveGameOfOrg(string orgId)
     {
         Organization org = await GetOrgById(orgId);
-        return org.ActiveGameId == null ? null : await _gameRepo.FindGameById(org.ActiveGameId);
+        return org.ActiveGameId == null ? null : await _gameRepo.GetGameById(org.ActiveGameId);
     }
 
     public async Task<HashSet<string>> GetAdminsOfOrg(string orgId)

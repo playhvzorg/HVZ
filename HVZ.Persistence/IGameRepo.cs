@@ -3,11 +3,8 @@ using HVZ.Models;
 public interface IGameRepo
 {
     /// <summary>
-    /// Add a new game to the repo
+    /// Add a new game to the repo. This is usually done from the OrgRepo, see <see cref="IOrgRepo.CreateGame"/>
     /// </summary>
-    /// <param name="creatorUserId">The ID of the user who is creating this game</param>
-    /// <param name="orgid">The ID of the Organization this game belongs to</param>
-    /// <returns>The newly created game</returns>
     public Task<Game> CreateGame(string Name, string creatorUserId, string orgid);
     /// <summary>
     /// Find a game by its Id

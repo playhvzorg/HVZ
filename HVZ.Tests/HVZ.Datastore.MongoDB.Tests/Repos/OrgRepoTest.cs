@@ -19,7 +19,6 @@ public class OrgRepotest : MongoTestBase
         userRepoMock = new Mock<IUserRepo>();
         gameRepoMock = new Mock<IGameRepo>();
         orgRepo = new OrgRepo(CreateTemporaryDatabase(), Mock.Of<IClock>(), userRepoMock.Object, gameRepoMock.Object);
-
     }
 
     [Test]
@@ -139,7 +138,7 @@ public class OrgRepotest : MongoTestBase
         string gameid = "1";
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
         Game newGame = new("test", gameid, userid, org.Id, Instant.MinValue, true, Player.gameRole.Human, new HashSet<Player>());
-        gameRepoMock.Setup(repo => repo.FindGameById("1")).ReturnsAsync(newGame);
+        gameRepoMock.Setup(repo => repo.GetGameById("1")).ReturnsAsync(newGame);
         await orgRepo.SetActiveGameOfOrg(org.Id, gameid);
 
         Game? foundGame = await orgRepo.FindActiveGameOfOrg(org.Id);
@@ -242,5 +241,61 @@ public class OrgRepotest : MongoTestBase
         org = await orgRepo.SetOwner(org.Id, userid2);
 
         Assert.That(org.OwnerId, Is.EqualTo(userid2));
+    }
+
+    [Test]
+    public async Task test_cant_create_new_game_while_active_game_exists()
+    {
+        string orgname = "test";
+        string orgurl = "testurl";
+        string userid = "111111111111111111111111";
+        string gameName = "testgame";
+        string otherGameName = "othertestgame";
+
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
+
+        Game game = new Game(
+            name: "gamename",
+            gameid: "1",
+            creatorid: userid,
+            orgid: org.Id,
+            createdat: Instant.MinValue,
+            isActive: true,
+            defaultrole: Player.gameRole.Human,
+            players: new HashSet<Player>()
+        );
+
+        gameRepoMock.Setup(repo => repo.CreateGame(gameName, userid, org.Id)).ReturnsAsync(game);
+        gameRepoMock.Setup(repo => repo.GetGameById(game.Id)).ReturnsAsync(game);
+        await orgRepo.CreateGame(gameName, userid, org.Id);
+        org = await orgRepo.GetOrgById(org.Id);
+        Assert.That(org.ActiveGameId, Is.Not.Null);
+        Assert.ThrowsAsync<ArgumentException>(() => orgRepo.CreateGame(otherGameName, userid, org.Id));
+    }
+
+    [Test]
+    public async Task test_non_admin_cant_create_game()
+    {
+        string orgname = "test";
+        string orgurl = "testurl";
+        string userid = "1";
+        string otherUserId = "2";
+        string gameName = "testgame";
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
+        Game game = new Game(
+            name: "gamename",
+            gameid: "1",
+            creatorid: userid,
+            orgid: org.Id,
+            createdat: Instant.MinValue,
+            isActive: true,
+            defaultrole: Player.gameRole.Human,
+            players: new HashSet<Player>()
+        );
+
+        gameRepoMock.Setup(repo => repo.CreateGame(gameName, userid, org.Id)).ReturnsAsync(game);
+
+        Assert.That(await orgRepo.CreateGame(gameName, userid, org.Id), Is.Not.Null);
+        Assert.ThrowsAsync<ArgumentException>(() => orgRepo.CreateGame(gameName, otherUserId, org.Id));
     }
 }

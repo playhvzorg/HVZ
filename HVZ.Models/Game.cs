@@ -11,7 +11,7 @@ public class Game : IdEquatable<Game>
     /// <summary>
     /// Unique identifier of this specific game
     /// </summary>
-    public string GameId { get; init; }
+    public string Id { get; init; }
     /// <summary>
     /// ID of the user who created this game
     /// </summary>
@@ -84,7 +84,7 @@ public class Game : IdEquatable<Game>
     public Game(string name, string gameid, string creatorid, string orgid, Instant createdat, Boolean isActive, Player.gameRole defaultrole, HashSet<Player> players)
     {
         Name = name;
-        GameId = gameid;
+        Id = gameid;
         CreatorId = creatorid;
         OrgId = orgid;
         CreatedAt = createdat;
@@ -95,7 +95,7 @@ public class Game : IdEquatable<Game>
 
     public override string ToString()
     {
-        return $"HVZ.Game@{Name}.{GameId}";
+        return $"HVZ.Game@{Name}.{Id}";
     }
 
     protected override object EqualityId => ToString();
