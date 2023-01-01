@@ -27,18 +27,12 @@ namespace HVZ.Web.Pages
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
-            {
                 return Page();
-            }
             if (ResetRequestModelProperty == null)
-            {
                 return Page();
-            }
             ApplicationUser? appUser = await userManager.FindByEmailAsync(ResetRequestModelProperty.Email);
             if (appUser == null)
-            {
                 return Page();
-            }
             string passwordResetToken = await userManager.GeneratePasswordResetTokenAsync(appUser);
             await emailService.SendPasswordChangeEmailAsync(appUser.Email, appUser.FullName, HttpUtility.UrlEncode(passwordResetToken), appUser.Id.ToString());
             logger.LogInformation($"Reset password request from {appUser.Email} from {HttpContext.Connection.RemoteIpAddress?.ToString()}");

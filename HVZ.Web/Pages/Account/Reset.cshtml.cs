@@ -27,13 +27,9 @@ namespace HVZ.Web.Pages
         public async Task<IActionResult> OnPostAsync(string requestId, string userId)
         {
             if (!ModelState.IsValid)
-            {
                 return Page();
-            }
             if (ResetModelProperty == null)
-            {
                 return Page();
-            }
             ApplicationUser? appUser = await userManager.FindByIdAsync(userId);
             if (appUser == null)
             {
@@ -50,9 +46,7 @@ namespace HVZ.Web.Pages
             else
             {
                 foreach (var error in result.Errors)
-                {
                     logger.LogError($"{error.Code}:{error.Description}");
-                }
             }
             return Page();
         }
