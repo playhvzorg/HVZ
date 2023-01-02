@@ -6,10 +6,10 @@
 {
     Mock<IOrgRepo> mockOrgRepo = null!;
     
-    private string orgId = "000000000000000000000001";
-    private string adminId = "000000000000000000000002";
-    private string modId = "000000000000000000000003";
-    private string unauthorizedId = "000000000000000000000004";
+    private string orgId = "1";
+    private string adminId = "2";
+    private string modId = "3";
+    private string unauthorizedId = "4";
 
     TestAuthorizationContext authContext;
 
@@ -180,6 +180,27 @@
     }
 
     [Test]
+    public void Test_AdminSeesNestedContent()
+    {
+        authContext.SetClaims(
+            new Claim("DatabaseId", adminId)
+        );
+
+        var cut = Render(
+            @<OrgAuth OrgId="@orgId">
+                <OrgAuthorizedModerator>
+                    <OrgAuthorizedAdmin>
+                        <p class="admin-content">admin</p>
+                    </OrgAuthorizedAdmin>
+                </OrgAuthorizedModerator>
+            </OrgAuth>
+        );
+
+        var adminContent = cut.Find(".admin-content");
+        adminContent.MarkupMatches(@<p diff:ignore>admin</p>);
+    }
+
+    [Test]
     public void Test_ModDoesNotSeeAdminContent()
     {
         authContext.SetClaims(
@@ -232,6 +253,26 @@
 
         var publicContent = cut.Find(".public-content");
         publicContent.MarkupMatches(@<p diff:ignore>public</p>);
+    }
+
+    [Test]
+    public void Test_ModDoesNotSeeNestedContent()
+    {
+        authContext.SetClaims(
+            new Claim("DatabaseId", modId)
+        );
+
+        var cut = Render(
+            @<OrgAuth OrgId="@orgId">
+                <OrgAuthorizedModerator>
+                    <OrgAuthorizedAdmin>
+                        <p class="admin-content">admin</p>
+                    </OrgAuthorizedAdmin>
+                </OrgAuthorizedModerator>
+            </OrgAuth>
+        );
+
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find(".admin-content"));
     }
 
     [Test]
