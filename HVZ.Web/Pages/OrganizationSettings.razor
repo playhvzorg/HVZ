@@ -1,0 +1,87 @@
+@using HVZ.Models
+@using HVZ.Web.Shared.Users
+@using HVZ.Web.Identity.Models
+@using Microsoft.AspNetCore.Identity
+@using HVZ.Web.Shared.Org_Authorization
+@using HVZ.Web.Shared.Org_Settings
+@inject IOrgRepo OrgRepo
+@inject IUserRepo UserRepo
+@inject UserManager<ApplicationUser> UserManager
+@inject ILogger<OrganizationSettings> Logger
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@page "/org/{url}/settings"
+@attribute [Authorize]
+
+<div class="d-inline">
+    <a href="/org/@Url"><i class="fa-solid fa-chevron-left"></i> <div class="d-none d-md-inline"> Back</div></a> 
+    <h1 class="d-block">Settings</h1>
+</div>
+<OrgAuth OrgId="@org?.Id">
+    @* Moblie settings nav *@
+    <OrgAuthorizedModerator>
+        <div class="nav d-md-none nav-pills" id="pills-tab" role="tablist">
+            <a href="#general" class="nav-link active" id="pills-general-tab" data-bs-toggle="pill">
+                <i class="fa-solid fa-gear"></i>
+                <div class="d-none d-md-inline">General</div>
+            </a>
+            <a href="#users" class="nav-link" id="pills-users-tab" data-bs-toggle="pill">
+                <i class="fa-solid fa-users"></i>
+                <div class="d-none d-md-inline">Users</div>
+            </a>
+            <a href="#discord-integration" class="nav-link" id="pills-discord-tab" data-bs-toggle="pill">
+                <i class="fa-brands fa-discord"></i>
+                <div class="d-none d-md-inline">Discord Integration</div>
+            </a>
+        </div>
+        <div class="d-flex align-items-start mt-5">
+            @* Desktop settings nav *@
+            <div class="nav flex-column nav-pills me-3 d-none d-md-block" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                <a href="#general" class="nav-link active" id="v-pills-general-tab" data-bs-toggle="pill">
+                    <i class="fa-solid fa-gear"></i>
+                    <div class="d-none d-md-inline">General</div>
+                </a>
+                <a href="#users" class="nav-link" id="v-pills-users-tab" data-bs-toggle="pill">
+                    <i class="fa-solid fa-users"></i>
+                    <div class="d-none d-md-inline">Users</div>
+                </a>
+                <a href="#discord-integration" class="nav-link" id="v-pills-discord-tab" data-bs-toggle="pill">
+                    <i class="fa-brands fa-discord"></i>
+                    <div class="d-none d-md-inline">Discord Integration</div>
+                </a>
+            </div>
+            <div class="tab-content ml-md-4" id="v-pills-tab-content">
+                <div class="tab-pane fade show active" id="general" role="tabpanel">
+                    This is the general settings tab
+                </div>
+                <div class="tab-pane fade" id="users" role="tabpanel">
+                    <ManageModsSettings OrgId="@org?.Id" />
+                </div>
+                <div class="tab-pane fade" id="discord-integration" role="tabpanel">
+                    Fill this out when discord integration is completed
+                </div>
+            </div>
+        </div>
+    </OrgAuthorizedModerator>
+</OrgAuth>
+
+@code
+{
+    [Parameter]
+    public string? Url { get; set; }
+
+    public string? InviteEmail { get; set; }
+
+    Organization? org;
+    AuthenticationState? authState;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        if (Url == null) return;
+        
+        authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+        org = await OrgRepo.FindOrgByUrl(Url);
+
+        if (org == null) return;
+    }
+}

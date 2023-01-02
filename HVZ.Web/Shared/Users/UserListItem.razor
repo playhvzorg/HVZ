@@ -1,0 +1,83 @@
+@using HVZ.Web.Shared.Org_Authorization
+
+@inject IOrgRepo OrgRepo
+@inject IUserRepo UserRepo
+
+<div class="card mb-3 text-nowrap">
+    <div class="row no-gutters">
+        <div class="col-3">
+            <img src="images/default_user_thumbnail_small.jpeg" alt="">
+        </div>
+        <div class="col-8 text-nowrap overflow-hidden ">
+            <p class="card-text me-0 pt-0 ml-0 mb-0 d-inline">@user?.FullName</p>
+            <p class="card-text mt-0 ml-0 mb-0">@user?.Email</p>
+        </div>
+        <OrgAuthorizedAdmin>
+            <div class="col-1 float-end text-center">
+                <div class="dropdown">
+                    <button class="btn" data-bs-toggle="dropdown">
+                        <i class="fa-solid fa-ellipsis-vertical float-end"></i>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                        @if (userIsMod)
+                        {
+                            <li><button class="dropdown-item" @onclick="SetAdmin">Promote to admin</button></li>
+                        }
+                        @if (userIsAdmin)
+                        {
+                            <li><button class="dropdown-item" @onclick="SetMod">Set to moderator</button></li>
+                        }
+                        <li><button class="dropdown-item">Remove</button></li>
+                    </ul>
+                </div>
+            </div>
+        </OrgAuthorizedAdmin>
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public string? UserId { get; set; }
+
+    [Parameter]
+    public EventCallback OnChange { get; set; }
+    
+    [CascadingParameter(Name = "orgId")]
+    public string? OrgId { get; set; }
+
+    private User? user;
+    private bool shouldRender;
+    private bool userIsAdmin;
+    private bool userIsMod;
+
+    protected override bool ShouldRender() => shouldRender;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (UserId == null) return;
+        if (OrgId == null) return;
+
+        user = await UserRepo.GetUserById(UserId);
+        userIsAdmin = await OrgRepo.IsAdminOfOrg(OrgId, UserId);
+        userIsMod = await OrgRepo.IsModOfOrg(OrgId, UserId);
+        shouldRender = true;
+    }
+
+    async Task SetMod()
+    {
+        await OrgRepo.RemoveAdmin(OrgId, UserId);
+        await OrgRepo.AddModerator(OrgId, UserId);
+        await OnChange.InvokeAsync();
+        @* TODO Log this *@
+    }
+
+    async Task SetAdmin()
+    {
+        await OrgRepo.RemoveModerator(OrgId, UserId);
+        await OrgRepo.AddAdmin(OrgId, UserId);
+        await OnChange.InvokeAsync();
+        @* TODO Log this *@
+    }
+}
+
