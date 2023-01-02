@@ -40,107 +40,84 @@
     [Test]
     public void Test_AdminHasAdminPermissions()
     {
-        @* Set the user ID claim to the admin ID *@
         authContext.SetClaims(
             new Claim("DatabaseId", adminId)
         );
         
-        @* mockOrgRepo.Setup(repo => repo.IsAdminOfOrg(orgId, adminId)).ReturnsAsync(true); *@
-        
-        @* Render the component *@
         IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(parameter => parameter
             .Add(p => p.OrgId, orgId));
         OrgAuth auth = cut.Instance;
 
-        @* Verify component state *@
         Assert.That(auth.IsAdmin, Is.True);
     }
 
     [Test]
     public void Test_AdminHasModPermissions()
     {
-        @* Set the user ID claim to the admin ID *@
         authContext.SetClaims(
             new Claim("DatabaseId", adminId)
         );
-        
-        @* mockOrgRepo.Setup(repo => repo.IsModOfOrg(orgId, adminId)).ReturnsAsync(false);
-        mockOrgRepo.Setup(repo => repo.IsAdminOfOrg(orgId, adminId)).ReturnsAsync(true); *@
 
-        @* Render the component *@
         IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(parameter => parameter
             .Add(p => p.OrgId, orgId));
         OrgAuth auth = cut.Instance;
 
-        @* Verify component state *@
         Assert.That(auth.IsMod, Is.True);
     }
 
     [Test]
     public void Test_ModDoesNotHaveAdminPermissions()
     {
-        @* Set the user ID claim to the admin ID *@
         authContext.SetClaims(
             new Claim("DatabaseId", modId)
         );
 
-        @* Render the component *@
         IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(parameter => parameter
             .Add(p => p.OrgId, orgId));
         OrgAuth auth = cut.Instance;
 
-        @* Verify component state *@
         Assert.That(auth.IsAdmin, Is.False);
     }
 
     [Test]
     public void Test_ModHasAdminPermissions()
     {
-        @* Set the user ID claim to the admin ID *@
         authContext.SetClaims(
             new Claim("DatabaseId", modId)
         );
 
-        @* Render the component *@
         IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(parameter => parameter
             .Add(p => p.OrgId, orgId));
         OrgAuth auth = cut.Instance;
 
-        @* Verify component state *@
         Assert.That(auth.IsMod, Is.True);
     }
 
     [Test]
     public void Test_UnauthorizedDoesNotHaveAdminPermissions()
     {
-        @* Set the user ID claim to the admin ID *@
         authContext.SetClaims(
             new Claim("DatabaseId", unauthorizedId)
         );
 
-        @* Render the component *@
         IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(parameter => parameter
             .Add(p => p.OrgId, orgId));
         OrgAuth auth = cut.Instance;
 
-        @* Verify component state *@
         Assert.That(auth.IsAdmin, Is.False);
     }
 
     [Test]
     public void Test_UnauthorizedDoesNotHaveModPermissions()
     {
-        @* Set the user ID claim to the admin ID *@
         authContext.SetClaims(
             new Claim("DatabaseId", unauthorizedId)
         );
 
-        @* Render the component *@
         IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(parameter => parameter
             .Add(p => p.OrgId, orgId));
         OrgAuth auth = cut.Instance;
 
-        @* Verify component state *@
         Assert.That(auth.IsMod, Is.False);
     }
 #endregion
@@ -162,7 +139,6 @@
             </OrgAuth>
         );
 
-        @* Verify that the <p> element is visible *@
         var adminContent = cut.Find(".admin-content");
         adminContent.MarkupMatches(@<p diff:ignore>admin</p>);
     }
@@ -182,7 +158,6 @@
             </OrgAuth>
         );
 
-        @* Verify that the <p> eleent is visible *@
         var modContent = cut.Find(".mod-content");
         modContent.MarkupMatches(@<p diff:ignore>mod</p>);
     }
