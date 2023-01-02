@@ -1,0 +1,18 @@
+@using HVZ.Web.Pages
+@inherits Bunit.TestContext
+
+@code
+{
+    [Test]
+    public void Test_CounterIncrementsWhenClicked()
+    {
+        IRenderedFragment cut = this.Render(@<Counter />);
+
+        IElement button = cut.Find("button");
+        button.Click();
+
+        IElement paragraph = cut.Find("p");
+        paragraph.MarkupMatches(@<p diff:ignore>Current count: 1</p>);
+
+    }
+}
