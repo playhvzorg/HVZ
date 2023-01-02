@@ -4,8 +4,8 @@
 
 @inherits LayoutComponentBase
 
-<CascadingValue Value="@isAdmin" Name="isAdmin">
-    <CascadingValue Value="@isMod" Name="isMod">
+<CascadingValue Value="@IsAdmin" Name="isAdmin">
+    <CascadingValue Value="@IsMod" Name="isMod">
         @ChildContent
     </CascadingValue>
 </CascadingValue>
@@ -21,8 +21,8 @@
     public RenderFragment? ChildContent { get; set; }
 
     private string? userId = "";
-    private bool isAdmin;
-    private bool isMod;
+    public bool IsAdmin { get; private set; }
+    public bool IsMod { get; private set; }
     private bool shouldRender;
 
     protected override bool ShouldRender() => shouldRender;
@@ -35,9 +35,9 @@
         
         if(OrgId != null && userId != null)
         {
-            isAdmin = await OrgRepo.IsAdminOfOrg(OrgId, userId);
-            isMod = isAdmin || await OrgRepo.IsModOfOrg(OrgId, userId);
-            Logger.LogDebug($"User ID: {userId}; Org ID: {OrgId}\nUser has admin: {isAdmin}; User has mod: {isMod}");
+            IsAdmin = await OrgRepo.IsAdminOfOrg(OrgId, userId);
+            IsMod = IsAdmin || await OrgRepo.IsModOfOrg(OrgId, userId);
+            Logger.LogDebug($"User ID: {userId}; Org ID: {OrgId}\nUser has admin: {IsAdmin}; User has mod: {IsMod}");
             shouldRender = true;
         }
 

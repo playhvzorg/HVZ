@@ -1,0 +1,316 @@
+@using HVZ.Web.Shared.Org_Authorization
+@using System.Security.Claims
+@inherits Bunit.TestContext
+
+@code
+{
+    Mock<IOrgRepo> mockOrgRepo = null!;
+    
+    private string orgId = "000000000000000000000001";
+    private string adminId = "000000000000000000000002";
+    private string modId = "000000000000000000000003";
+    private string unauthorizedId = "000000000000000000000004";
+
+    TestAuthorizationContext authContext;
+
+
+    [OneTimeSetUp]
+    public void Setup()
+    {
+        @* Define the shits *@
+
+        mockOrgRepo = new Mock<IOrgRepo>();
+        
+        mockOrgRepo.Setup(repo => repo.IsModOfOrg(orgId, adminId)).ReturnsAsync(false);
+        mockOrgRepo.Setup(repo => repo.IsAdminOfOrg(orgId, adminId)).ReturnsAsync(true);
+
+        mockOrgRepo.Setup(repo => repo.IsModOfOrg(orgId, modId)).ReturnsAsync(true);
+        mockOrgRepo.Setup(repo => repo.IsAdminOfOrg(orgId, modId)).ReturnsAsync(false);
+
+        mockOrgRepo.Setup(repo => repo.IsModOfOrg(orgId, unauthorizedId)).ReturnsAsync(false);
+        mockOrgRepo.Setup(repo => repo.IsAdminOfOrg(orgId, unauthorizedId)).ReturnsAsync(false);
+
+        Services.AddSingleton<IOrgRepo>(mockOrgRepo.Object);
+        authContext = this.AddTestAuthorization();
+        
+    }
+
+#region Permissions
+
+    [Test]
+    public void Test_AdminHasAdminPermissions()
+    {
+        @* Set the user ID claim to the admin ID *@
+        authContext.SetClaims(
+            new Claim("DatabaseId", adminId)
+        );
+        
+        @* mockOrgRepo.Setup(repo => repo.IsAdminOfOrg(orgId, adminId)).ReturnsAsync(true); *@
+        
+        @* Render the component *@
+        IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(parameter => parameter
+            .Add(p => p.OrgId, orgId));
+        OrgAuth auth = cut.Instance;
+
+        @* Verify component state *@
+        Assert.That(auth.IsAdmin, Is.True);
+    }
+
+    [Test]
+    public void Test_AdminHasModPermissions()
+    {
+        @* Set the user ID claim to the admin ID *@
+        authContext.SetClaims(
+            new Claim("DatabaseId", adminId)
+        );
+        
+        @* mockOrgRepo.Setup(repo => repo.IsModOfOrg(orgId, adminId)).ReturnsAsync(false);
+        mockOrgRepo.Setup(repo => repo.IsAdminOfOrg(orgId, adminId)).ReturnsAsync(true); *@
+
+        @* Render the component *@
+        IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(parameter => parameter
+            .Add(p => p.OrgId, orgId));
+        OrgAuth auth = cut.Instance;
+
+        @* Verify component state *@
+        Assert.That(auth.IsMod, Is.True);
+    }
+
+    [Test]
+    public void Test_ModDoesNotHaveAdminPermissions()
+    {
+        @* Set the user ID claim to the admin ID *@
+        authContext.SetClaims(
+            new Claim("DatabaseId", modId)
+        );
+
+        @* Render the component *@
+        IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(parameter => parameter
+            .Add(p => p.OrgId, orgId));
+        OrgAuth auth = cut.Instance;
+
+        @* Verify component state *@
+        Assert.That(auth.IsAdmin, Is.False);
+    }
+
+    [Test]
+    public void Test_ModHasAdminPermissions()
+    {
+        @* Set the user ID claim to the admin ID *@
+        authContext.SetClaims(
+            new Claim("DatabaseId", modId)
+        );
+
+        @* Render the component *@
+        IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(parameter => parameter
+            .Add(p => p.OrgId, orgId));
+        OrgAuth auth = cut.Instance;
+
+        @* Verify component state *@
+        Assert.That(auth.IsMod, Is.True);
+    }
+
+    [Test]
+    public void Test_UnauthorizedDoesNotHaveAdminPermissions()
+    {
+        @* Set the user ID claim to the admin ID *@
+        authContext.SetClaims(
+            new Claim("DatabaseId", unauthorizedId)
+        );
+
+        @* Render the component *@
+        IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(parameter => parameter
+            .Add(p => p.OrgId, orgId));
+        OrgAuth auth = cut.Instance;
+
+        @* Verify component state *@
+        Assert.That(auth.IsAdmin, Is.False);
+    }
+
+    [Test]
+    public void Test_UnauthorizedDoesNotHaveModPermissions()
+    {
+        @* Set the user ID claim to the admin ID *@
+        authContext.SetClaims(
+            new Claim("DatabaseId", unauthorizedId)
+        );
+
+        @* Render the component *@
+        IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(parameter => parameter
+            .Add(p => p.OrgId, orgId));
+        OrgAuth auth = cut.Instance;
+
+        @* Verify component state *@
+        Assert.That(auth.IsMod, Is.False);
+    }
+#endregion
+
+#region Semantic HTML
+
+    [Test]
+    public void Test_AdminSeesAdminConent()
+    {
+        authContext.SetClaims(
+            new Claim("DatabaseId", adminId)
+        );
+
+        var cut = Render(
+            @<OrgAuth OrgId="@orgId">
+                <OrgAuthorizedAdmin>
+                    <p class="admin-content">admin</p>
+                </OrgAuthorizedAdmin>
+            </OrgAuth>
+        );
+
+        @* Verify that the <p> element is visible *@
+        var adminContent = cut.Find(".admin-content");
+        adminContent.MarkupMatches(@<p diff:ignore>admin</p>);
+    }
+
+    [Test]
+    public void Test_AdminSeesModContent()
+    {
+        authContext.SetClaims(
+            new Claim("DatabaseId", adminId)
+        );
+
+        var cut = Render(
+            @<OrgAuth OrgId="@orgId">
+                <OrgAuthorizedModerator>
+                    <p class="mod-content">mod</p>
+                </OrgAuthorizedModerator>
+            </OrgAuth>
+        );
+
+        @* Verify that the <p> eleent is visible *@
+        var modContent = cut.Find(".mod-content");
+        modContent.MarkupMatches(@<p diff:ignore>mod</p>);
+    }
+
+    [Test]
+    public void Test_AdminSeesPublicContent()
+    {
+        authContext.SetClaims(
+            new Claim("DatabaseId", adminId)
+        );
+
+        var cut = Render(
+            @<OrgAuth>
+                <p class="public-content">public</p>
+            </OrgAuth>
+        );
+
+        var publicContent = cut.Find(".public-content");
+        publicContent.MarkupMatches(@<p diff:ignore>public</p>);
+    }
+
+    [Test]
+    public void Test_ModDoesNotSeeAdminContent()
+    {
+        authContext.SetClaims(
+            new Claim("DatabaseId", modId)
+        );
+
+        var cut = Render(
+            @<OrgAuth OrgId="@orgId">
+                <OrgAuthorizedAdmin>
+                    <p class="admin-content">admin</p>
+                </OrgAuthorizedAdmin>
+            </OrgAuth>
+        );
+
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find(".admin-content"));
+    }
+
+    [Test]
+    public void Test_ModSeesModContent()
+    {
+        authContext.SetClaims(
+            new Claim("DatabaseId", modId)
+        );
+
+        var cut = Render(
+            @<OrgAuth OrgId="@orgId">
+                <OrgAuthorizedModerator>
+                    <p class="mod-content">mod</p>
+                </OrgAuthorizedModerator>
+            </OrgAuth>
+        );
+
+        @* Verify that the <p> eleent is visible *@
+        var modContent = cut.Find(".mod-content");
+        modContent.MarkupMatches(@<p diff:ignore>mod</p>);
+    }
+
+    [Test]
+    public void Test_ModSeesPublicContent()
+    {
+        authContext.SetClaims(
+            new Claim("DatabaseId", modId)
+        );
+
+        var cut = Render(
+            @<OrgAuth>
+                <p class="public-content">public</p>
+            </OrgAuth>
+        );
+
+        var publicContent = cut.Find(".public-content");
+        publicContent.MarkupMatches(@<p diff:ignore>public</p>);
+    }
+
+    [Test]
+    public void Test_UnauthorizedDoesNotSeeAdminContent()
+    {
+        authContext.SetClaims(
+            new Claim("DatabaseId", unauthorizedId)
+        );
+
+        var cut = Render(
+            @<OrgAuth OrgId="@orgId">
+                <OrgAuthorizedAdmin>
+                    <p class="admin-content">admin</p>
+                </OrgAuthorizedAdmin>
+            </OrgAuth>
+        );
+
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find(".admin-content"));
+    }
+
+    [Test]
+    public void Test_UnauthorizedDoesNotSeeModContent()
+    {
+        authContext.SetClaims(
+            new Claim("DatabaseId", unauthorizedId)
+        );
+        
+        var cut = Render(
+            @<OrgAuth OrgId="@orgId">
+                <OrgAuthorizedModerator>
+                    <p class="mod-content">mod</p>
+                </OrgAuthorizedModerator>
+            </OrgAuth>
+        );
+
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find(".mod-content"));
+    }
+
+    [Test]
+    public void Test_UnauthorizedSeesPublicContent()
+    {
+        authContext.SetClaims(
+            new Claim("DatabaseId", unauthorizedId)
+        );
+
+        var cut = Render(
+            @<OrgAuth>
+                <p class="public-content">public</p>
+            </OrgAuth>
+        );
+
+        var publicContent = cut.Find(".public-content");
+        publicContent.MarkupMatches(@<p diff:ignore>public</p>);
+    }
+
+#endregion
+}
