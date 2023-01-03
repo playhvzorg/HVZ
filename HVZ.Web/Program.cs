@@ -46,12 +46,14 @@ internal static class Program
 
         #region Persistence
 
+        var mongoConfig = builder.Configuration.GetSection(nameof(MongoConfig)).Get<MongoConfig>();
+
         var mongoClient = new MongoClient(
-            builder.Configuration["DatabaseSettings:ConnectionString"]
+            mongoConfig?.ConnectionString
         );
 
         var mongoDatabase = mongoClient.GetDatabase(
-            builder.Configuration["DatabaseSettings:DatabaseName"]
+            mongoConfig?.Name
         );
 
         IGameRepo gameRepo = new GameRepo(mongoDatabase, SystemClock.Instance, logger);
@@ -66,11 +68,10 @@ internal static class Program
 
         #region Identity
 
-        var mongoIdentitySettings = builder.Configuration.GetSection(nameof(MongoIdentityConfig)).Get<MongoIdentityConfig>();
         builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
             .AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>
             (
-                mongoIdentitySettings?.ConnectionString, mongoIdentitySettings?.Name
+                mongoConfig?.ConnectionString, mongoConfig?.Name
             )
             .AddDefaultTokenProviders();
         builder.Services.AddScoped<
