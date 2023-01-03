@@ -34,6 +34,35 @@
         
     }
 
+    IRenderedFragment RenderModContent()
+        => Render(
+            @<OrgAuth OrgId="@orgId">
+                <OrgAuthorizedAdmin>
+                    <p class="admin-content">admin</p>
+                </OrgAuthorizedAdmin>
+            </OrgAuth>
+        );
+
+    IRenderedFragment RenderAdminContent()
+        => Render(
+            @<OrgAuth OrgId="@orgId">
+                <OrgAuthorizedModerator>
+                    <p class="mod-content">mod</p>
+                </OrgAuthorizedModerator>
+            </OrgAuth>
+        );
+    
+    IRenderedFragment RenderNestedContent()
+        => Render(
+            @<OrgAuth OrgId="@orgId">
+                <OrgAuthorizedModerator>
+                    <OrgAuthorizedAdmin>
+                        <p class="admin-content"></p>
+                    </OrgAuthorizedAdmin>
+                </OrgAuthorizedModerator>
+            </OrgAuth>
+        );
+
 #region Permissions
 
     [Test]
@@ -130,13 +159,7 @@
             new Claim("DatabaseId", adminId)
         );
 
-        var cut = Render(
-            @<OrgAuth OrgId="@orgId">
-                <OrgAuthorizedAdmin>
-                    <p class="admin-content">admin</p>
-                </OrgAuthorizedAdmin>
-            </OrgAuth>
-        );
+        var cut = RenderModContent();
 
         var adminContent = cut.Find(".admin-content");
         adminContent.MarkupMatches(@<p diff:ignore>admin</p>);
@@ -149,13 +172,7 @@
             new Claim("DatabaseId", adminId)
         );
 
-        var cut = Render(
-            @<OrgAuth OrgId="@orgId">
-                <OrgAuthorizedModerator>
-                    <p class="mod-content">mod</p>
-                </OrgAuthorizedModerator>
-            </OrgAuth>
-        );
+        var cut = RenderModContent();
 
         var modContent = cut.Find(".mod-content");
         modContent.MarkupMatches(@<p diff:ignore>mod</p>);
@@ -185,15 +202,7 @@
             new Claim("DatabaseId", adminId)
         );
 
-        var cut = Render(
-            @<OrgAuth OrgId="@orgId">
-                <OrgAuthorizedModerator>
-                    <OrgAuthorizedAdmin>
-                        <p class="admin-content">admin</p>
-                    </OrgAuthorizedAdmin>
-                </OrgAuthorizedModerator>
-            </OrgAuth>
-        );
+        var cut = RenderNestedContent();
 
         var adminContent = cut.Find(".admin-content");
         adminContent.MarkupMatches(@<p diff:ignore>admin</p>);
@@ -206,13 +215,7 @@
             new Claim("DatabaseId", modId)
         );
 
-        var cut = Render(
-            @<OrgAuth OrgId="@orgId">
-                <OrgAuthorizedAdmin>
-                    <p class="admin-content">admin</p>
-                </OrgAuthorizedAdmin>
-            </OrgAuth>
-        );
+        var cut = RenderAdminContent();
 
         Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find(".admin-content"));
     }
@@ -224,13 +227,7 @@
             new Claim("DatabaseId", modId)
         );
 
-        var cut = Render(
-            @<OrgAuth OrgId="@orgId">
-                <OrgAuthorizedModerator>
-                    <p class="mod-content">mod</p>
-                </OrgAuthorizedModerator>
-            </OrgAuth>
-        );
+        var cut = RenderModContent();
 
         @* Verify that the <p> eleent is visible *@
         var modContent = cut.Find(".mod-content");
@@ -261,15 +258,7 @@
             new Claim("DatabaseId", modId)
         );
 
-        var cut = Render(
-            @<OrgAuth OrgId="@orgId">
-                <OrgAuthorizedModerator>
-                    <OrgAuthorizedAdmin>
-                        <p class="admin-content">admin</p>
-                    </OrgAuthorizedAdmin>
-                </OrgAuthorizedModerator>
-            </OrgAuth>
-        );
+        var cut = RenderNestedContent();
 
         Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find(".admin-content"));
     }
@@ -281,13 +270,7 @@
             new Claim("DatabaseId", unauthorizedId)
         );
 
-        var cut = Render(
-            @<OrgAuth OrgId="@orgId">
-                <OrgAuthorizedAdmin>
-                    <p class="admin-content">admin</p>
-                </OrgAuthorizedAdmin>
-            </OrgAuth>
-        );
+        var cut = RenderAdminContent();
 
         Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find(".admin-content"));
     }
@@ -299,13 +282,7 @@
             new Claim("DatabaseId", unauthorizedId)
         );
         
-        var cut = Render(
-            @<OrgAuth OrgId="@orgId">
-                <OrgAuthorizedModerator>
-                    <p class="mod-content">mod</p>
-                </OrgAuthorizedModerator>
-            </OrgAuth>
-        );
+        var cut = RenderModContent();
 
         Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find(".mod-content"));
     }
