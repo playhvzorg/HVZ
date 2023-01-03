@@ -40,6 +40,10 @@ public interface IOrgRepo
     public Task<Organization> SetActiveGameOfOrg(string orgId, string gameId);
 
     /// <summary>
+    /// Creates a game that belongs to an org.
+    /// </summary>
+    public Task<Game> CreateGame(string name, string orgId, string creatorId);
+    /// <summary>
     /// Find the game that the org is currently playing. Returns null if there is no active game.
     /// </summary>
     public Task<Game?> FindActiveGameOfOrg(string orgId);

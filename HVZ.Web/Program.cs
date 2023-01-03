@@ -39,19 +39,28 @@ internal static class Program
 
         #endregion
 
+        ILogger logger = LoggerFactory.Create(config =>
+            {
+                config.ClearProviders();
+                config.AddConsole();
+            }
+        ).CreateLogger("Program");
+
         #region Persistence
 
+        var mongoConfig = builder.Configuration.GetSection(nameof(MongoConfig)).Get<MongoConfig>();
+
         var mongoClient = new MongoClient(
-            builder.Configuration["DatabaseSettings:ConnectionString"]
+            mongoConfig?.ConnectionString
         );
 
         var mongoDatabase = mongoClient.GetDatabase(
-            builder.Configuration["DatabaseSettings:DatabaseName"]
+            mongoConfig?.Name
         );
 
-        IGameRepo gameRepo = new GameRepo(mongoDatabase, SystemClock.Instance);
-        IUserRepo userRepo = new UserRepo(mongoDatabase, SystemClock.Instance);
-        IOrgRepo orgRepo = new OrgRepo(mongoDatabase, SystemClock.Instance, userRepo, gameRepo);
+        IGameRepo gameRepo = new GameRepo(mongoDatabase, SystemClock.Instance, logger);
+        IUserRepo userRepo = new UserRepo(mongoDatabase, SystemClock.Instance, logger);
+        IOrgRepo orgRepo = new OrgRepo(mongoDatabase, SystemClock.Instance, userRepo, gameRepo, logger);
 
         builder.Services.AddSingleton<IGameRepo>(gameRepo);
         builder.Services.AddSingleton<IUserRepo>(userRepo);
@@ -61,11 +70,10 @@ internal static class Program
 
         #region Identity
 
-        var mongoIdentitySettings = builder.Configuration.GetSection(nameof(MongoIdentityConfig)).Get<MongoIdentityConfig>();
         builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
             .AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>
             (
-                mongoIdentitySettings?.ConnectionString, mongoIdentitySettings?.Name
+                mongoConfig?.ConnectionString, mongoConfig?.Name
             )
             .AddDefaultTokenProviders();
         builder.Services.AddScoped<
@@ -124,9 +132,6 @@ internal static class Program
         #endregion
 
         builder.Services.AddSingleton<WeatherForecastService>();
-
-        builder.Logging.ClearProviders();
-        builder.Logging.AddConsole();
 
         var app = builder.Build();
 

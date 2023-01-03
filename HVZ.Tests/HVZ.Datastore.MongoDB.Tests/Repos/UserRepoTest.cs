@@ -3,13 +3,14 @@ using Moq;
 using HVZ.Models;
 using HVZ.Persistence.MongoDB.Repos;
 using MongoDB.Driver;
+using Microsoft.Extensions.Logging;
 namespace HVZ.Persistence.MongoDB.Tests;
 
 [Parallelizable(ParallelScope.All)]
 public class UserRepoTest : MongoTestBase
 {
     public UserRepo CreateUserRepo() =>
-        new UserRepo(CreateTemporaryDatabase(), Mock.Of<IClock>());
+        new UserRepo(CreateTemporaryDatabase(), Mock.Of<IClock>(), Mock.Of<ILogger>());
 
     [Test]
     public async Task create_then_read_are_equal()
