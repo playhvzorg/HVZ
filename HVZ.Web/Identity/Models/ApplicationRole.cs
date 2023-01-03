@@ -9,7 +9,7 @@ namespace HVZ.Web.Identity.Models
     /// Class used to store Identity roles
     /// Required by Identity
     /// </summary>
-    [CollectionName("Roles")]
+    [CollectionName("IdentityRoles")]
     public class ApplicationRole : MongoIdentityRole<Guid>
     {
 

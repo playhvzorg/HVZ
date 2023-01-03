@@ -27,19 +27,38 @@ internal static class Program
         builder.Services.AddHttpClient();
         builder.Services.AddHttpContextAccessor();
 
+        #region Generic options
+
+        builder.Services.Configure<WebConfig>(
+            builder.Configuration.GetSection(
+                nameof(WebConfig)
+            )
+        );
+
+        #endregion
+
+        ILogger logger = LoggerFactory.Create(config =>
+            {
+                config.ClearProviders();
+                config.AddConsole();
+            }
+        ).CreateLogger("Program");
+
         #region Persistence
 
+        var mongoConfig = builder.Configuration.GetSection(nameof(MongoConfig)).Get<MongoConfig>();
+
         var mongoClient = new MongoClient(
-            builder.Configuration["DatabaseSettings:ConnectionString"]
+            mongoConfig?.ConnectionString
         );
 
         var mongoDatabase = mongoClient.GetDatabase(
-            builder.Configuration["DatabaseSettings:DatabaseName"]
+            mongoConfig?.Name
         );
 
-        IGameRepo gameRepo = new GameRepo(mongoDatabase, SystemClock.Instance);
-        IUserRepo userRepo = new UserRepo(mongoDatabase, SystemClock.Instance);
-        IOrgRepo orgRepo = new OrgRepo(mongoDatabase, SystemClock.Instance, userRepo, gameRepo);
+        IGameRepo gameRepo = new GameRepo(mongoDatabase, SystemClock.Instance, logger);
+        IUserRepo userRepo = new UserRepo(mongoDatabase, SystemClock.Instance, logger);
+        IOrgRepo orgRepo = new OrgRepo(mongoDatabase, SystemClock.Instance, userRepo, gameRepo, logger);
 
         builder.Services.AddSingleton<IGameRepo>(gameRepo);
         builder.Services.AddSingleton<IUserRepo>(userRepo);
@@ -49,12 +68,12 @@ internal static class Program
 
         #region Identity
 
-        var mongoIdentitySettings = builder.Configuration.GetSection(nameof(MongoIdentityConfig)).Get<MongoIdentityConfig>();
         builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
             .AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>
             (
-                mongoIdentitySettings?.ConnectionString, mongoIdentitySettings?.Name
-            );
+                mongoConfig?.ConnectionString, mongoConfig?.Name
+            )
+            .AddDefaultTokenProviders();
         builder.Services.AddScoped<
             IUserClaimsPrincipalFactory<ApplicationUser>,
             ApplicationClaimsPrincipalFactory
@@ -64,18 +83,27 @@ internal static class Program
 
         #region Images
 
-        ImageServiceOptions options = new();
-        builder.Configuration.GetSection(
-            nameof(ImageServiceOptions)
-        ).Bind(options);
+        builder.Services.Configure<ImageServiceOptions>(
+            builder.Configuration.GetSection(
+                nameof(ImageServiceOptions)
+            )
+        );
         builder.Services.AddSingleton<ImageService>();
 
         #endregion
 
-        builder.Services.AddSingleton<WeatherForecastService>();
+        #region Email
 
-        builder.Logging.ClearProviders();
-        builder.Logging.AddConsole();
+        builder.Services.Configure<EmailServiceOptions>(
+            builder.Configuration.GetSection(
+                nameof(EmailServiceOptions)
+            )
+        );
+        builder.Services.AddSingleton<EmailService>();
+
+        #endregion
+
+        builder.Services.AddSingleton<WeatherForecastService>();
 
         var app = builder.Build();
 
