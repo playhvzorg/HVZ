@@ -34,7 +34,7 @@
         
     }
 
-    IRenderedFragment RenderModContent()
+    IRenderedFragment RenderAdminContent()
         => Render(
             @<OrgAuth OrgId="@orgId">
                 <OrgAuthorizedAdmin>
@@ -43,7 +43,7 @@
             </OrgAuth>
         );
 
-    IRenderedFragment RenderAdminContent()
+    IRenderedFragment RenderModContent()
         => Render(
             @<OrgAuth OrgId="@orgId">
                 <OrgAuthorizedModerator>
@@ -159,7 +159,7 @@
             new Claim("DatabaseId", adminId)
         );
 
-        var cut = RenderModContent();
+        var cut = RenderAdminContent();
 
         var adminContent = cut.Find(".admin-content");
         adminContent.MarkupMatches(@<p diff:ignore>admin</p>);
