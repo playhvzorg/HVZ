@@ -5,6 +5,7 @@ using MongoDB.Bson.Serialization.IdGenerators;
 using HVZ.Models;
 using HVZ.Persistence.MongoDB.Serializers;
 using NodaTime;
+using Microsoft.Extensions.Logging;
 namespace HVZ.Persistence.MongoDB.Repos;
 
 public class UserRepo : IUserRepo
@@ -12,6 +13,7 @@ public class UserRepo : IUserRepo
     private const string CollectionName = "Users";
     public readonly IMongoCollection<User> Collection;
     private readonly IClock _clock;
+    private readonly ILogger _logger;
 
     static UserRepo()
     {
@@ -27,7 +29,7 @@ public class UserRepo : IUserRepo
         });
     }
 
-    public UserRepo(IMongoDatabase database, IClock clock)
+    public UserRepo(IMongoDatabase database, IClock clock, ILogger logger)
     {
         var filter = new BsonDocument("name", CollectionName);
         var collections = database.ListCollections(new ListCollectionsOptions { Filter = filter });
@@ -35,6 +37,7 @@ public class UserRepo : IUserRepo
             database.CreateCollection(CollectionName);
         Collection = database.GetCollection<User>(CollectionName);
         _clock = clock;
+        _logger = logger;
         InitIndexes();
     }
 
@@ -62,7 +65,7 @@ public class UserRepo : IUserRepo
             fullName: name,
             email: email
         );
-
+        _logger.LogTrace($"Creating new user: name: {name} | email: {email}");
         await Collection.InsertOneAsync(user);
         return user;
     }
@@ -89,6 +92,7 @@ public class UserRepo : IUserRepo
 
     public async Task DeleteUser(string userId)
     {
+        _logger.LogTrace($"Deleting user {userId}");
         await Collection.FindOneAndDeleteAsync(u => u.Id == userId);
     }
 

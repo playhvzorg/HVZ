@@ -5,13 +5,14 @@ using Moq;
 using HVZ.Models;
 using HVZ.Persistence.MongoDB.Repos;
 using MongoDB.Driver;
+using Microsoft.Extensions.Logging;
 namespace HVZ.Persistence.MongoDB.Tests;
 
 [Parallelizable(ParallelScope.All)]
 public class GameRepoTest : MongoTestBase
 {
     public GameRepo CreateGameRepo() =>
-            new GameRepo(CreateTemporaryDatabase(), Mock.Of<IClock>());
+            new GameRepo(CreateTemporaryDatabase(), Mock.Of<IClock>(), Mock.Of<ILogger>());
 
     [Test]
     public async Task create_then_read_are_equal()
