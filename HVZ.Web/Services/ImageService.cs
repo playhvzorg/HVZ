@@ -14,6 +14,8 @@ namespace HVZ.Web.Services
 
         public ImageService(IOptions<ImageServiceOptions> options)
         {
+            if (options.Value.UploadPath is null) throw new ArgumentNullException("UploadPath cannot be null in ImageService");
+
             this.uploadPath = options.Value.UploadPath;
         }
 
