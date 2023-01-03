@@ -18,7 +18,7 @@ namespace HVZ.Web.Data
         [HttpGet]
         public IActionResult Login(string returnUrl = "/")
         {
-            return Challenge(new AuthenticationProperties {RedirectUri = returnUrl}, "Discord");
+            return Challenge(new AuthenticationProperties { RedirectUri = returnUrl }, "Discord");
         }
 
         [HttpGet]

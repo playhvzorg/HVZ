@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using HVZ.Web.Data;
-using HVZ.DiscordBot;
+using HVZ.DiscordIntegration;
 using HVZ.Persistence;
 using HVZ.Persistence.MongoDB.Repos;
 using HVZ.Web.Identity;
@@ -9,6 +9,7 @@ using HVZ.Web.Settings;
 using HVZ.Web.Services;
 using MongoDB.Driver;
 using NodaTime;
+using Discord.WebSocket;
 
 namespace HVZ.Web;
 internal static class Program
@@ -88,26 +89,28 @@ internal static class Program
         #region DiscordIntegration
 
         var discordIntegrationSettings = builder.Configuration.GetSection(nameof(DiscordIntegrationSettings)).Get<DiscordIntegrationSettings>();
-        if (discordIntegrationSettings is not null &&
-            discordIntegrationSettings.Token is not null &&
-            discordIntegrationSettings.ClientId is not null &&
-            discordIntegrationSettings.ClientSecret is not null)
+        bool discordIntegrationEnabled = discordIntegrationSettings is not null;
+        if (discordIntegrationEnabled)
         {
-            var discordBot = new DiscordBot.DiscordBot(discordIntegrationSettings.Token);
-            Task.Run(() => discordBot.Run());
+            var config = new DiscordSocketConfig()
+            {
 
+            };
+            var discordBot = DiscordBot.instance;
+            builder.Services.AddSingleton<DiscordSocketClient>();
+            builder.Services.AddSingleton<DiscordBot>(discordBot);
             builder.Services.AddAuthentication(opt =>
                 opt.RequireAuthenticatedSignIn = true
             ).AddCookie().AddDiscord(x =>
             {
-                x.ClientId = discordIntegrationSettings.ClientId;
-                x.ClientSecret = discordIntegrationSettings.ClientSecret;
+                x.ClientId = discordIntegrationSettings?.ClientId!;
+                x.ClientSecret = discordIntegrationSettings?.ClientSecret!;
                 x.SaveTokens = true;
             }
         );
-        
-        #endregion
-        
+
+            #endregion
+
         }
         #region Email
 
@@ -126,6 +129,17 @@ internal static class Program
         builder.Logging.AddConsole();
 
         var app = builder.Build();
+
+        if (discordIntegrationEnabled)
+        {
+            DiscordBot? discordBot = (DiscordBot?)app.Services.GetService(typeof(DiscordBot));
+            if (discordBot is null)
+                throw new InvalidOperationException("Discord integration is enabled but the service is not configured");
+            if (discordIntegrationSettings?.Token is null)
+                throw new InvalidOperationException("Discord integration is enabled but the token is not configured");
+            discordBot.init(discordIntegrationSettings?.Token!, app.Services);
+            Task.Run(() => discordBot.Run());
+        }
 
         // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())

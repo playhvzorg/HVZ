@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HVZ.Persistence.MongoDB", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HVZ.Tests", "HVZ.Tests\HVZ.Tests.csproj", "{66120091-6BF5-4998-88CF-2B70DE8033C4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HVZ.DiscordBot", "HVZ.DiscordBot\HVZ.DiscordBot.csproj", "{CB0C8E7F-980E-45CB-9C06-AB39E4362888}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HVZ.DiscordIntegration", "HVZ.DiscordIntegration\HVZ.DiscordIntegration.csproj", "{CB0C8E7F-980E-45CB-9C06-AB39E4362888}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
