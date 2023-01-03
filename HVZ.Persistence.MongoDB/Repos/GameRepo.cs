@@ -142,7 +142,7 @@ public class GameRepo : IGameRepo
             Builders<Game>.Update.Set(g => g.Players, newPlayers),
             new FindOneAndUpdateOptions<Game, Game>() { ReturnDocument = ReturnDocument.After }
         );
-        _logger.LogTrace($"User {userId} added to game {gameName}");
+        _logger.LogTrace($"User {userId} added to game {game}");
         OnPlayerJoined(new(game));
         return newGame;
     }
@@ -156,7 +156,7 @@ public class GameRepo : IGameRepo
             Builders<Game>.Update.Set(g => g.IsActive, active),
             new FindOneAndUpdateOptions<Game, Game>() { ReturnDocument = ReturnDocument.After }
         );
-        _logger.LogTrace($"game {gameName} IsActive updated to {active}");
+        _logger.LogTrace($"game {game} IsActive updated to {active}");
         OnGameUpdated(new(game));
         return newGame;
     }
@@ -177,7 +177,7 @@ public class GameRepo : IGameRepo
             Builders<Game>.Update.Set(g => g.Players, players),
             new FindOneAndUpdateOptions<Game, Game>() { ReturnDocument = ReturnDocument.After }
         );
-        _logger.LogTrace($"User {userId} updated to role {role} in game {gameName}");
+        _logger.LogTrace($"User {userId} updated to role {role} in game {game}");
         OnPlayerRoleChanged(new(game));
         return newGame;
     }
@@ -215,7 +215,7 @@ public class GameRepo : IGameRepo
             new FindOneAndUpdateOptions<Game, Game>() { ReturnDocument = ReturnDocument.After }
         );
 
-        _logger.LogTrace($"User {taggerUserId} tagged user {tagRecieverGameId} in game {gameName}");
+        _logger.LogTrace($"User {taggerUserId} tagged user {tagRecieverGameId} in game {game}");
         OnTag(new(game));
         return newGame;
     }
