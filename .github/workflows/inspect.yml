@@ -1,6 +1,6 @@
 name: inspect
 
-on: [pull_request]
+on: [push, pull_request]
 
 jobs:
   inspect:
@@ -11,7 +11,7 @@ jobs:
       run: dotnet restore osu.Desktop.slnf
     - name: build solution before analysis
       run: dotnet build -c Debug -warnaserror
-      
+
     - name: determine changed files
       uses: lots0logs/gh-action-get-changed-files@2.1.4
       with:
