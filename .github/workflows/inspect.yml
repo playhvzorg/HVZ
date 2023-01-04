@@ -8,7 +8,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Restore Packages
-        run: dotnet restore osu.Desktop.slnf
+        run: dotnet restore
       - name: build solution before analysis
         run: dotnet build -c Debug -warnaserror
         
