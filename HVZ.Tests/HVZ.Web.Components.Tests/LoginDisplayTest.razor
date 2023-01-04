@@ -5,7 +5,7 @@
 
 @code
 {
-    TestAuthorizationContext authContext;
+    TestAuthorizationContext? authContext;
 
     [OneTimeSetUp]
     public void Setup()
@@ -16,7 +16,7 @@
     [Test]
     public void Test_LoggedOutSeesLoginButton()
     {
-        authContext.SetNotAuthorized();
+        authContext?.SetNotAuthorized();
 
         var cut = Render(
             @<LoginDisplay />
@@ -29,7 +29,7 @@
     [Test]
     public void Test_LoggedInSeesLogOutButton()
     {
-        authContext.SetAuthorized("TEST USER");
+        authContext?.SetAuthorized("TEST USER");
 
         var cut = Render(
             @<LoginDisplay />

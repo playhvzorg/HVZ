@@ -11,7 +11,7 @@
     private string modId = "3";
     private string unauthorizedId = "4";
 
-    TestAuthorizationContext authContext;
+    TestAuthorizationContext? authContext;
 
 
     [OneTimeSetUp]
@@ -68,7 +68,7 @@
     [Test]
     public void Test_AdminHasAdminPermissions()
     {
-        authContext.SetClaims(
+        authContext?.SetClaims(
             new Claim("DatabaseId", adminId)
         );
         
@@ -82,7 +82,7 @@
     [Test]
     public void Test_AdminHasModPermissions()
     {
-        authContext.SetClaims(
+        authContext?.SetClaims(
             new Claim("DatabaseId", adminId)
         );
 
@@ -96,7 +96,7 @@
     [Test]
     public void Test_ModDoesNotHaveAdminPermissions()
     {
-        authContext.SetClaims(
+        authContext?.SetClaims(
             new Claim("DatabaseId", modId)
         );
 
@@ -110,7 +110,7 @@
     [Test]
     public void Test_ModHasAdminPermissions()
     {
-        authContext.SetClaims(
+        authContext?.SetClaims(
             new Claim("DatabaseId", modId)
         );
 
@@ -124,7 +124,7 @@
     [Test]
     public void Test_UnauthorizedDoesNotHaveAdminPermissions()
     {
-        authContext.SetClaims(
+        authContext?.SetClaims(
             new Claim("DatabaseId", unauthorizedId)
         );
 
@@ -138,7 +138,7 @@
     [Test]
     public void Test_UnauthorizedDoesNotHaveModPermissions()
     {
-        authContext.SetClaims(
+        authContext?.SetClaims(
             new Claim("DatabaseId", unauthorizedId)
         );
 
@@ -155,7 +155,7 @@
     [Test]
     public void Test_AdminSeesAdminConent()
     {
-        authContext.SetClaims(
+        authContext?.SetClaims(
             new Claim("DatabaseId", adminId)
         );
 
@@ -168,7 +168,7 @@
     [Test]
     public void Test_AdminSeesModContent()
     {
-        authContext.SetClaims(
+        authContext?.SetClaims(
             new Claim("DatabaseId", adminId)
         );
 
@@ -181,7 +181,7 @@
     [Test]
     public void Test_AdminSeesPublicContent()
     {
-        authContext.SetClaims(
+        authContext?.SetClaims(
             new Claim("DatabaseId", adminId)
         );
 
@@ -198,7 +198,7 @@
     [Test]
     public void Test_AdminSeesNestedContent()
     {
-        authContext.SetClaims(
+        authContext?.SetClaims(
             new Claim("DatabaseId", adminId)
         );
 
@@ -211,7 +211,7 @@
     [Test]
     public void Test_ModDoesNotSeeAdminContent()
     {
-        authContext.SetClaims(
+        authContext?.SetClaims(
             new Claim("DatabaseId", modId)
         );
 
@@ -223,7 +223,7 @@
     [Test]
     public void Test_ModSeesModContent()
     {
-        authContext.SetClaims(
+        authContext?.SetClaims(
             new Claim("DatabaseId", modId)
         );
 
@@ -237,7 +237,7 @@
     [Test]
     public void Test_ModSeesPublicContent()
     {
-        authContext.SetClaims(
+        authContext?.SetClaims(
             new Claim("DatabaseId", modId)
         );
 
@@ -254,7 +254,7 @@
     [Test]
     public void Test_ModDoesNotSeeNestedContent()
     {
-        authContext.SetClaims(
+        authContext?.SetClaims(
             new Claim("DatabaseId", modId)
         );
 
@@ -266,7 +266,7 @@
     [Test]
     public void Test_UnauthorizedDoesNotSeeAdminContent()
     {
-        authContext.SetClaims(
+        authContext?.SetClaims(
             new Claim("DatabaseId", unauthorizedId)
         );
 
@@ -278,7 +278,7 @@
     [Test]
     public void Test_UnauthorizedDoesNotSeeModContent()
     {
-        authContext.SetClaims(
+        authContext?.SetClaims(
             new Claim("DatabaseId", unauthorizedId)
         );
         
@@ -290,7 +290,7 @@
     [Test]
     public void Test_UnauthorizedSeesPublicContent()
     {
-        authContext.SetClaims(
+        authContext?.SetClaims(
             new Claim("DatabaseId", unauthorizedId)
         );
 
