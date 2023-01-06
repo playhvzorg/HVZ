@@ -1,10 +1,7 @@
 using HVZ.Web.Settings;
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Options;
 using SkiaSharp;
-using System;
-using System.IO;
 
 namespace HVZ.Web.Services
 {
@@ -25,7 +22,7 @@ namespace HVZ.Web.Services
         }
 
         /// <summary>
-        /// Retreive the path for a specific thumbnail. Does not account for whether the file exists.
+        /// Retreive the path for a specific thumbnail. Does not check that the file exists.
         /// </summary>
         /// <param name="id">The ID associated with the thumbnail</param>
         /// <param name="imageSize">Desired image size</param>
