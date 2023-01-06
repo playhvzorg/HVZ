@@ -96,7 +96,7 @@
         }
         if (authState is null) 
         {
-            Logger.LogError($"Error getting Authentcation State; Trying to set {user.FullName}.{user.Id} to admin in {org.Name}.{org.Id}");
+            Logger.LogError($"Error getting Authentcation State; Trying to set {user.FullName}.{user.Id} to admin in {org?.Name}.{org?.Id}");
             return;
         }
         
@@ -128,7 +128,7 @@
         }
         if (authState is null) 
         {
-            Logger.LogError($"Error getting Authentcation State; Trying to set {user.FullName}.{user.Id} to mod in {org.Name}.{org.Id}");
+            Logger.LogError($"Error getting Authentcation State; Trying to set {user.FullName}.{user.Id} to mod in {org?.Name}.{org?.Id}");
             return;
         }
         

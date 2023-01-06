@@ -20,7 +20,7 @@
             <h4>Admins <span class="badge bg-secondary" id="num-admins">@admins?.Count</span></h4>
             <div id="admins-list">
                 <Virtualize Items="@admins" Context="id">
-                    <UserListItem UserId="@id" OnChange="@RefreshMenus" />
+                    <UserListItem UserId="@id" OnChange="RefreshMenus" />
                     @* <hr> *@
                 </Virtualize>
             </div>
@@ -28,7 +28,7 @@
             <h4>Mods <span class="badge bg-secondary" id="num-mods">@mods?.Count</span></h4>
             <div id="mods-list">
                 <Virtualize Items="@mods" Context="id">
-                    <UserListItem UserId="@id" OnChange="@RefreshMenus" />
+                    <UserListItem UserId="@id" OnChange="RefreshMenus" />
                     @* <hr> *@
                 </Virtualize>
             </div>
