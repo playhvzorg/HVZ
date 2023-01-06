@@ -1,0 +1,155 @@
+@using HVZ.Web.Shared.Ui_Helpers
+@inherits Bunit.TestContext
+
+@code
+{
+    Mock<IOrgRepo> mockOrgRepo = new Mock<IOrgRepo>();
+    Mock<IUserRepo> mockUserRepo = new Mock<IUserRepo>();
+    Mock<ImageService> mockImageService = new Mock<ImageService>();
+
+    private string orgId = "0";
+    private string orgName = "Test Org";
+    private string orgWithImageId = "1";
+    private string userId = "2";
+    private string userName = "Kevin Smith";
+    private string userWithImageId = "3";
+
+    [OneTimeSetUp]
+    public void Setup()
+    {
+        mockOrgRepo.Setup(repo => repo.FindOrgById(orgId)).ReturnsAsync(
+            new Organization(
+                orgId,
+                orgName,
+                "1",
+                new HashSet<string>(),
+                new HashSet<string>(),
+                new HashSet<Game>(),
+                null,
+                NodaTime.Instant.MinValue,
+                "testorg"
+            )
+        );
+
+        mockUserRepo.Setup(repo => repo.FindUserById(userId)).ReturnsAsync(
+            new User(
+                userId,
+                userName,
+                "e@mail.net"
+            )
+        );
+
+        mockImageService.Setup(repo => repo.HasUploadedImage(userId)).Returns(false);
+        mockImageService.Setup(repo => repo.HasUploadedImage(orgId)).Returns(false);
+        mockImageService.Setup(repo => repo.HasUploadedImage(userWithImageId)).Returns(true);
+        mockImageService.Setup(repo => repo.HasUploadedImage(orgWithImageId)).Returns(true);
+    
+        Services.AddSingleton<ImageService>(mockImageService.Object);
+        Services.AddSingleton<IUserRepo>(mockUserRepo.Object);
+        Services.AddSingleton<IOrgRepo>(mockOrgRepo.Object);
+    }
+
+    [Test]
+    public void Test_DefaultThumbnailForUser()
+    {
+        var cut = Render(
+            @<Thumbnail Id="@userId" />
+        );
+
+        var img = cut.Find("img");
+        img.MarkupMatches(
+            @<img src="https://ui-avatars.com/api/?name=Kevin+Smith&size=128">
+        );
+    }
+
+    [Test]
+    public void Test_DefaultThumbnailForUserWithSize()
+    {
+        var cut = Render(
+            @<Thumbnail Id="@userId" Size=ImageService.ImageSize.SMALL />
+        );
+
+        var img = cut.Find("img");
+        img.MarkupMatches(
+            @<img src="https://ui-avatars.com/api/?name=Kevin+Smith&size=64">
+        );
+    }
+
+    [Test]
+    public void Test_DefaultThumbnailForOrg()
+    {
+        var cut = Render(
+            @<Thumbnail Id="@orgId" />
+        );
+
+        var img = cut.Find("img");
+        img.MarkupMatches(
+            @<img src="https://ui-avatars.com/api/?name=Test+Org&size=128">
+        );
+    }
+
+    [Test]
+    public void Test_DefaultThumbnailForOrgWithSize()
+    {
+        var cut = Render(
+            @<Thumbnail Id="@orgId" Size=ImageService.ImageSize.SMALL />
+        );
+
+        var img = cut.Find("img");
+        img.MarkupMatches(
+            @<img src="https://ui-avatars.com/api/?name=Test+Org&size=64">
+        );
+    }
+
+    [Test]
+    public void Test_UploadedThumbnailForUser()
+    {
+        var cut = Render(
+            @<Thumbnail Id="@userWithImageId" />
+        );
+
+        var img = cut.Find("img");
+        img.MarkupMatches(
+            @<img src="images/3_thumbnail_128.jpeg">
+        );
+    }
+
+    [Test]
+    public void Test_UploadedThumbnailForUserWithSize()
+    {
+        var cut = Render(
+            @<Thumbnail Id="@userWithImageId" Size=ImageService.ImageSize.LARGE />
+        );
+
+        var img = cut.Find("img");
+        img.MarkupMatches(
+            @<img src="images/3_thumbnail_256.jpeg">
+        );
+    }
+
+    [Test]
+    public void Test_UploadedThumbnailForOrg()
+    {
+        var cut = Render(
+            @<Thumbnail Id="@userWithImageId" />
+        );
+
+        var img = cut.Find("img");
+        img.MarkupMatches(
+            @<img src="images/3_thumbnail_128.jpeg">
+        );
+    }
+
+    [Test]
+    public void Test_UploadedThumbnailFoOrgrWithSize()
+    {
+        var cut = Render(
+            @<Thumbnail Id="@orgWithImageId" Size=ImageService.ImageSize.LARGE />
+        );
+
+        var img = cut.Find("img");
+        img.MarkupMatches(
+            @<img src="images/1_thumbnail_256.jpeg">
+        );
+    }
+}

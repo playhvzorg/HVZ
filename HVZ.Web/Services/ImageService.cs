@@ -12,6 +12,11 @@ namespace HVZ.Web.Services
     {
         private string uploadPath;
 
+        public ImageService()
+        {
+            this.uploadPath = "";
+        }
+
         public ImageService(IOptions<ImageServiceOptions> options)
         {
             if (options.Value.UploadPath is null) throw new ArgumentNullException("UploadPath cannot be null in ImageService");
@@ -20,18 +25,26 @@ namespace HVZ.Web.Services
         }
 
         /// <summary>
-        /// Retreive the path for a specific thumbnail
+        /// Retreive the path for a specific thumbnail. Does not account for whether the file exists.
         /// </summary>
         /// <param name="id">The ID associated with the thumbnail</param>
         /// <param name="imageSize">Desired image size</param>
-        public string GetThumbnail(string id, ImageSize imageSize) => $"images/{id}_thumbnail_{(int)(imageSize)}.jpeg";
+        /// <returns>The path to the thumbnail</returns>
+        public string GetThumbnailResourceLink(string id, ImageSize imageSize) => $"images/{id}_thumbnail_{(int)(imageSize)}.jpeg";
+
+        /// <summary>
+        /// Check if there is a saved image associated with the ID
+        /// </summary>
+        /// <param name="id">ID to check against</param>
+        /// <returns>Whether there is an uploaded file for the ID</returns>
+        public virtual bool HasUploadedImage(string id) => File.Exists(Path.Combine(uploadPath, GetThumbnailResourceLink(id, ImageSize.MEDIUM)));
 
         /// <summary>
         /// Write an uploaded file to the disk and creates small, medium, and large thumbnail files
         /// </summary>
         /// <param name="file"></param>
         /// <param name="id">The ID associated with the image (user or org)</param>
-        public async Task SaveImage(IBrowserFile file, string id)
+        public virtual async Task SaveImage(IBrowserFile file, string id)
         {
             // Check that the file is png, jpg, or jpeg
             var fileContentType = file.ContentType.Split("/");
@@ -42,7 +55,7 @@ namespace HVZ.Web.Services
 
             var path = Path.Combine(uploadPath, $"{id}.{fileContentType[1]}");
             await using FileStream fs = new FileStream(path, FileMode.Create);
-            await file.OpenReadStream(2048 * 2048 * 32).CopyToAsync(fs);
+            await file.OpenReadStream(4096 * 4096 * 32).CopyToAsync(fs);
             fs.Close();
             await SaveThumbnails(path, id);
         }

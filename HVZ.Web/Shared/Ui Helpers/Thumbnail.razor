@@ -1,0 +1,43 @@
+@using System.Web
+
+@inject ImageService ImageService
+@inject IUserRepo UserRepo
+@inject IOrgRepo OrgRepo
+
+<img src="@imgSrc">
+
+@code
+{
+    [Parameter]
+    [EditorRequired]
+    public string Id { get; set; } = "";
+
+    [Parameter]
+    public ImageService.ImageSize Size { get; set; } = ImageService.ImageSize.MEDIUM;
+
+    string imgSrc = "";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ImageService.HasUploadedImage(Id))
+        {
+            imgSrc = ImageService.GetThumbnailResourceLink(Id, Size);
+            return;
+        }
+
+        var user = await UserRepo.FindUserById(Id);
+        var org = await OrgRepo.FindOrgById(Id);
+
+        if (user is null && org is null) return;
+
+        // Get the name of the user or org associated with the ID
+        // If user.FullName is null, user is null then this must be an org
+        // get the org name
+        var name = user?.FullName ?? org?.Name;
+
+        // Free API to generate thumbnails
+        // https://ui-avatars.com/
+        imgSrc = $"https://ui-avatars.com/api/?name={name?.Replace(" ", "+")}&size={(int)(Size)}";
+    }
+}
+
