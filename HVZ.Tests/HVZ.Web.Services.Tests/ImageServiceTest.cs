@@ -73,22 +73,25 @@ public class ImageServiceTest
         var smThumbnail = await OpenFileAsBitmap(Path.Combine(uploadPath, "0_thumbnail_64.jpeg"));
         Assert.That(smThumbnail.Width == 64);
         Assert.That(smThumbnail.Height == 64);
+        smThumbnail.Dispose();
     }
 
     [Test]
     public async Task Test_MediumThumbnilSize()
     {
-        var smThumbnail = await OpenFileAsBitmap(Path.Combine(uploadPath, "0_thumbnail_128.jpeg"));
-        Assert.That(smThumbnail.Width == 128);
-        Assert.That(smThumbnail.Height == 128);
+        var mdThumbnail = await OpenFileAsBitmap(Path.Combine(uploadPath, "0_thumbnail_128.jpeg"));
+        Assert.That(mdThumbnail.Width == 128);
+        Assert.That(mdThumbnail.Height == 128);
+        mdThumbnail.Dispose();
     }
 
     [Test]
     public async Task Test_LargeTumbnailSize()
     {
-        var smThumbnail = await OpenFileAsBitmap(Path.Combine(uploadPath, "0_thumbnail_256.jpeg"));
-        Assert.That(smThumbnail.Width == 256);
-        Assert.That(smThumbnail.Height == 256);
+        var lgThumbnail = await OpenFileAsBitmap(Path.Combine(uploadPath, "0_thumbnail_256.jpeg"));
+        Assert.That(lgThumbnail.Width == 256);
+        Assert.That(lgThumbnail.Height == 256);
+        lgThumbnail.Dispose();
     }
 
 }
