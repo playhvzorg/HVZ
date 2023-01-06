@@ -31,9 +31,9 @@ public class ImageServiceTest
     {
         Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), "HVZ.Test", "images"));
         uploadPath = Path.Combine(Path.GetTempPath(), "HVZ.Test", "images");
-        mockServiceOptions.Setup(opt => opt.Value).Returns(new ImageServiceOptions { UploadPath = uploadPath});
+        mockServiceOptions.Setup(opt => opt.Value).Returns(new ImageServiceOptions { UploadPath = uploadPath });
         imageService = new ImageService(mockServiceOptions.Object);
-        
+
         mockBrowserFile.Setup(file => file.OpenReadStream(4096 * 4096 * 32, default(CancellationToken))).Returns(new FileStream($"../../../resources/0.png", FileMode.Open, FileAccess.Read));
         mockBrowserFile.Setup(file => file.ContentType).Returns("image/png");
         // Create the test images
