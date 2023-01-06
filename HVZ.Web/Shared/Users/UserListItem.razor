@@ -2,36 +2,46 @@
 
 @inject IOrgRepo OrgRepo
 @inject IUserRepo UserRepo
+@inject ILogger<UserListItem> Logger
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
-<div class="card mb-3 text-nowrap">
+<div class="card mb-3 text-nowrap" id="@UserId">
     <div class="row no-gutters">
         <div class="col-3">
             <img src="images/default_user_thumbnail_small.jpeg" alt="">
         </div>
         <div class="col-8 text-nowrap overflow-hidden ">
-            <p class="card-text me-0 pt-0 ml-0 mb-0 d-inline">@user?.FullName</p>
-            <p class="card-text mt-0 ml-0 mb-0">@user?.Email</p>
+            <p class="card-text me-0 pt-0 ml-0 mb-0 d-inline" id="name-@UserId">@user?.FullName
+                @if (UserId == OwnerId)
+                {
+                    <span class="badge bg-warning ml-1" id="owner-badge"><i class="fa-solid fa-crown"></i></span>
+                }
+            </p>
+            <p class="card-text mt-0 ml-0 mb-0" id="email-@UserId">@user?.Email</p>
         </div>
-        <OrgAuthorizedAdmin>
-            <div class="col-1 float-end text-center">
+        <div class="col-1 float-end text-center">
+            <OrgAuthorizedAdmin>
                 <div class="dropdown">
-                    <button class="btn" data-bs-toggle="dropdown">
+                    <button class="btn" id="user-settings-toggle-@UserId" data-bs-toggle="dropdown">
                         <i class="fa-solid fa-ellipsis-vertical float-end"></i>
                     </button>
-                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                    <ul class="dropdown-menu" id="user-settings-menu-@UserId" aria-labelledby="dropdownMenuButton1">
                         @if (userIsMod)
                         {
-                            <li><button class="dropdown-item" @onclick="SetAdmin">Promote to admin</button></li>
+                            <li><button class="dropdown-item" id="set-admin-@UserId" @onclick="SetAdmin">Promote to admin</button></li>
                         }
-                        @if (userIsAdmin)
+                        @if (userIsAdmin && OwnerId != UserId)
                         {
-                            <li><button class="dropdown-item" @onclick="SetMod">Set to moderator</button></li>
+                            <li><button class="dropdown-item" id="set-mod-@UserId" @onclick="SetMod">Set to moderator</button></li>
                         }
-                        <li><button class="dropdown-item">Remove</button></li>
+                        @if (OwnerId != UserId)
+                        {
+                            <li><button class="dropdown-item" id="remove-@UserId" @onclick="RemoveUser">Remove</button></li>
+                        }
                     </ul>
                 </div>
-            </div>
-        </OrgAuthorizedAdmin>
+            </OrgAuthorizedAdmin>
+        </div>
     </div>
 </div>
 
@@ -43,8 +53,11 @@
     [Parameter]
     public EventCallback OnChange { get; set; }
     
-    [CascadingParameter(Name = "orgId")]
+    [CascadingParameter(Name = "OrgId")]
     public string? OrgId { get; set; }
+
+    [CascadingParameter(Name = "OwnerId")]
+    public string? OwnerId { get; set; }
 
     private User? user;
     private bool shouldRender;
@@ -57,8 +70,9 @@
     {
         if (UserId == null) return;
         if (OrgId == null) return;
-
-        user = await UserRepo.GetUserById(UserId);
+        if (OwnerId == null) return;
+        
+        user = await UserRepo.FindUserById(UserId);
         userIsAdmin = await OrgRepo.IsAdminOfOrg(OrgId, UserId);
         userIsMod = await OrgRepo.IsModOfOrg(OrgId, UserId);
         shouldRender = true;
@@ -66,18 +80,97 @@
 
     async Task SetMod()
     {
+        if (UserId == null) return;
+        if (OrgId == null) return;
+
         await OrgRepo.RemoveAdmin(OrgId, UserId);
         await OrgRepo.AddModerator(OrgId, UserId);
         await OnChange.InvokeAsync();
-        @* TODO Log this *@
+        @* Logging *@
+        Organization? org = await OrgRepo.FindOrgById(OrgId);
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (user is null)
+        {
+            Logger.LogError($"Eror setting user with ID: {UserId} to mod in {org?.Name}.{org?.Id}; user is null");
+            return;
+        }
+        if (authState is null) 
+        {
+            Logger.LogError($"Error getting Authentcation State; Trying to set {user.FullName}.{user.Id} to admin in {org.Name}.{org.Id}");
+            return;
+        }
+        
+        if (org is null)
+        {
+            Logger.LogError($"Error setting {user.FullName}.{user.Id} to mod: Org with ID: {OrgId} is null");
+            return;
+        }
+        string? fullName = authState.User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value;
+        string? callerId = authState.User.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value;
+        Logger.LogInformation($"{fullName}.{callerId} has set {user.FullName}.{user.Id} to mod in {org.Name}.{OrgId}");
     }
 
     async Task SetAdmin()
     {
+        if (UserId == null) return;
+        if (OrgId == null) return;
+        
         await OrgRepo.RemoveModerator(OrgId, UserId);
         await OrgRepo.AddAdmin(OrgId, UserId);
         await OnChange.InvokeAsync();
-        @* TODO Log this *@
+        @* Logging *@
+        Organization? org = await OrgRepo.FindOrgById(OrgId);
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (user is null)
+        {
+            Logger.LogError($"Eror setting user with ID: {UserId} to admin in {org?.Name}.{org?.Id}; user is null");
+            return;
+        }
+        if (authState is null) 
+        {
+            Logger.LogError($"Error getting Authentcation State; Trying to set {user.FullName}.{user.Id} to mod in {org.Name}.{org.Id}");
+            return;
+        }
+        
+        if (org is null)
+        {
+            Logger.LogError($"Error setting {user.FullName}.{user.Id} to admin: Org with ID: {OrgId} is null");
+            return;
+        }
+        string? fullName = authState.User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value;
+        string? callerId = authState.User.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value;
+        Logger.LogInformation($"{fullName}.{callerId} has set {user.FullName}.{user.Id} to admin in {org.Name}.{OrgId}");
+    }
+
+    async Task RemoveUser()
+    {
+        if (UserId == null) return;
+        if (OrgId == null) return;
+
+        await OrgRepo.RemoveAdmin(OrgId, UserId);
+        await OrgRepo.RemoveModerator(OrgId, UserId);
+        await OnChange.InvokeAsync();
+        @* Logging *@
+        Organization? org = await OrgRepo.FindOrgById(OrgId);
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (user is null)
+        {
+            Logger.LogError($"Eror removing user with ID: {UserId} from {org?.Name}.{org?.Id}; user is null");
+            return;
+        }
+        if (org is null)
+        {
+            Logger.LogError($"Error removing {user.FullName}.{user.Id}: Org with ID: {OrgId} is null");
+            return;
+        }
+        if (authState is null) 
+        {
+            Logger.LogError($"Error getting Authentcation State; Trying to remove {user.FullName}.{user.Id} from {org.Name}.{org.Id}");
+            return;
+        }
+        string? fullName = authState.User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value;
+        string? callerId = authState.User.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value;
+        Logger.LogInformation($"{fullName}.{callerId} has removed {user.FullName}.{user.Id} from {org.Name}.{OrgId}");
     }
 }
 

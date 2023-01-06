@@ -1,0 +1,111 @@
+
+@using HVZ.Web.Shared.Org_Settings
+@using Microsoft.AspNetCore.Identity
+@using HVZ.Web.Identity.Models
+
+@inherits Bunit.TestContext
+
+@code
+{
+    FakeNavigationManager? navigationManager;
+    Mock<IOrgRepo> mockOrgRepo = new Mock<IOrgRepo>();
+    Mock<UserManager<ApplicationUser>> mockUserManager = 
+        new Mock<UserManager<ApplicationUser>>( 
+            new Mock<IUserStore<ApplicationUser>>().Object,
+                null, null, null, null, null, null, null, null);
+
+    IRenderedFragment RenderAsAdmin()
+    {
+        return Render(
+            @<CascadingValue Name="IsAdmin" Value="true">
+                <CascadingValue Name="IsMod" Value="true">
+                    <CascadingValue Name="OrgId" Value="0" >
+                        <OrgSettingsTabs />
+                    </CascadingValue>
+                </CascadingValue>
+            </CascadingValue>
+        );
+    }
+
+    IRenderedFragment RenderAsMod()
+    {
+        return Render(
+            @<CascadingValue Name="IsAdmin" Value="false">
+                <CascadingValue Name="IsMod" Value="true">
+                    <CascadingValue Name="OrgId" Value="0" >
+                        <OrgSettingsTabs />
+                    </CascadingValue>
+                </CascadingValue>
+            </CascadingValue>
+        );
+    }
+
+    IRenderedFragment RenderUnauthorized()
+    {
+        return Render(
+            @<CascadingValue Name="IsAdmin" Value="false">
+                <CascadingValue Name="IsMod" Value="false">
+                    <CascadingValue Name="OrgId" Value="0" >
+                        <OrgSettingsTabs />
+                    </CascadingValue>
+                </CascadingValue>
+            </CascadingValue>
+        );
+    }
+
+    [OneTimeSetUp]
+    public void Setup()
+    {
+        @* Configure and inject required services *@
+        Services.AddSingleton<IOrgRepo>(mockOrgRepo.Object);
+        Services.AddSingleton<UserManager<ApplicationUser>>(mockUserManager.Object);
+        this.AddTestAuthorization();
+        navigationManager = Services.GetRequiredService<FakeNavigationManager>();
+    }
+
+    [Test]
+    public void Test_AdminCanSeeSettings()
+    {
+        var cut = RenderAsAdmin();
+
+        var tabContent = cut.Find("#pills-tab-content");
+
+        tabContent.MarkupMatches(
+            @<div diff:ignoreAttributes diff:ignoreChildren></div>
+        );
+    }
+
+    [Test]
+    public void Test_ModCanSeeSettings()
+    {
+        var cut = RenderAsMod();
+
+        var tabContent = cut.Find("#pills-tab-content");
+
+        tabContent.MarkupMatches(
+            @<div diff:ignoreAttributes diff:ignoreChildren></div>
+        );
+    }
+
+    [Test]
+    public void Test_MobileAndDesktopHaveSameNumberOfNavButtons()
+    {
+        var cut = RenderAsMod();
+
+        var mobileNav = cut.Find("#mobile-pills-tab");
+        var desktopNav = cut.Find("#desktop-pills-tab");
+
+        Assert.That(mobileNav.ChildElementCount == desktopNav.ChildElementCount);
+    }
+
+    [Test]
+    public void Test_NumNavButtonsMatchesNumTabs()
+    {
+        var cut = RenderAsMod();
+
+        var icons = cut.Find("#desktop-pills-tab");
+        var tabs = cut.Find("#pills-tab-content");
+
+        Assert.That(icons.ChildElementCount == tabs.ChildElementCount);
+    }
+}

@@ -1,0 +1,81 @@
+
+@using HVZ.Web.Pages
+@using Microsoft.AspNetCore.Identity
+@using HVZ.Web.Identity.Models
+@using System.Security.Claims
+
+@inherits Bunit.TestContext
+
+@code
+{
+    FakeNavigationManager? navigationManager;
+    Mock<IOrgRepo> mockOrgRepo = new Mock<IOrgRepo>();
+    Mock<UserManager<ApplicationUser>> mockUserManager = 
+        new Mock<UserManager<ApplicationUser>>( 
+            new Mock<IUserStore<ApplicationUser>>().Object,
+                null, null, null, null, null, null, null, null);
+    TestAuthorizationContext? authContext;
+
+    string orgId = "0";
+    string adminId = "1";
+    string modId = "2";
+    string unauthorizedId = "3";
+    string orgUrl = "testorg";
+    
+    [OneTimeSetUp]
+    public void Setup()
+    {
+        mockOrgRepo.Setup(repo => repo.FindOrgByUrl(orgUrl)).ReturnsAsync(
+            new Organization(
+                "0",
+                "Test Org",
+                "1",
+                new HashSet<string>(new string[] { modId }),
+                new HashSet<string>(new string[] { adminId }),
+                new HashSet<Game>(),
+                null,
+                NodaTime.Instant.MinValue,
+                orgUrl
+            )
+        );
+        mockOrgRepo.Setup(repo => repo.IsAdminOfOrg(orgId, adminId)).ReturnsAsync(true);
+        mockOrgRepo.Setup(repo => repo.IsAdminOfOrg(orgId, modId)).ReturnsAsync(false);
+        mockOrgRepo.Setup(repo => repo.IsAdminOfOrg(orgId, unauthorizedId)).ReturnsAsync(false);
+        mockOrgRepo.Setup(repo => repo.IsModOfOrg(orgId, adminId)).ReturnsAsync(false);
+        mockOrgRepo.Setup(repo => repo.IsModOfOrg(orgId, modId)).ReturnsAsync(true);
+        mockOrgRepo.Setup(repo => repo.IsModOfOrg(orgId, unauthorizedId)).ReturnsAsync(false);
+
+        Services.AddSingleton<IOrgRepo>(mockOrgRepo.Object);
+        Services.AddSingleton<UserManager<ApplicationUser>>(mockUserManager.Object);
+        authContext = this.AddTestAuthorization();
+        navigationManager = Services.GetRequiredService<FakeNavigationManager>();
+    }
+
+    [Test]
+    public void Test_BackButtonLinksBackToOrg()
+    {
+        var cut = Render(
+            @<OrganizationSettings Url="testorg" /> 
+        );
+
+        var backButton = cut.Find("#back-btn");
+
+        backButton.MarkupMatches(
+            @<a href="/org/testorg" id="back-btn" diff:ignoreChildren></a>
+        );
+    }
+
+    [Test]
+    public void Test_UnaothorizedIsRedirected()
+    {
+        authContext?.SetClaims(
+            new Claim("DatabaseId", "3")
+        );
+
+        var cut = Render(
+            @<OrganizationSettings Url="testorg" />
+        );
+
+        Assert.That(navigationManager?.Uri == "http://localhost/org/testorg");
+    }
+}

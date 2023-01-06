@@ -1,58 +1,71 @@
 @using HVZ.Web.Shared.Users
 @using HVZ.Web.Identity.Models
 @using Microsoft.AspNetCore.Identity
+@using HVZ.Web.Shared.Org_Authorization
 
 @inject IOrgRepo OrgRepo
 @inject ILogger<ManageModsSettings> Logger
 @inject UserManager<ApplicationUser> UserManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
-<div class="d-grid gap-2">
-    <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#invite-modal"><i class="fa-solid fa-user-plus"></i> Add new moderator</button>
+<div class="user-list">
+    <OrgAuthorizedAdmin>
+        <div class="d-grid gap-2">
+            <button class="btn btn-primary w-100" id="invite-modal-toggle" data-bs-toggle="modal" data-bs-target="#invite-modal"><i class="fa-solid fa-user-plus"></i> Add new moderator</button>
+        </div>
+    </OrgAuthorizedAdmin>
+    <hr>
+    <CascadingValue Value="@ownerId" Name="OwnerId">
+        <CascadingValue Value="@OrgId" Name="OrgId">
+            <h4>Admins <span class="badge bg-secondary" id="num-admins">@admins?.Count</span></h4>
+            <div id="admins-list">
+                <Virtualize Items="@admins" Context="id">
+                    <UserListItem UserId="@id" OnChange="@RefreshMenus" />
+                    @* <hr> *@
+                </Virtualize>
+            </div>
+            <hr>
+            <h4>Mods <span class="badge bg-secondary" id="num-mods">@mods?.Count</span></h4>
+            <div id="mods-list">
+                <Virtualize Items="@mods" Context="id">
+                    <UserListItem UserId="@id" OnChange="@RefreshMenus" />
+                    @* <hr> *@
+                </Virtualize>
+            </div>
+        </CascadingValue>
+    </CascadingValue>
 </div>
-<hr>
-<h4>Admins <span class="badge bg-secondary">@admins?.Count</span></h4>
-<CascadingValue Value="@OrgId" Name="orgId">
-<Virtualize Items="@admins" Context="id">
-    <UserListItem UserId="@id" OnChange="RefreshMenus" />
-    <hr>
-</Virtualize>
-<hr>
-<h4>Mods <span class="badge bg-secondary">@mods?.Count</span></h4>
-<Virtualize Items="@mods" Context="id">
-    <UserListItem UserId="@id" OnChange="@RefreshMenus" />
-    <hr>
-</Virtualize>
-</CascadingValue>
 
 @* Invite User Modal *@
-<div class="modal" id="invite-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Invite new user</h5>
-                <button class="close" data-bs-dismiss="modal" aria-label="close">
-                    <i class="fa-solid fa-x fa-xs"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="email-input">Email</label>
-                    <div class="input-group">
-                        <input @bind="InviteEmail" @bind:event="oninput" id="email-input" class="form-control" placeholder="Search...">
-                        <div class="input-group-append">
-                            <button class="btn btn-success @InviteButtonEnabled()" @onclick="InviteUser">Invite</button>
+<OrgAuthorizedAdmin>
+    <div class="modal" id="invite-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Invite new user</h5>
+                    <button class="close" data-bs-dismiss="modal" aria-label="close">
+                        <i class="fa-solid fa-x fa-xs"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="invite-email-input">Email</label>
+                        <div class="input-group">
+                            <input @bind="InviteEmail" @bind:event="oninput" id="invite-email-input" class="form-control" placeholder="Search...">
+                            <div class="input-group-append">
+                                <button class="btn btn-success @InviteButtonEnabled()" id="invite-button" @onclick="InviteUser">Invite</button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                @* <button class="btn btn-primary disabled">Invite</button> *@
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    @* <button class="btn btn-primary disabled">Invite</button> *@
+                </div>
             </div>
         </div>
     </div>
-</div>
+</OrgAuthorizedAdmin>
 
 @code
 {
@@ -61,6 +74,9 @@
 
     public string? InviteEmail { get; set; }
 
+    string ownerId = "";
+
+    Organization? org;
     HashSet<string>? mods = new HashSet<string>();
     HashSet<string>? admins = new HashSet<string>();
     AuthenticationState? authState;
@@ -71,13 +87,15 @@
         authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         admins = await OrgRepo.GetAdminsOfOrg(OrgId);
         mods = await OrgRepo.GetModsOfOrg(OrgId);
+        org = await OrgRepo.FindOrgById(OrgId);
+        ownerId = org?.OwnerId ?? "";
     }
 
     string InviteButtonEnabled() => String.IsNullOrEmpty(InviteEmail?.Trim()) ? "disabled" : "";
 
     async Task InviteUser()
     {
-        if (String.IsNullOrEmpty(InviteEmail?.Trim())) return;
+        if (String.IsNullOrEmpty(InviteEmail?.Trim())) throw new ArgumentNullException("Invite email cannot be null");
         if (OrgId is null) return;
 
         ApplicationUser? invitedUser = await UserManager.FindByEmailAsync(InviteEmail);
@@ -91,14 +109,18 @@
         await OrgRepo.AddModerator(OrgId, invitedUser.DatabaseId);
         string? userName = authState?.User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value;
         string? userId = authState?.User.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value;
-        Organization? org = await OrgRepo.FindOrgById(OrgId);
-        Logger.LogInformation($"{userName}: {userId} has added {invitedUser.FullName}: {invitedUser.Id} as a moderator to {org.Name}");
-        mods = await OrgRepo.GetModsOfOrg(OrgId);
+        Logger.LogInformation($"{userName}: {userId} has added {invitedUser.FullName}: {invitedUser.Id} as a moderator to {org?.Name}");
+        mods?.Add(invitedUser.DatabaseId);
     }
 
     async Task RefreshMenus()
     {
+        if (OrgId == null) return;
+
         mods = await OrgRepo.GetModsOfOrg(OrgId);
         admins = await OrgRepo.GetAdminsOfOrg(OrgId);
+        org = await OrgRepo.FindOrgById(OrgId);
+        if (org == null) return;
+        ownerId = org.OwnerId;
     }
 }
