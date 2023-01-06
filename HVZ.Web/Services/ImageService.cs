@@ -19,15 +19,19 @@ namespace HVZ.Web.Services
             this.uploadPath = options.Value.UploadPath;
         }
 
-        public string GetThumbnailSmall(string id) => $"images/{id}_thumbnail_small.jpeg";
+        /// <summary>
+        /// Retreive the path for a specific thumbnail
+        /// </summary>
+        /// <param name="id">The ID associated with the thumbnail</param>
+        /// <param name="imageSize">Desired image size</param>
+        public string GetThumbnail(string id, ImageSize imageSize) => $"images/{id}_thumbnail_{(int)(imageSize)}.jpeg";
 
-        public string GetThumbnailMedium(string id) => $"images/{id}_thumbnail_medium.jpeg";
-
-        public string GetThumbnailLarge(string id) => $"images/{id}_thumbnail_large.jpeg";
-
-        public string GetThumbnail(string id, string size) => $"images/{id}_thumbnail_{size}.jpeg";
-
-        public async Task SaveImage(IBrowserFile file, string imageName)
+        /// <summary>
+        /// Write an uploaded file to the disk and creates small, medium, and large thumbnail files
+        /// </summary>
+        /// <param name="file"></param>
+        /// <param name="id">The ID associated with the image (user or org)</param>
+        public async Task SaveImage(IBrowserFile file, string id)
         {
             // Check that the file is png, jpg, or jpeg
             var fileContentType = file.ContentType.Split("/");
@@ -36,11 +40,11 @@ namespace HVZ.Web.Services
                 throw new ArgumentException("File must be an image");
             }
 
-            var path = Path.Combine(uploadPath, $"{imageName}.{fileContentType[1]}");
+            var path = Path.Combine(uploadPath, $"{id}.{fileContentType[1]}");
             await using FileStream fs = new FileStream(path, FileMode.Create);
             await file.OpenReadStream(2048 * 2048 * 32).CopyToAsync(fs);
             fs.Close();
-            await SaveThumbnails(path, imageName);
+            await SaveThumbnails(path, id);
         }
 
         private async Task SaveThumbnails(string path, string imageName)
@@ -51,22 +55,22 @@ namespace HVZ.Web.Services
                 SKBitmap src = SKBitmap.Decode(stream);
 
                 await SaveBitmap(
-                    CropSquare(src, 64),
-                    Path.Combine(uploadPath, $"{imageName}_thumbnail_small.jpeg"),
+                    CropSquare(src, (int)(ImageSize.SMALL)),
+                    Path.Combine(uploadPath, $"{imageName}_thumbnail_{(int)(ImageSize.SMALL)}.jpeg"),
                     SKEncodedImageFormat.Jpeg,
                     100
                 );
 
                 await SaveBitmap(
-                    CropSquare(src, 128),
-                    Path.Combine(uploadPath, $"{imageName}_thumbnail_medium.jpeg"),
+                    CropSquare(src, (int)(ImageSize.MEDIUM)),
+                    Path.Combine(uploadPath, $"{imageName}_thumbnail_{(int)(ImageSize.MEDIUM)}.jpeg"),
                     SKEncodedImageFormat.Jpeg,
                     100
                 );
 
                 await SaveBitmap(
-                    CropSquare(src, 256),
-                    Path.Combine(uploadPath, $"{imageName}_thumbnail_large.jpeg"),
+                    CropSquare(src, (int)(ImageSize.LARGE)),
+                    Path.Combine(uploadPath, $"{imageName}_thumbnail_{(int)(ImageSize.LARGE)}.jpeg"),
                     SKEncodedImageFormat.Jpeg,
                     100
                 );
@@ -119,6 +123,13 @@ namespace HVZ.Web.Services
             cropped.ScalePixels(scaled, SKFilterQuality.High);
 
             return scaled;
+        }
+
+        public enum ImageSize
+        {
+            SMALL = 64,
+            MEDIUM = 128,
+            LARGE = 256
         }
     }
 }
