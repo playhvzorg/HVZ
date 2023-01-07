@@ -1,10 +1,9 @@
-@using System.Web
 
 @inject ImageService ImageService
 @inject IUserRepo UserRepo
 @inject IOrgRepo OrgRepo
 
-<img src="@imgSrc">
+<img @attributes="@InputAttributes" src="@imgSrc">
 
 @code
 {
@@ -14,6 +13,9 @@
 
     [Parameter]
     public ImageService.ImageSize Size { get; set; } = ImageService.ImageSize.MEDIUM;
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? InputAttributes { get; set; }
 
     string imgSrc = "";
 
