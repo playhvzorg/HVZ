@@ -25,7 +25,7 @@ namespace HVZ.Web.Services
         }
 
         /// <summary>
-        /// Retreive the resource path for a specific User thumbnail. Does not check that the file exists.
+        /// Retreive the resource path for a specific User thumbnail of size specified by type <see cref="ImageSize" />. Does not check that the file exists.
         /// </summary>
         /// <param name="id">The User ID associated with the thumbnail</param>
         /// <param name="imageSize">Desired image size</param>
@@ -33,7 +33,7 @@ namespace HVZ.Web.Services
         public string GetUserThumbnailResourceLink(string id, ImageSize imageSize) => $"images/users/{id}_thumbnail_{(int)(imageSize)}.jpeg";
 
         /// <summary>
-        /// Retreive the resource path for a specific Org thumbnail. Does not check that the file exists.
+        /// Retreive the resource path for a specific Org thumbnail of size specified by type <see cref="ImageSize" />. Does not check that the file exists.
         /// </summary>
         /// <param name="id">The Org ID associated with the thumbnail</param>
         /// <param name="imageSize">Desired image size</param>
@@ -45,14 +45,20 @@ namespace HVZ.Web.Services
         /// </summary>
         /// <param name="id">User ID to check against</param>
         /// <returns>Whether there is an uploaded file for the ID</returns>
-        public virtual bool HasUploadedUserImage(string id) => File.Exists(Path.Combine(uploadPath, "users", $"{id}_thumbnail_128.jpeg"));
+        public virtual bool HasUploadedUserImage(string id)
+            => File.Exists(Path.Combine(uploadPath, "users", $"{id}_thumbnail_64.jpeg")) &&
+               File.Exists(Path.Combine(uploadPath, "users", $"{id}_thumbnail_128.jpeg")) &&
+               File.Exists(Path.Combine(uploadPath, "users", $"{id}_thumbnail_256.jpeg"));
 
         /// <summary>
         /// Check if there is a saved image for the org ID
         /// </summary>
         /// <param name="id">Org ID to check against</param>
         /// <returns>Whether there is an uploaded file for the ID</returns>
-        public virtual bool HasUploadedOrgImage(string id) => File.Exists(Path.Combine(uploadPath, "orgs", $"{id}_thumbnail_128.jpeg"));
+        public virtual bool HasUploadedOrgImage(string id) 
+            => File.Exists(Path.Combine(uploadPath, "orgs", $"{id}_thumbnail_64.jpeg")) &&
+               File.Exists(Path.Combine(uploadPath, "orgs", $"{id}_thumbnail_128.jpeg")) &&
+               File.Exists(Path.Combine(uploadPath, "orgs", $"{id}_thumbnail_256.jpeg"));
 
         /// <summary>
         /// Write an uploaded file to the disk under the "user" sub folder along with small 64x64 px, medium 128x128 px, and large 256x256 px thumbnail images

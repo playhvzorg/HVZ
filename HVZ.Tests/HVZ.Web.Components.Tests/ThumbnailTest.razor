@@ -108,7 +108,7 @@
     }
 
     [Test]
-    public void Test_UploadedThumbnailForUser()
+    public void Test_SavedThumbnailForUser()
     {
         var cut = Render(
             @<Thumbnail UserId="@userWithImageId" />
@@ -123,7 +123,7 @@
     [TestCase(ImageService.ImageSize.SMALL)]
     [TestCase(ImageService.ImageSize.MEDIUM)]
     [TestCase(ImageService.ImageSize.LARGE)]
-    public void Test_UploadedThumbnailForUserWithSize(ImageService.ImageSize size)
+    public void Test_SavedThumbnailForUserWithSize(ImageService.ImageSize size)
     {
         var cut = Render(
             @<Thumbnail UserId="@userWithImageId" Size=size />
@@ -137,7 +137,7 @@
     }
 
     [Test]
-    public void Test_UploadedThumbnailForOrg()
+    public void Test_SavedThumbnailForOrg()
     {
         var cut = Render(
             @<Thumbnail OrgId="@orgWithImageId" />
@@ -152,7 +152,7 @@
     [TestCase(ImageService.ImageSize.SMALL)]
     [TestCase(ImageService.ImageSize.MEDIUM)]
     [TestCase(ImageService.ImageSize.LARGE)]
-    public void Test_UploadedThumbnailForOrgrWithSize(ImageService.ImageSize size)
+    public void Test_SavedThumbnailForOrgrWithSize(ImageService.ImageSize size)
     {
         var cut = Render(
             @<Thumbnail OrgId="@orgWithImageId" Size=size />
