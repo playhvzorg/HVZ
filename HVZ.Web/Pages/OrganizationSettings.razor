@@ -48,7 +48,7 @@
             return;
         }
         
-        if (!await OrgRepo.IsAdminOfOrg(org.Id, userId) || !await OrgRepo.IsModOfOrg(org.Id, userId))
+        if (!await OrgRepo.IsAdminOfOrg(org.Id, userId) && !await OrgRepo.IsModOfOrg(org.Id, userId))
         {
             Navigation.NavigateTo($"/org/{Url}");
         }
