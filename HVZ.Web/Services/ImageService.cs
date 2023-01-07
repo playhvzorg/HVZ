@@ -105,21 +105,21 @@ namespace HVZ.Web.Services
                     throw new NullReferenceException($"src is null; sourcePath: {sourcePath}; file exists: {File.Exists(sourcePath)}");
 
                 await SaveBitmap(
-                    CropSquare(src, (int)(ImageSize.SMALL)),
+                    CropSquare(src, ImageSize.SMALL),
                     Path.Combine(directoryPath, $"{imageName}_thumbnail_{(int)ImageSize.SMALL}.jpeg"),
                     SKEncodedImageFormat.Jpeg,
                     100
                 );
 
                 await SaveBitmap(
-                    CropSquare(src, (int)(ImageSize.MEDIUM)),
+                    CropSquare(src, ImageSize.MEDIUM),
                     Path.Combine(directoryPath, $"{imageName}_thumbnail_{(int)ImageSize.MEDIUM}.jpeg"),
                     SKEncodedImageFormat.Jpeg,
                     100
                 );
 
                 await SaveBitmap(
-                    CropSquare(src, (int)(ImageSize.LARGE)),
+                    CropSquare(src, ImageSize.LARGE),
                     Path.Combine(directoryPath, $"{imageName}_thumbnail_{(int)ImageSize.LARGE}.jpeg"),
                     SKEncodedImageFormat.Jpeg,
                     100
@@ -138,8 +138,10 @@ namespace HVZ.Web.Services
             fs.Close();
         }
 
-        private SKBitmap CropSquare(SKBitmap src, int size)
+        private SKBitmap CropSquare(SKBitmap src, ImageSize imageSize)
         {
+            int size = (int)imageSize;
+
             // Crop to square
             int difference = src.Width - src.Height;
             var cropRect = new SKRectI
