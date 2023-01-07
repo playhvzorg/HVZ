@@ -34,7 +34,7 @@ namespace HVZ.Web.Services
         /// </summary>
         /// <param name="id">ID to check against</param>
         /// <returns>Whether there is an uploaded file for the ID</returns>
-        public virtual bool HasUploadedImage(string id) => File.Exists(Path.Combine(uploadPath, GetThumbnailResourceLink(id, ImageSize.MEDIUM)));
+        public virtual bool HasUploadedImage(string id) => File.Exists(Path.Combine(uploadPath, $"{id}_thumbnail_128.jpeg"));
 
         /// <summary>
         /// Write an uploaded file to the disk and creates small, medium, and large thumbnail files

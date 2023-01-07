@@ -94,4 +94,18 @@ public class ImageServiceTest
         lgThumbnail.Dispose();
     }
 
+    [Test]
+    public void Test_GetThumbnailResourcePath()
+    {
+        string resPath = imageService.GetThumbnailResourceLink("0", ImageService.ImageSize.MEDIUM);
+        Assert.That(resPath == "images/0_thumbnail_128.jpeg");
+    }
+
+    [Test]
+    public void Test_HasUploadedImage()
+    {
+        Assert.That(imageService.HasUploadedImage("0"), Is.True);
+        Assert.That(imageService.HasUploadedImage("1234"), Is.False);
+    }
+
 }

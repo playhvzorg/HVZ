@@ -9,7 +9,7 @@
 {
     [Parameter]
     [EditorRequired]
-    public string Id { get; set; } = "";
+    public string TargetId { get; set; } = "";
 
     [Parameter]
     public ImageService.ImageSize Size { get; set; } = ImageService.ImageSize.MEDIUM;
@@ -21,14 +21,14 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if (ImageService.HasUploadedImage(Id))
+        if (ImageService.HasUploadedImage(TargetId))
         {
-            imgSrc = ImageService.GetThumbnailResourceLink(Id, Size);
+            imgSrc = ImageService.GetThumbnailResourceLink(TargetId, Size);
             return;
         }
 
-        var user = await UserRepo.FindUserById(Id);
-        var org = await OrgRepo.FindOrgById(Id);
+        var user = await UserRepo.FindUserById(TargetId);
+        var org = await OrgRepo.FindOrgById(TargetId);
 
         if (user is null && org is null) return;
 

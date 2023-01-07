@@ -53,7 +53,7 @@
     public void Test_DefaultThumbnailForUser()
     {
         var cut = Render(
-            @<Thumbnail Id="@userId" />
+            @<Thumbnail TargetId="@userId" />
         );
 
         var img = cut.Find("img");
@@ -66,7 +66,7 @@
     public void Test_DefaultThumbnailForUserWithSize()
     {
         var cut = Render(
-            @<Thumbnail Id="@userId" Size=ImageService.ImageSize.SMALL />
+            @<Thumbnail TargetId="@userId" Size=ImageService.ImageSize.SMALL />
         );
 
         var img = cut.Find("img");
@@ -79,7 +79,7 @@
     public void Test_DefaultThumbnailForOrg()
     {
         var cut = Render(
-            @<Thumbnail Id="@orgId" />
+            @<Thumbnail TargetId="@orgId" />
         );
 
         var img = cut.Find("img");
@@ -92,7 +92,7 @@
     public void Test_DefaultThumbnailForOrgWithSize()
     {
         var cut = Render(
-            @<Thumbnail Id="@orgId" Size=ImageService.ImageSize.SMALL />
+            @<Thumbnail TargetId="@orgId" Size=ImageService.ImageSize.SMALL />
         );
 
         var img = cut.Find("img");
@@ -105,7 +105,7 @@
     public void Test_UploadedThumbnailForUser()
     {
         var cut = Render(
-            @<Thumbnail Id="@userWithImageId" />
+            @<Thumbnail TargetId="@userWithImageId" />
         );
 
         var img = cut.Find("img");
@@ -118,7 +118,7 @@
     public void Test_UploadedThumbnailForUserWithSize()
     {
         var cut = Render(
-            @<Thumbnail Id="@userWithImageId" Size=ImageService.ImageSize.LARGE />
+            @<Thumbnail TargetId="@userWithImageId" Size=ImageService.ImageSize.LARGE />
         );
 
         var img = cut.Find("img");
@@ -131,7 +131,7 @@
     public void Test_UploadedThumbnailForOrg()
     {
         var cut = Render(
-            @<Thumbnail Id="@userWithImageId" />
+            @<Thumbnail TargetId="@userWithImageId" />
         );
 
         var img = cut.Find("img");
@@ -144,12 +144,31 @@
     public void Test_UploadedThumbnailFoOrgrWithSize()
     {
         var cut = Render(
-            @<Thumbnail Id="@orgWithImageId" Size=ImageService.ImageSize.LARGE />
+            @<Thumbnail TargetId="@orgWithImageId" Size=ImageService.ImageSize.LARGE />
         );
 
         var img = cut.Find("img");
         img.MarkupMatches(
             @<img src="images/1_thumbnail_256.jpeg">
+        );
+    }
+
+    [Test]
+    public void Test_AttributeSplatting()
+    {
+        var cut = Render(
+            @<Thumbnail TargetId="@userWithImageId" id="thumbnail" class="img" />
+        );
+
+        var imgById = cut.Find("#thumbnail");
+        var imgByClass = cut.Find(".img");
+
+        imgById.MarkupMatches(
+            @<img src="images/3_thumbnail_128.jpeg" id="thumbnail" class="img">
+        );
+
+        imgByClass.MarkupMatches(
+            @<img src="images/3_thumbnail_128.jpeg" id="thumbnail" class="img">
         );
     }
 }
