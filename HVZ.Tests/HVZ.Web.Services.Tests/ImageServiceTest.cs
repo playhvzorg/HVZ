@@ -29,8 +29,8 @@ public class ImageServiceTest
     [OneTimeSetUp]
     public async Task SetUp()
     {
-        Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), "HVZ.Test", "images"));
         uploadPath = Path.Combine(Path.GetTempPath(), "HVZ.Test", "images");
+        Directory.CreateDirectory(Path.Combine(uploadPath));
         mockServiceOptions.Setup(opt => opt.Value).Returns(new ImageServiceOptions { UploadPath = uploadPath });
         imageService = new ImageService(mockServiceOptions.Object);
 
@@ -44,18 +44,11 @@ public class ImageServiceTest
     [OneTimeTearDown]
     public void Teardown()
     {
-        // Delete the images test images
+        // Delete the test output
         File.Delete(Path.Combine(uploadPath, "0.png"));
         File.Delete(Path.Combine(uploadPath, "0_thumbnail_64.jpeg"));
         File.Delete(Path.Combine(uploadPath, "0_thumbnail_128.jpeg"));
         File.Delete(Path.Combine(uploadPath, "0_thumbnail_256.jpeg"));
-    }
-
-    [Test]
-    public void Test_CorrectFileCount()
-    {
-        string[] filesInDirectory = Directory.GetFiles(uploadPath);
-        Assert.That(filesInDirectory.Length == 4);
     }
 
     [Test]

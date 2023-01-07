@@ -22,7 +22,7 @@ namespace HVZ.Web.Services
         }
 
         /// <summary>
-        /// Retreive the path for a specific thumbnail. Does not check that the file exists.
+        /// Retreive the resource path for a specific thumbnail. Does not check that the file exists.
         /// </summary>
         /// <param name="id">The ID associated with the thumbnail</param>
         /// <param name="imageSize">Desired image size</param>
