@@ -36,13 +36,14 @@ public class ImageServiceTest
         // Directory.CreateDirectory(Path.Combine(uploadPath, "users"));
         // Directory.CreateDirectory(Path.Combine(uploadPath, "orgs"));
         IOptions<ImageServiceOptions> options = Mock.Of<IOptions<ImageServiceOptions>>(
-            x => x.Value == new ImageServiceOptions { UploadPath = uploadPath } );
+            x => x.Value == new ImageServiceOptions { UploadPath = uploadPath });
         imageService = new ImageService(options);
 
         mockBrowserFile.Setup(file => file.OpenReadStream(4096 * 4096 * 32, default(CancellationToken)))
             .Returns(
                 // new FileStream($"../../../resources/0.png", FileMode.Open)
-                () => {
+                () =>
+                {
                     var fs = new FileStream($"../../../resources/0.png", FileMode.Open);
                     fs.Seek(0, SeekOrigin.Begin);
                     return fs;

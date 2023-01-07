@@ -84,7 +84,7 @@ namespace HVZ.Web.Services
             {
                 throw new ArgumentException("File must be an image");
             }
-            
+
             var directoryPath = Path.Combine(uploadPath, folder);
             var filePath = Path.Combine(directoryPath, $"{fileName}.{fileContentType[1]}");
             await using FileStream fs = new FileStream(filePath, FileMode.Create);
@@ -92,7 +92,7 @@ namespace HVZ.Web.Services
             await imageStream.CopyToAsync(fs);
             fs.Close();
             await SaveThumbnails(directoryPath, filePath, fileName);
-            
+
         }
 
         private async Task SaveThumbnails(string directoryPath, string sourcePath, string imageName)
