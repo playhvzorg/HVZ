@@ -8,8 +8,10 @@
 @code
 {
     [Parameter]
-    [EditorRequired]
-    public string TargetId { get; set; } = "";
+    public string? UserId { get; set; }
+
+    [Parameter]
+    public string? OrgId { get; set; }
 
     [Parameter]
     public ImageService.ImageSize Size { get; set; } = ImageService.ImageSize.MEDIUM;
@@ -21,25 +23,48 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if (ImageService.HasUploadedImage(TargetId))
+        if (UserId is null && OrgId is null)
         {
-            imgSrc = ImageService.GetThumbnailResourceLink(TargetId, Size);
+            throw new ArgumentNullException("Thumbnail expects either UserId or OrgId");
+        }
+
+        if (UserId is not null && OrgId is not null)
+        {
+            throw new ArgumentException("Thumbnail can take either UserId or OrgId but not both");
+        }
+
+        if (UserId is not null)
+        {
+            if (ImageService.HasUploadedUserImage(UserId))
+            {
+                imgSrc = ImageService.GetUserThumbnailResourceLink(UserId, Size);
+                return;
+            }
+
+            User? user = await UserRepo.FindUserById(UserId);
+            if (user is null)
+            {
+                throw new ArgumentException($"Could not find User with ID: {UserId} in Thumbnail");
+            }
+
+            imgSrc = $"https://ui-avatars.com/api/?name={user.FullName.Replace(" ", "+")}&size={(int)(Size)}";
             return;
         }
 
-        var user = await UserRepo.FindUserById(TargetId);
-        var org = await OrgRepo.FindOrgById(TargetId);
+        if (OrgId is null) return; // Appease the compiler
 
-        if (user is null && org is null) return;
+        if (ImageService.HasUploadedOrgImage(OrgId))
+        {
+            imgSrc = ImageService.GetOrgThumbnailResourceLink(OrgId, Size);
+            return;
+        }
 
-        // Get the name of the user or org associated with the ID
-        // If user.FullName is null, user is null then this must be an org
-        // get the org name
-        var name = user?.FullName ?? org?.Name;
-
-        // Free API to generate thumbnails
-        // https://ui-avatars.com/
-        imgSrc = $"https://ui-avatars.com/api/?name={name?.Replace(" ", "+")}&size={(int)(Size)}";
+        Organization? org = await OrgRepo.FindOrgById(OrgId);
+        if (org is null)
+        {
+            throw new ArgumentException($"Could not find Organization with ID: {OrgId} in Thumbnail");
+        }
+        imgSrc = $"https://ui-avatars.com/api/?name={org.Name.Replace(" ", "+")}&size={(int)(Size)}";
     }
 }
 

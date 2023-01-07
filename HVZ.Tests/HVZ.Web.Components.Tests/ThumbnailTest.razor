@@ -7,42 +7,42 @@
     Mock<IUserRepo> mockUserRepo = new Mock<IUserRepo>();
     Mock<ImageService> mockImageService = new Mock<ImageService>();
 
-    private string orgId = "0";
+    private string orgWithoutImageId = "0";
     private string orgName = "Test Org";
     private string orgWithImageId = "1";
-    private string userId = "2";
+    private string userWithoutImageId = "2";
     private string userName = "Kevin Smith";
     private string userWithImageId = "3";
 
     [OneTimeSetUp]
     public void Setup()
     {
-        mockOrgRepo.Setup(repo => repo.FindOrgById(orgId)).ReturnsAsync(
+        mockOrgRepo.Setup(repo => repo.FindOrgById(orgWithoutImageId)).ReturnsAsync(
             new Organization(
-                orgId,
-                orgName,
-                "1",
-                new HashSet<string>(),
-                new HashSet<string>(),
-                new HashSet<Game>(),
-                null,
-                NodaTime.Instant.MinValue,
-                "testorg"
+                id: orgWithoutImageId,
+                name: orgName,
+                ownerid: "1",
+                moderators: new HashSet<string>(),
+                administrators: new HashSet<string>(),
+                games: new HashSet<Game>(),
+                activegameid: null,
+                createdat: NodaTime.Instant.MinValue,
+                url: "testorg"
             )
         );
 
-        mockUserRepo.Setup(repo => repo.FindUserById(userId)).ReturnsAsync(
+        mockUserRepo.Setup(repo => repo.FindUserById(userWithoutImageId)).ReturnsAsync(
             new User(
-                userId,
+                userWithoutImageId,
                 userName,
                 "e@mail.net"
             )
         );
 
-        mockImageService.Setup(repo => repo.HasUploadedImage(userId)).Returns(false);
-        mockImageService.Setup(repo => repo.HasUploadedImage(orgId)).Returns(false);
-        mockImageService.Setup(repo => repo.HasUploadedImage(userWithImageId)).Returns(true);
-        mockImageService.Setup(repo => repo.HasUploadedImage(orgWithImageId)).Returns(true);
+        mockImageService.Setup(service => service.HasUploadedUserImage(userWithImageId)).Returns(true);
+        mockImageService.Setup(service => service.HasUploadedOrgImage(orgWithImageId)).Returns(true);
+        @* Return false for everything else *@
+        mockImageService.SetReturnsDefault<bool>(false);
     
         Services.AddSingleton<ImageService>(mockImageService.Object);
         Services.AddSingleton<IUserRepo>(mockUserRepo.Object);
@@ -53,7 +53,7 @@
     public void Test_DefaultThumbnailForUser()
     {
         var cut = Render(
-            @<Thumbnail TargetId="@userId" />
+            @<Thumbnail UserId="@userWithoutImageId" />
         );
 
         var img = cut.Find("img");
@@ -62,16 +62,19 @@
         );
     }
 
-    [Test]
-    public void Test_DefaultThumbnailForUserWithSize()
+    [TestCase(ImageService.ImageSize.SMALL)]
+    [TestCase(ImageService.ImageSize.MEDIUM)]
+    [TestCase(ImageService.ImageSize.LARGE)]
+    public void Test_DefaultThumbnailForUserWithSize(ImageService.ImageSize size)
     {
         var cut = Render(
-            @<Thumbnail TargetId="@userId" Size=ImageService.ImageSize.SMALL />
+            @<Thumbnail UserId="@userWithoutImageId" Size=size />
         );
 
         var img = cut.Find("img");
+        string expectedsrc = $"https://ui-avatars.com/api/?name=Kevin+Smith&size={(int)size}";
         img.MarkupMatches(
-            @<img src="https://ui-avatars.com/api/?name=Kevin+Smith&size=64">
+            @<img src="@expectedsrc">
         );
     }
 
@@ -79,7 +82,7 @@
     public void Test_DefaultThumbnailForOrg()
     {
         var cut = Render(
-            @<Thumbnail TargetId="@orgId" />
+            @<Thumbnail OrgId="@orgWithoutImageId" />
         );
 
         var img = cut.Find("img");
@@ -88,16 +91,19 @@
         );
     }
 
-    [Test]
-    public void Test_DefaultThumbnailForOrgWithSize()
+    [TestCase(ImageService.ImageSize.SMALL)]
+    [TestCase(ImageService.ImageSize.MEDIUM)]
+    [TestCase(ImageService.ImageSize.LARGE)]
+    public void Test_DefaultThumbnailForOrgWithSize(ImageService.ImageSize size)
     {
         var cut = Render(
-            @<Thumbnail TargetId="@orgId" Size=ImageService.ImageSize.SMALL />
+            @<Thumbnail OrgId="@orgWithoutImageId" Size=size />
         );
 
         var img = cut.Find("img");
+        string expectedsrc = $"https://ui-avatars.com/api/?name=Test+Org&size={(int)size}";
         img.MarkupMatches(
-            @<img src="https://ui-avatars.com/api/?name=Test+Org&size=64">
+            @<img src="@expectedsrc">
         );
     }
 
@@ -105,25 +111,28 @@
     public void Test_UploadedThumbnailForUser()
     {
         var cut = Render(
-            @<Thumbnail TargetId="@userWithImageId" />
+            @<Thumbnail UserId="@userWithImageId" />
         );
 
         var img = cut.Find("img");
         img.MarkupMatches(
-            @<img src="images/3_thumbnail_128.jpeg">
+            @<img src="images/users/3_thumbnail_128.jpeg">
         );
     }
 
-    [Test]
-    public void Test_UploadedThumbnailForUserWithSize()
+    [TestCase(ImageService.ImageSize.SMALL)]
+    [TestCase(ImageService.ImageSize.MEDIUM)]
+    [TestCase(ImageService.ImageSize.LARGE)]
+    public void Test_UploadedThumbnailForUserWithSize(ImageService.ImageSize size)
     {
         var cut = Render(
-            @<Thumbnail TargetId="@userWithImageId" Size=ImageService.ImageSize.LARGE />
+            @<Thumbnail UserId="@userWithImageId" Size=size />
         );
 
         var img = cut.Find("img");
+        string expectedsrc = $"images/users/3_thumbnail_{(int)size}.jpeg";
         img.MarkupMatches(
-            @<img src="images/3_thumbnail_256.jpeg">
+            @<img src="@expectedsrc">
         );
     }
 
@@ -131,25 +140,28 @@
     public void Test_UploadedThumbnailForOrg()
     {
         var cut = Render(
-            @<Thumbnail TargetId="@userWithImageId" />
+            @<Thumbnail OrgId="@orgWithImageId" />
         );
 
         var img = cut.Find("img");
         img.MarkupMatches(
-            @<img src="images/3_thumbnail_128.jpeg">
+            @<img src="images/orgs/3_thumbnail_128.jpeg">
         );
     }
 
-    [Test]
-    public void Test_UploadedThumbnailFoOrgrWithSize()
+    [TestCase(ImageService.ImageSize.SMALL)]
+    [TestCase(ImageService.ImageSize.MEDIUM)]
+    [TestCase(ImageService.ImageSize.LARGE)]
+    public void Test_UploadedThumbnailForOrgrWithSize(ImageService.ImageSize size)
     {
         var cut = Render(
-            @<Thumbnail TargetId="@orgWithImageId" Size=ImageService.ImageSize.LARGE />
+            @<Thumbnail OrgId="@orgWithImageId" Size=size />
         );
 
         var img = cut.Find("img");
+        string expectedsrc = $"images/orgs/1_thumbnail_{(int)size}.jpeg";
         img.MarkupMatches(
-            @<img src="images/1_thumbnail_256.jpeg">
+            @<img src="@expectedsrc">
         );
     }
 
@@ -157,18 +169,18 @@
     public void Test_AttributeSplatting()
     {
         var cut = Render(
-            @<Thumbnail TargetId="@userWithImageId" id="thumbnail" class="img" />
+            @<Thumbnail UserId="@userWithImageId" id="thumbnail" class="img" />
         );
 
         var imgById = cut.Find("#thumbnail");
         var imgByClass = cut.Find(".img");
 
         imgById.MarkupMatches(
-            @<img src="images/3_thumbnail_128.jpeg" id="thumbnail" class="img">
+            @<img src="images/users/3_thumbnail_128.jpeg" id="thumbnail" class="img">
         );
 
         imgByClass.MarkupMatches(
-            @<img src="images/3_thumbnail_128.jpeg" id="thumbnail" class="img">
+            @<img src="images/users/3_thumbnail_128.jpeg" id="thumbnail" class="img">
         );
     }
 }
