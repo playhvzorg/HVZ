@@ -76,7 +76,7 @@ namespace HVZ.Web.Services
         /// <param name="file"></param>
         /// <param name="fileName">File name, excluding extension</param>
         /// <param name="folder">Sub folder in the upload directory to save the image</param>
-        public virtual async Task SaveImage(IBrowserFile file, string fileName, string folder)
+        public async Task SaveImage(IBrowserFile file, string fileName, string folder)
         {
             // Check that the file is png, jpg, or jpeg
             var fileContentType = file.ContentType.Split("/");
@@ -84,38 +84,43 @@ namespace HVZ.Web.Services
             {
                 throw new ArgumentException("File must be an image");
             }
-
-            var path = Path.Combine(uploadPath, folder);
-            await using FileStream fs = new FileStream(Path.Combine(path, $"{fileName}.{fileContentType[1]}"), FileMode.Create);
-            await file.OpenReadStream(4096 * 4096 * 32).CopyToAsync(fs);
+            
+            var directoryPath = Path.Combine(uploadPath, folder);
+            var filePath = Path.Combine(directoryPath, $"{fileName}.{fileContentType[1]}");
+            await using FileStream fs = new FileStream(filePath, FileMode.Create);
+            using var imageStream = file.OpenReadStream(4096 * 4096 * 32);
+            await imageStream.CopyToAsync(fs);
             fs.Close();
-            await SaveThumbnails(path, fileName);
+            await SaveThumbnails(directoryPath, filePath, fileName);
+            
         }
 
-        private async Task SaveThumbnails(string path, string imageName)
+        private async Task SaveThumbnails(string directoryPath, string sourcePath, string imageName)
         {
-            await using FileStream fs = new FileStream(path, FileMode.Open);
+            await using FileStream fs = new FileStream(sourcePath, FileMode.Open);
             using (var stream = new SKManagedStream(fs))
             {
-                SKBitmap src = SKBitmap.Decode(stream);
+                SKBitmap src = SKBitmap.Decode(fs);
+                if (src is null)
+                    throw new NullReferenceException($"src is null; sourcePath: {sourcePath}; file exists: {File.Exists(sourcePath)}");
 
                 await SaveBitmap(
                     CropSquare(src, (int)(ImageSize.SMALL)),
-                    Path.Combine(path, $"{imageName}_thumbnail_{(int)ImageSize.SMALL}.jpeg"),
+                    Path.Combine(directoryPath, $"{imageName}_thumbnail_{(int)ImageSize.SMALL}.jpeg"),
                     SKEncodedImageFormat.Jpeg,
                     100
                 );
 
                 await SaveBitmap(
                     CropSquare(src, (int)(ImageSize.MEDIUM)),
-                    Path.Combine(path, $"{imageName}_thumbnail_{(int)ImageSize.MEDIUM}.jpeg"),
+                    Path.Combine(directoryPath, $"{imageName}_thumbnail_{(int)ImageSize.MEDIUM}.jpeg"),
                     SKEncodedImageFormat.Jpeg,
                     100
                 );
 
                 await SaveBitmap(
                     CropSquare(src, (int)(ImageSize.LARGE)),
-                    Path.Combine(path, $"{imageName}_thumbnail_{(int)ImageSize.LARGE}.jpeg"),
+                    Path.Combine(directoryPath, $"{imageName}_thumbnail_{(int)ImageSize.LARGE}.jpeg"),
                     SKEncodedImageFormat.Jpeg,
                     100
                 );

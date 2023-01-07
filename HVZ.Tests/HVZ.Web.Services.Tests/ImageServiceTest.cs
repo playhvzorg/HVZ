@@ -40,7 +40,14 @@ public class ImageServiceTest
         imageService = new ImageService(options);
 
         mockBrowserFile.Setup(file => file.OpenReadStream(4096 * 4096 * 32, default(CancellationToken)))
-            .Returns(new FileStream($"../../../resources/0.png", FileMode.Open, FileAccess.Read));
+            .Returns(
+                // new FileStream($"../../../resources/0.png", FileMode.Open)
+                () => {
+                    var fs = new FileStream($"../../../resources/0.png", FileMode.Open);
+                    fs.Seek(0, SeekOrigin.Begin);
+                    return fs;
+                }
+            );
         mockBrowserFile.Setup(file => file.ContentType).Returns("image/png");
 
         // Create the test images
@@ -52,7 +59,7 @@ public class ImageServiceTest
 
     }
 
-    [OneTimeTearDown]
+    // [OneTimeTearDown]
     public void Teardown()
     {
         // Delete the test output
@@ -159,10 +166,10 @@ public class ImageServiceTest
     [TestCase(ImageService.ImageSize.LARGE)]
     public void Test_GetOrgThumbnailResourcePath(ImageService.ImageSize size)
     {
-        string sharedIdResPath = imageService.GetUserThumbnailResourceLink("0", size);
+        string sharedIdResPath = imageService.GetOrgThumbnailResourceLink("0", size);
         Assert.That(sharedIdResPath == $"images/orgs/0_thumbnail_{(int)size}.jpeg");
 
-        string uniqueIdResPath = imageService.GetUserThumbnailResourceLink("2", size);
+        string uniqueIdResPath = imageService.GetOrgThumbnailResourceLink("2", size);
         Assert.That(uniqueIdResPath == $"images/orgs/2_thumbnail_{(int)size}.jpeg");
     }
 
