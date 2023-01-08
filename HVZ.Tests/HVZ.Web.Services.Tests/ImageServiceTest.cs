@@ -60,7 +60,7 @@ public class ImageServiceTest
 
     }
 
-    // [OneTimeTearDown]
+    [OneTimeTearDown]
     public void Teardown()
     {
         // Delete the test output
