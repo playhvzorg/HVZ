@@ -55,7 +55,7 @@ namespace HVZ.Web.Services
         /// </summary>
         /// <param name="id">Org ID to check against</param>
         /// <returns>Whether there is an uploaded file for the ID</returns>
-        public virtual bool HasUploadedOrgImage(string id) 
+        public virtual bool HasUploadedOrgImage(string id)
             => File.Exists(Path.Combine(uploadPath, "orgs", $"{id}_thumbnail_64.jpeg")) &&
                File.Exists(Path.Combine(uploadPath, "orgs", $"{id}_thumbnail_128.jpeg")) &&
                File.Exists(Path.Combine(uploadPath, "orgs", $"{id}_thumbnail_256.jpeg"));
