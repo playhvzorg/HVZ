@@ -41,14 +41,10 @@
                 return;
             }
 
-            User? user = await UserRepo.FindUserById(UserId);
-            if (user is null)
-            {
-                throw new ArgumentException($"Could not find User with ID: {UserId} in Thumbnail");
-            }
-
+            User user = await UserRepo.GetUserById(UserId);
             imgSrc = $"https://ui-avatars.com/api/?name={user.FullName.Replace(" ", "+")}&size={(int)(Size)}";
             return;
+
         }
 
         if (OrgId is null) return; // Appease the compiler
@@ -59,11 +55,7 @@
             return;
         }
 
-        Organization? org = await OrgRepo.FindOrgById(OrgId);
-        if (org is null)
-        {
-            throw new ArgumentException($"Could not find Organization with ID: {OrgId} in Thumbnail");
-        }
+        Organization org = await OrgRepo.GetOrgById(OrgId);
 
         // Free API to generate user thumbnails
         // https://ui-avatars.com
