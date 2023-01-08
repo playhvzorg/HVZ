@@ -17,7 +17,7 @@
     [OneTimeSetUp]
     public void Setup()
     {
-        mockOrgRepo.Setup(repo => repo.FindOrgById(orgWithoutImageId)).ReturnsAsync(
+        mockOrgRepo.Setup(repo => repo.GetOrgById(orgWithoutImageId)).ReturnsAsync(
             new Organization(
                 id: orgWithoutImageId,
                 name: orgName,
@@ -31,7 +31,7 @@
             )
         );
 
-        mockUserRepo.Setup(repo => repo.FindUserById(userWithoutImageId)).ReturnsAsync(
+        mockUserRepo.Setup(repo => repo.GetUserById(userWithoutImageId)).ReturnsAsync(
             new User(
                 userWithoutImageId,
                 userName,
