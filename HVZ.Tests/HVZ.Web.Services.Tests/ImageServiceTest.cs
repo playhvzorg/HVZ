@@ -33,8 +33,6 @@ public class ImageServiceTest
     {
         uploadPath = Path.Combine(Path.GetTempPath(), "HVZ.Test", "images");
         Directory.CreateDirectory(uploadPath);
-        // Directory.CreateDirectory(Path.Combine(uploadPath, "users"));
-        // Directory.CreateDirectory(Path.Combine(uploadPath, "orgs"));
         IOptions<ImageServiceOptions> options = Mock.Of<IOptions<ImageServiceOptions>>(
             x => x.Value == new ImageServiceOptions { UploadPath = uploadPath });
         imageService = new ImageService(options);

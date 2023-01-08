@@ -64,6 +64,9 @@
         {
             throw new ArgumentException($"Could not find Organization with ID: {OrgId} in Thumbnail");
         }
+
+        // Free API to generate user thumbnails
+        // https://ui-avatars.com
         imgSrc = $"https://ui-avatars.com/api/?name={org.Name.Replace(" ", "+")}&size={(int)(Size)}";
     }
 }
