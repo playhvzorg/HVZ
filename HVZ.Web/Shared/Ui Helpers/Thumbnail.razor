@@ -47,7 +47,7 @@
 
         }
 
-        if (OrgId is null) return; // Appease the compiler
+        if (OrgId is null) throw new ArgumentException("Invalid state"); // Appease the compiler
 
         if (ImageService.HasUploadedOrgImage(OrgId))
         {
