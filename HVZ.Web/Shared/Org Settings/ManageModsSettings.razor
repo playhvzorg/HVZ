@@ -53,14 +53,13 @@
                         <div class="input-group">
                             <input @bind="InviteEmail" @bind:event="oninput" id="invite-email-input" class="form-control" placeholder="Search...">
                             <div class="input-group-append">
-                                <button class="btn btn-success @InviteButtonEnabled()" id="invite-button" @onclick="InviteUser">Invite</button>
+                                <button class="btn btn-success @InviteButtonEnabled()" id="invite-button" data-bs-dismiss="modal" @onclick="InviteUser">Invite</button>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    @* <button class="btn btn-primary disabled">Invite</button> *@
                 </div>
             </div>
         </div>
@@ -69,7 +68,7 @@
 
 @code
 {
-    [Parameter]
+    [CascadingParameter(Name = "OrgId")]
     public string? OrgId { get; set; }
 
     public string? InviteEmail { get; set; }

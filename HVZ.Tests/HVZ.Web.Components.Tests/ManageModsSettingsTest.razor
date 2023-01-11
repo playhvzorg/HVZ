@@ -29,7 +29,9 @@
         return Render(
             @<CascadingValue Value="true" Name="IsAdmin">
                 <CascadingValue Value="true" Name="IsMod">
-                    <ManageModsSettings OrgId="@orgId" />
+                    <CascadingValue Value="@orgId" Name="OrgId">
+                        <ManageModsSettings />
+                    </CascadingValue>
                 </CascadingValue>
             </CascadingValue>
         );
@@ -40,7 +42,9 @@
         return Render(
             @<CascadingValue Value="false" Name="IsAdmin">
                 <CascadingValue Value="true" Name="IsMod">
-                    <ManageModsSettings OrgId="@orgId" />
+                    <CascadingValue Value="@orgId" Name="OrgId">
+                        <ManageModsSettings />
+                    </CascadingValue>
                 </CascadingValue>
             </CascadingValue>
         );
@@ -131,8 +135,11 @@
         var modsList = cut.Find("#mods-list");
         var adminsList = cut.Find("#admins-list");
 
-        Assert.AreEqual(modsList.ChildElementCount, 5); // Note that virtualization adds two extra elements to the list
-        Assert.AreEqual(adminsList.ChildElementCount, 4); // Same note as above
+        // Note that the virtualize component adds two extra elements to the list
+        // There are three items in the list being displayed in the mods list
+        // There are two elements being displayed in the admins list
+        Assert.AreEqual(modsList.ChildElementCount, 5);
+        Assert.AreEqual(adminsList.ChildElementCount, 4);
     }
 
     [Test]
@@ -143,6 +150,9 @@
         var modsList = cut.Find("#mods-list");
         var adminsList = cut.Find("#admins-list");
 
+        // Note that the virtualize component adds two extra elements to the list
+        // There are three items in the list being displayed in the mods list
+        // There are two elements being displayed in the admins list
         Assert.AreEqual(modsList.ChildElementCount, 5);
         Assert.AreEqual(adminsList.ChildElementCount, 4);
     }

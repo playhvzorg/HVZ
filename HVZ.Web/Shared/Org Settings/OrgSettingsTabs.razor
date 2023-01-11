@@ -2,45 +2,23 @@
 
 <OrgAuthorizedModerator>
     <div class="nav d-md-none nav-pills" id="mobile-pills-tab" role="tablist">
-        <a href="#general" class="nav-link active" id="pills-general-tab" data-bs-toggle="pill">
-            <i class="fa-solid fa-gear"></i>
-            <div class="d-none d-md-inline">General</div>
-        </a>
-        <a href="#users" class="nav-link" id="pills-users-tab" data-bs-toggle="pill">
-            <i class="fa-solid fa-users"></i>
-            <div class="d-none d-md-inline">Users</div>
-        </a>
-        <a href="#discord-integration" class="nav-link" id="pills-discord-tab" data-bs-toggle="pill">
-            <i class="fa-brands fa-discord"></i>
-            <div class="d-none d-md-inline">Discord Integration</div>
-        </a>
+        @foreach (var tab in tabs)
+        {
+            @MobileNavLink(tab);
+        }
     </div>
     <div class="d-flex align-items-start mt-5">
-        @* Desktop settings nav *@
         <div class="nav flex-column nav-pills me-3 d-none d-md-block" id="desktop-pills-tab" role="tablist" aria-orientation="vertical">
-            <a href="#general" class="nav-link active" id="v-pills-general-tab" data-bs-toggle="pill">
-                <i class="fa-solid fa-gear"></i>
-                <div class="d-none d-md-inline">General</div>
-            </a>
-            <a href="#users" class="nav-link" id="v-pills-users-tab" data-bs-toggle="pill">
-                <i class="fa-solid fa-users"></i>
-                <div class="d-none d-md-inline">Users</div>
-            </a>
-            <a href="#discord-integration" class="nav-link" id="v-pills-discord-tab" data-bs-toggle="pill">
-                <i class="fa-brands fa-discord"></i>
-                <div class="d-none d-md-inline">Discord Integration</div>
-            </a>
+            @foreach (var tab in tabs)
+            {
+                @DesktopNavLink(tab);
+            }
         </div>
         <div class="tab-content ml-md-4 w-100" id="pills-tab-content">
-            <div class="tab-pane fade show active" id="general" role="tabpanel">
-                This is the general settings tab
-            </div>
-            <div class="tab-pane fade" id="users" role="tabpanel">
-                <ManageModsSettings OrgId="@OrgId" />
-            </div>
-            <div class="tab-pane fade" id="discord-integration" role="tabpanel">
-                Fill this out when discord integration is ready
-            </div>
+            @foreach (var tab in tabs)
+            {
+                @TabContent(tab);
+            }
         </div>
     </div>
 </OrgAuthorizedModerator>
@@ -50,4 +28,57 @@
     [CascadingParameter(Name = "OrgId")]
     public string? OrgId { get; set; }
 
+    TabData[] tabs = new TabData[] {
+        new TabData {
+            Title = "General",
+            IconClass = "fa-solid fa-gear",
+            Id = "general",
+            TabContent = @<p>General settings</p>,
+            StartActive = true
+        },
+        new TabData {
+            Title = "Users",
+            IconClass = "fa-solid fa-users",
+            Id = "users",
+            TabContent = @<ManageModsSettings />
+        },
+        new TabData {
+            Title = "Discord Integration",
+            IconClass = "fa-brands fa-discord",
+            Id = "discord",
+            TabContent = @<p>Discord integration settings</p>
+        }
+    };
+
+    string IsActiveCss(TabData tab)
+        => tab.StartActive ? "active" : "";
+
+    RenderFragment MobileNavLink(TabData tab)
+        => @<a href="#@tab.Id" class="nav-link @IsActiveCss(tab)" id="pills-@tab.Id-tab" data-bs-toggle="pill">
+                <i class="@tab.IconClass"></i>
+                <div class="d-none d-md-inline">@tab.Title</div>
+            </a>;
+
+    RenderFragment DesktopNavLink(TabData tab)
+        => @<a href="#@tab.Id" class="nav-link @IsActiveCss(tab)" id="v-pills-@tab.Id-tab" data-bs-toggle="pill">
+                <i class="@tab.IconClass"></i>
+                <div class="d-none d-md-inline">@tab.Title</div>
+            </a>;
+
+    RenderFragment TabContent(TabData tab)
+        => @<div class="tab-pane fade show @IsActiveCss(tab)" id="@tab.Id" role="tabpanel">
+                @tab.TabContent
+            </div>;
+
+    private class TabData
+    {
+        public string? Title { get; set; }
+        public string? IconClass { get; set; }
+        public string? Id { get; set; }
+        public RenderFragment? TabContent { get; set; }
+        public bool StartActive { get; set; }
+    }
 }
+
+
+
