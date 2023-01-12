@@ -6,7 +6,9 @@
 
 <CascadingValue Value="@IsAdmin" Name="IsAdmin">
     <CascadingValue Value="@IsMod" Name="IsMod">
-        @ChildContent
+        <CascadingValue Value="@OrgId" Name="OrgId">
+            @ChildContent
+        </CascadingValue>
     </CascadingValue>
 </CascadingValue>
 

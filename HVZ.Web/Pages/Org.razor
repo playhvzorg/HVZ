@@ -1,9 +1,5 @@
 @using Microsoft.AspNetCore.Components.Authorization
-@using Microsoft.AspNetCore.Authentication
-@using HVZ.Models
-@using HVZ.Web.Identity.Models
 @using HVZ.Web.Shared.Org_Authorization
-@using HVZ.Web.Shared
 @inject IOrgRepo OrgRepo
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @page "/org/{url}"
@@ -16,30 +12,6 @@
             <a class="d-inline ml-3 nav-item" href="/org/@Url/settings"><i class="fa-solid fa-wrench fa-lg"></i> <div class="d-none d-md-inline"> Settings</div></a>
         </OrgAuthorizedModerator>
     </div>
-    
-    <ul class="nav nav-pills mt-5 mb-5" role="tablist">
-        <li class="nav-item" role="presentation">
-            <a class="nav-link active" id="home-tab" data-bs-toggle="pill" data-bs-target="#home"><i class="fa-solid fa-house"></i> <p class="d-inline">Home</p></a>
-        </li>
-        <li class="nav-item" role="presentation">
-            <a class="nav-link" id="mods-tab" data-bs-toggle="pill" data-bs-target="#mods"><i class="fa-solid fa-users"></i> <p class="d-inline">Moderators</p></a>
-        </li>
-    </ul>
-
-    <div class="container">
-        <div class="tab-content">
-            <div class="tab-pane active" id="home" role="tabpanel" aria-labelledby="home-tab">
-                this is the home pane
-                <GameComponent OrgId="@organization?.Id" />
-            </div>
-            <div class="tab-pane" id="mods" role="tabpanel" aria-labelledby="mod-tab">
-                this is the mod pane
-            </div>
-        </div>
-
-        
-    </div>
-
 </OrgAuth>
 
 @code
