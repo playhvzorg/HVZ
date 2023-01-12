@@ -13,9 +13,7 @@
     <h1 class="d-block">Settings</h1>
 </div>
 <OrgAuth OrgId="@org?.Id">
-    <CascadingValue Name="OrgId" Value="@org?.Id">
-        <OrgSettingsTabs />
-    </CascadingValue>
+    <OrgSettingsTabs />
 </OrgAuth>
 
 @code
