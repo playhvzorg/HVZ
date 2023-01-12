@@ -90,25 +90,17 @@
         @* Logging *@
         Organization? org = await OrgRepo.FindOrgById(OrgId);
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        if (user is null)
+
+        string? validationError = Validate(authState, org);
+
+        if(validationError != null)
         {
-            Logger.LogError($"Eror setting user with ID: {UserId} to mod in {org?.Name}.{org?.Id}; user is null");
-            return;
+            Logger.LogError($"Error setting user to mod: {validationError}");
         }
-        if (authState is null) 
-        {
-            Logger.LogError($"Error getting Authentcation State; Trying to set {user.FullName}.{user.Id} to admin in {org?.Name}.{org?.Id}");
-            return;
-        }
-        
-        if (org is null)
-        {
-            Logger.LogError($"Error setting {user.FullName}.{user.Id} to mod: Org with ID: {OrgId} is null");
-            return;
-        }
+
         string? fullName = authState.User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value;
         string? callerId = authState.User.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value;
-        Logger.LogInformation($"{fullName}.{callerId} has set {user.FullName}.{user.Id} to mod in {org.Name}.{OrgId}");
+        Logger.LogInformation($"{fullName}.{callerId} has set {user?.FullName}.{user?.Id} to mod in {org?.Name}.{OrgId}");
     }
 
     async Task SetAdmin()
@@ -122,25 +114,17 @@
         @* Logging *@
         Organization? org = await OrgRepo.FindOrgById(OrgId);
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        if (user is null)
+
+        string? validationError = Validate(authState, org);
+
+        if(validationError != null)
         {
-            Logger.LogError($"Eror setting user with ID: {UserId} to admin in {org?.Name}.{org?.Id}; user is null");
-            return;
+            Logger.LogError($"Error setting user to admin: {validationError}");
         }
-        if (authState is null) 
-        {
-            Logger.LogError($"Error getting Authentcation State; Trying to set {user.FullName}.{user.Id} to mod in {org?.Name}.{org?.Id}");
-            return;
-        }
-        
-        if (org is null)
-        {
-            Logger.LogError($"Error setting {user.FullName}.{user.Id} to admin: Org with ID: {OrgId} is null");
-            return;
-        }
+
         string? fullName = authState.User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value;
         string? callerId = authState.User.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value;
-        Logger.LogInformation($"{fullName}.{callerId} has set {user.FullName}.{user.Id} to admin in {org.Name}.{OrgId}");
+        Logger.LogInformation($"{fullName}.{callerId} has set {user?.FullName}.{user?.Id} to admin in {org?.Name}.{OrgId}");
     }
 
     async Task RemoveUser()
@@ -154,24 +138,42 @@
         @* Logging *@
         Organization? org = await OrgRepo.FindOrgById(OrgId);
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        if (user is null)
+
+        string? validationError = Validate(authState, org);
+
+        if(validationError != null)
         {
-            Logger.LogError($"Eror removing user with ID: {UserId} from {org?.Name}.{org?.Id}; user is null");
-            return;
+            Logger.LogError($"Error removing user: {validationError}");
         }
-        if (org is null)
-        {
-            Logger.LogError($"Error removing {user.FullName}.{user.Id}: Org with ID: {OrgId} is null");
-            return;
-        }
-        if (authState is null) 
-        {
-            Logger.LogError($"Error getting Authentcation State; Trying to remove {user.FullName}.{user.Id} from {org.Name}.{org.Id}");
-            return;
-        }
+
         string? fullName = authState.User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value;
         string? callerId = authState.User.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value;
-        Logger.LogInformation($"{fullName}.{callerId} has removed {user.FullName}.{user.Id} from {org.Name}.{OrgId}");
+        Logger.LogInformation($"{fullName}.{callerId} has removed {user?.FullName}.{user?.Id} from {org?.Name}.{OrgId}");
+    }
+
+    /// <summary>
+    /// Verify that state is correct
+    /// </summary>
+    /// <returns>error message if there is an error or null if there are no errors</returns>
+    string? Validate(AuthenticationState? authState, Organization? org)
+    {
+        // Check that the user is valid
+        if (user is null)
+        {
+            return $"User with ID {UserId} is null";
+        }
+
+        if (authState is null)
+        {
+            return $"Could not get auth state Trying to modify {user.FullName} in {org?.Name}";
+        }
+
+        if (org is null)
+        {
+            return $"Org with ID {OrgId} is null";
+        }
+
+        return null;
     }
 }
 

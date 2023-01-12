@@ -181,7 +181,7 @@
         Assert.AreEqual(modsList.ChildElementCount, 6);
         Assert.AreEqual(adminsList.ChildElementCount, 4);
 
-        modIds.Remove("6"); // Prevent this from getting committed to the HashSet
+        modIds.Remove("6"); // This is being committed to the hash set and messing up other tests
     }
 
     [Test]
