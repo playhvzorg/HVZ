@@ -20,7 +20,6 @@
         <div id="admins-list">
             <Virtualize Items="@admins" Context="id">
                 <UserListItem UserId="@id" OnChange="RefreshMenus" />
-                @* <hr> *@
             </Virtualize>
         </div>
         <hr>
@@ -28,7 +27,6 @@
         <div id="mods-list">
             <Virtualize Items="@mods" Context="id">
                 <UserListItem UserId="@id" OnChange="RefreshMenus" />
-                @* <hr> *@
             </Virtualize>
         </div>
     </CascadingValue>
@@ -51,9 +49,11 @@
                         <div class="input-group">
                             <input @bind="InviteEmail" @bind:event="oninput" id="invite-email-input" class="form-control" placeholder="Search...">
                             <div class="input-group-append">
-                                <button class="btn btn-success @InviteButtonEnabled()" id="invite-button" data-bs-dismiss="modal" @onclick="InviteUser">Invite</button>
+                                <button class="btn btn-success @InviteButtonEnabled()" id="invite-button" @onclick="InviteUser">Invite</button>
                             </div>
                         </div>
+                        <span class="text-danger">@errorText</span>
+                        <span class="text-success">@successText</span>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -78,6 +78,9 @@
     HashSet<string>? admins = new HashSet<string>();
     AuthenticationState? authState;
 
+    string? successText;
+    string? errorText;
+
     protected override async Task OnParametersSetAsync()
     {
         if (OrgId is null) return;
@@ -95,19 +98,26 @@
         if (String.IsNullOrEmpty(InviteEmail?.Trim())) throw new ArgumentNullException("Invite email cannot be null");
         if (OrgId is null) return;
 
-        ApplicationUser? invitedUser = await UserManager.FindByEmailAsync(InviteEmail);
+        ApplicationUser? invitedUser = await UserManager.FindByEmailAsync(InviteEmail.Trim());
 
         if (invitedUser is null)
         {
-            @* pass to front *@
+            SetErrorText($"Could not find user with with the email {InviteEmail.Trim()}");
+            return;
+        }
+
+        if (mods?.Contains(invitedUser.DatabaseId) ?? false)
+        {
+            SetErrorText($"{invitedUser.FullName} is already a moderator");
             return;
         }
 
         await OrgRepo.AddModerator(OrgId, invitedUser.DatabaseId);
         string? userName = authState?.User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value;
         string? userId = authState?.User.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value;
-        Logger.LogInformation($"{userName}: {userId} has added {invitedUser.FullName}: {invitedUser.Id} as a moderator to {org?.Name}");
+        Logger.LogInformation($"{userName}: {userId} has added {invitedUser.FullName}: {invitedUser.DatabaseId} as a moderator to {org?.Name}");
         mods?.Add(invitedUser.DatabaseId);
+        SetSuccessText($"Added {invitedUser.FullName} to {org?.Name}");
     }
 
     async Task RefreshMenus()
@@ -119,5 +129,17 @@
         org = await OrgRepo.FindOrgById(OrgId);
         if (org == null) return;
         ownerId = org.OwnerId;
+    }
+
+    void SetSuccessText(string text)
+    {
+        errorText = null;
+        successText = text;
+    }
+
+    void SetErrorText(string text)
+    {
+        successText = null;
+        errorText = text;
     }
 }
