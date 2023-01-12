@@ -1,10 +1,7 @@
 using HVZ.Web.Settings;
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Options;
 using SkiaSharp;
-using System;
-using System.IO;
 
 namespace HVZ.Web.Services
 {
@@ -12,22 +9,80 @@ namespace HVZ.Web.Services
     {
         private string uploadPath;
 
+        public ImageService()
+        {
+            this.uploadPath = "";
+        }
+
         public ImageService(IOptions<ImageServiceOptions> options)
         {
             if (options.Value.UploadPath is null) throw new ArgumentNullException("UploadPath cannot be null in ImageService");
 
             this.uploadPath = options.Value.UploadPath;
+
+            Directory.CreateDirectory(Path.Combine(uploadPath, "users"));
+            Directory.CreateDirectory(Path.Combine(uploadPath, "orgs"));
         }
 
-        public string GetThumbnailSmall(string id) => $"images/{id}_thumbnail_small.jpeg";
+        /// <summary>
+        /// Retreive the resource path for a specific User thumbnail of size specified by type <see cref="ImageSize" />. Does not check that the file exists.
+        /// </summary>
+        /// <param name="id">The User ID associated with the thumbnail</param>
+        /// <param name="imageSize">Desired image size</param>
+        /// <returns>The path to the thumbnail web resource</returns>
+        public string GetUserThumbnailResourceLink(string id, ImageSize imageSize) => $"images/users/{id}_thumbnail_{(int)(imageSize)}.jpeg";
 
-        public string GetThumbnailMedium(string id) => $"images/{id}_thumbnail_medium.jpeg";
+        /// <summary>
+        /// Retreive the resource path for a specific Org thumbnail of size specified by type <see cref="ImageSize" />. Does not check that the file exists.
+        /// </summary>
+        /// <param name="id">The Org ID associated with the thumbnail</param>
+        /// <param name="imageSize">Desired image size</param>
+        /// <returns>The path to the thumbnail web resource</returns>
+        public string GetOrgThumbnailResourceLink(string id, ImageSize imageSize) => $"images/orgs/{id}_thumbnail_{(int)(imageSize)}.jpeg";
 
-        public string GetThumbnailLarge(string id) => $"images/{id}_thumbnail_large.jpeg";
+        /// <summary>
+        /// Check if there is a saved image for the user Id
+        /// </summary>
+        /// <param name="id">User ID to check against</param>
+        /// <returns>Whether there is an uploaded file for the ID</returns>
+        public virtual bool HasUploadedUserImage(string id)
+            => File.Exists(Path.Combine(uploadPath, "users", $"{id}_thumbnail_64.jpeg")) &&
+               File.Exists(Path.Combine(uploadPath, "users", $"{id}_thumbnail_128.jpeg")) &&
+               File.Exists(Path.Combine(uploadPath, "users", $"{id}_thumbnail_256.jpeg"));
 
-        public string GetThumbnail(string id, string size) => $"images/{id}_thumbnail_{size}.jpeg";
+        /// <summary>
+        /// Check if there is a saved image for the org ID
+        /// </summary>
+        /// <param name="id">Org ID to check against</param>
+        /// <returns>Whether there is an uploaded file for the ID</returns>
+        public virtual bool HasUploadedOrgImage(string id)
+            => File.Exists(Path.Combine(uploadPath, "orgs", $"{id}_thumbnail_64.jpeg")) &&
+               File.Exists(Path.Combine(uploadPath, "orgs", $"{id}_thumbnail_128.jpeg")) &&
+               File.Exists(Path.Combine(uploadPath, "orgs", $"{id}_thumbnail_256.jpeg"));
 
-        public async Task SaveImage(IBrowserFile file, string imageName)
+        /// <summary>
+        /// Write an uploaded file to the disk under the "user" sub folder along with small 64x64 px, medium 128x128 px, and large 256x256 px thumbnail images
+        /// </summary>
+        /// <param name="file"></param>
+        /// <param name="id">The User ID associated with the file</param>
+        public virtual async Task SaveUserImage(IBrowserFile file, string id)
+            => await SaveImage(file, id, "users");
+
+        /// <summary>
+        /// Write an uploaded file to the disk under the "org" sub folder along with small 64x64 px, medium 128x128 px, and large 256x256 px thumbnail images
+        /// </summary>
+        /// <param name="file"></param>
+        /// <param name="id">The Org ID associated with the file</param>
+        public virtual async Task SaveOrgImage(IBrowserFile file, string id)
+            => await SaveImage(file, id, "orgs");
+
+        /// <summary>
+        /// Write an uploaded file to the disk and creates small 64x64 px, medium 128x128 px, and large 256x256 px thumbnail files
+        /// </summary>
+        /// <param name="file"></param>
+        /// <param name="fileName">File name, excluding extension</param>
+        /// <param name="folder">Sub folder in the upload directory to save the image</param>
+        public async Task SaveImage(IBrowserFile file, string fileName, string folder)
         {
             // Check that the file is png, jpg, or jpeg
             var fileContentType = file.ContentType.Split("/");
@@ -36,37 +91,42 @@ namespace HVZ.Web.Services
                 throw new ArgumentException("File must be an image");
             }
 
-            var path = Path.Combine(uploadPath, $"{imageName}.{fileContentType[1]}");
-            await using FileStream fs = new FileStream(path, FileMode.Create);
-            await file.OpenReadStream(2048 * 2048 * 32).CopyToAsync(fs);
+            var directoryPath = Path.Combine(uploadPath, folder);
+            var filePath = Path.Combine(directoryPath, $"{fileName}.{fileContentType[1]}");
+            await using FileStream fs = new FileStream(filePath, FileMode.Create);
+            using var imageStream = file.OpenReadStream(4096 * 4096 * 32);
+            await imageStream.CopyToAsync(fs);
             fs.Close();
-            await SaveThumbnails(path, imageName);
+            await SaveThumbnails(directoryPath, filePath, fileName);
+
         }
 
-        private async Task SaveThumbnails(string path, string imageName)
+        private async Task SaveThumbnails(string directoryPath, string sourcePath, string imageName)
         {
-            await using FileStream fs = new FileStream(path, FileMode.Open);
+            await using FileStream fs = new FileStream(sourcePath, FileMode.Open);
             using (var stream = new SKManagedStream(fs))
             {
-                SKBitmap src = SKBitmap.Decode(stream);
+                SKBitmap src = SKBitmap.Decode(fs);
+                if (src is null)
+                    throw new NullReferenceException($"src is null; sourcePath: {sourcePath}; file exists: {File.Exists(sourcePath)}");
 
                 await SaveBitmap(
-                    CropSquare(src, 64),
-                    Path.Combine(uploadPath, $"{imageName}_thumbnail_small.jpeg"),
+                    CropSquare(src, ImageSize.SMALL),
+                    Path.Combine(directoryPath, $"{imageName}_thumbnail_{(int)ImageSize.SMALL}.jpeg"),
                     SKEncodedImageFormat.Jpeg,
                     100
                 );
 
                 await SaveBitmap(
-                    CropSquare(src, 128),
-                    Path.Combine(uploadPath, $"{imageName}_thumbnail_medium.jpeg"),
+                    CropSquare(src, ImageSize.MEDIUM),
+                    Path.Combine(directoryPath, $"{imageName}_thumbnail_{(int)ImageSize.MEDIUM}.jpeg"),
                     SKEncodedImageFormat.Jpeg,
                     100
                 );
 
                 await SaveBitmap(
-                    CropSquare(src, 256),
-                    Path.Combine(uploadPath, $"{imageName}_thumbnail_large.jpeg"),
+                    CropSquare(src, ImageSize.LARGE),
+                    Path.Combine(directoryPath, $"{imageName}_thumbnail_{(int)ImageSize.LARGE}.jpeg"),
                     SKEncodedImageFormat.Jpeg,
                     100
                 );
@@ -84,8 +144,10 @@ namespace HVZ.Web.Services
             fs.Close();
         }
 
-        private SKBitmap CropSquare(SKBitmap src, int size)
+        private SKBitmap CropSquare(SKBitmap src, ImageSize imageSize)
         {
+            int size = (int)imageSize;
+
             // Crop to square
             int difference = src.Width - src.Height;
             var cropRect = new SKRectI
@@ -119,6 +181,13 @@ namespace HVZ.Web.Services
             cropped.ScalePixels(scaled, SKFilterQuality.High);
 
             return scaled;
+        }
+
+        public enum ImageSize
+        {
+            SMALL = 64,
+            MEDIUM = 128,
+            LARGE = 256
         }
     }
 }

@@ -1,0 +1,186 @@
+@using HVZ.Web.Shared.Ui_Helpers
+@inherits Bunit.TestContext
+
+@code
+{
+    Mock<IOrgRepo> mockOrgRepo = new Mock<IOrgRepo>();
+    Mock<IUserRepo> mockUserRepo = new Mock<IUserRepo>();
+    Mock<ImageService> mockImageService = new Mock<ImageService>();
+
+    private string orgWithoutImageId = "0";
+    private string orgName = "Test Org";
+    private string orgWithImageId = "1";
+    private string userWithoutImageId = "2";
+    private string userName = "Kevin Smith";
+    private string userWithImageId = "3";
+
+    [OneTimeSetUp]
+    public void Setup()
+    {
+        mockOrgRepo.Setup(repo => repo.GetOrgById(orgWithoutImageId)).ReturnsAsync(
+            new Organization(
+                id: orgWithoutImageId,
+                name: orgName,
+                ownerid: "1",
+                moderators: new HashSet<string>(),
+                administrators: new HashSet<string>(),
+                games: new HashSet<Game>(),
+                activegameid: null,
+                createdat: NodaTime.Instant.MinValue,
+                url: "testorg"
+            )
+        );
+
+        mockUserRepo.Setup(repo => repo.GetUserById(userWithoutImageId)).ReturnsAsync(
+            new User(
+                userWithoutImageId,
+                userName,
+                "e@mail.net"
+            )
+        );
+
+        mockImageService.Setup(service => service.HasUploadedUserImage(userWithImageId)).Returns(true);
+        mockImageService.Setup(service => service.HasUploadedOrgImage(orgWithImageId)).Returns(true);
+        @* Return false for everything else *@
+        mockImageService.SetReturnsDefault<bool>(false);
+    
+        Services.AddSingleton<ImageService>(mockImageService.Object);
+        Services.AddSingleton<IUserRepo>(mockUserRepo.Object);
+        Services.AddSingleton<IOrgRepo>(mockOrgRepo.Object);
+    }
+
+    [Test]
+    public void Test_DefaultThumbnailForUser()
+    {
+        var cut = Render(
+            @<Thumbnail UserId="@userWithoutImageId" />
+        );
+
+        var img = cut.Find("img");
+        img.MarkupMatches(
+            @<img src="https://ui-avatars.com/api/?name=Kevin+Smith&size=128">
+        );
+    }
+
+    [TestCase(ImageService.ImageSize.SMALL)]
+    [TestCase(ImageService.ImageSize.MEDIUM)]
+    [TestCase(ImageService.ImageSize.LARGE)]
+    public void Test_DefaultThumbnailForUserWithSize(ImageService.ImageSize size)
+    {
+        var cut = Render(
+            @<Thumbnail UserId="@userWithoutImageId" Size=size />
+        );
+
+        var img = cut.Find("img");
+        string expectedsrc = $"https://ui-avatars.com/api/?name=Kevin+Smith&size={(int)size}";
+        img.MarkupMatches(
+            @<img src="@expectedsrc">
+        );
+    }
+
+    [Test]
+    public void Test_DefaultThumbnailForOrg()
+    {
+        var cut = Render(
+            @<Thumbnail OrgId="@orgWithoutImageId" />
+        );
+
+        var img = cut.Find("img");
+        img.MarkupMatches(
+            @<img src="https://ui-avatars.com/api/?name=Test+Org&size=128">
+        );
+    }
+
+    [TestCase(ImageService.ImageSize.SMALL)]
+    [TestCase(ImageService.ImageSize.MEDIUM)]
+    [TestCase(ImageService.ImageSize.LARGE)]
+    public void Test_DefaultThumbnailForOrgWithSize(ImageService.ImageSize size)
+    {
+        var cut = Render(
+            @<Thumbnail OrgId="@orgWithoutImageId" Size=size />
+        );
+
+        var img = cut.Find("img");
+        string expectedsrc = $"https://ui-avatars.com/api/?name=Test+Org&size={(int)size}";
+        img.MarkupMatches(
+            @<img src="@expectedsrc">
+        );
+    }
+
+    [Test]
+    public void Test_SavedThumbnailForUser()
+    {
+        var cut = Render(
+            @<Thumbnail UserId="@userWithImageId" />
+        );
+
+        var img = cut.Find("img");
+        img.MarkupMatches(
+            @<img src="images/users/3_thumbnail_128.jpeg">
+        );
+    }
+
+    [TestCase(ImageService.ImageSize.SMALL)]
+    [TestCase(ImageService.ImageSize.MEDIUM)]
+    [TestCase(ImageService.ImageSize.LARGE)]
+    public void Test_SavedThumbnailForUserWithSize(ImageService.ImageSize size)
+    {
+        var cut = Render(
+            @<Thumbnail UserId="@userWithImageId" Size=size />
+        );
+
+        var img = cut.Find("img");
+        string expectedsrc = $"images/users/3_thumbnail_{(int)size}.jpeg";
+        img.MarkupMatches(
+            @<img src="@expectedsrc">
+        );
+    }
+
+    [Test]
+    public void Test_SavedThumbnailForOrg()
+    {
+        var cut = Render(
+            @<Thumbnail OrgId="@orgWithImageId" />
+        );
+
+        var img = cut.Find("img");
+        img.MarkupMatches(
+            @<img src="images/orgs/1_thumbnail_128.jpeg">
+        );
+    }
+
+    [TestCase(ImageService.ImageSize.SMALL)]
+    [TestCase(ImageService.ImageSize.MEDIUM)]
+    [TestCase(ImageService.ImageSize.LARGE)]
+    public void Test_SavedThumbnailForOrgrWithSize(ImageService.ImageSize size)
+    {
+        var cut = Render(
+            @<Thumbnail OrgId="@orgWithImageId" Size=size />
+        );
+
+        var img = cut.Find("img");
+        string expectedsrc = $"images/orgs/1_thumbnail_{(int)size}.jpeg";
+        img.MarkupMatches(
+            @<img src="@expectedsrc">
+        );
+    }
+
+    [Test]
+    public void Test_AttributeSplatting()
+    {
+        var cut = Render(
+            @<Thumbnail UserId="@userWithImageId" id="thumbnail" class="img" />
+        );
+
+        var imgById = cut.Find("#thumbnail");
+        var imgByClass = cut.Find(".img");
+
+        imgById.MarkupMatches(
+            @<img src="images/users/3_thumbnail_128.jpeg" id="thumbnail" class="img">
+        );
+
+        imgByClass.MarkupMatches(
+            @<img src="images/users/3_thumbnail_128.jpeg" id="thumbnail" class="img">
+        );
+    }
+}

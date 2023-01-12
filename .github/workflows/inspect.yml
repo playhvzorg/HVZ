@@ -4,13 +4,14 @@ on: [pull_request]
 
 jobs:
   inspect:
-
     runs-on: self-hosted
-
     steps:
       - uses: actions/checkout@v3
+      - name: Restore Packages
+        run: dotnet restore
       - name: build solution before analysis
-        run: dotnet build
+        run: dotnet build -c Debug -warnaserror
+        
       - name: determine changed files
         uses: lots0logs/gh-action-get-changed-files@2.1.4
         with:
