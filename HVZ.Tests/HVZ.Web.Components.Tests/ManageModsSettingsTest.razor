@@ -1,4 +1,4 @@
-@using HVZ.Web.Shared
+@using HVZ.Web.Services
 @using HVZ.Web.Shared.Org_Settings
 @using HVZ.Web.Identity.Models
 @using Microsoft.AspNetCore.Identity
@@ -11,12 +11,14 @@
 
     Mock<IOrgRepo> mockOrgRepo = new Mock<IOrgRepo>();
     Mock<IUserRepo> mockUserRepo = new Mock<IUserRepo>();
-    @* Mock<IUserStore<ApplicationUser>> mockUserStore = new Mock<IUserStore<ApplicationUser>>(); *@
+    Mock<ImageService> mockImageService = new Mock<ImageService>();
     Mock<UserManager<ApplicationUser>> mockUserManager = 
         new Mock<UserManager<ApplicationUser>>( 
             new Mock<IUserStore<ApplicationUser>>().Object,
                 null, null, null, null, null, null, null, null);
     
+    User defaultUser = new User("0", "Default User", "default.user@mail.tld");
+
     string orgId = "0";
 
     HashSet<string> adminIds = new HashSet<string>(
@@ -84,9 +86,12 @@
                 }
             );
 
+        mockUserRepo.Setup(repo => repo.GetUserById(It.IsAny<string>())).ReturnsAsync(defaultUser);
+
         Services.AddSingleton<IOrgRepo>(mockOrgRepo.Object);
         Services.AddSingleton<IUserRepo>(mockUserRepo.Object);
         Services.AddSingleton<UserManager<ApplicationUser>>(mockUserManager.Object);
+        Services.AddSingleton<ImageService>(mockImageService.Object);
         Services.AddAuthorization();
         this.AddTestAuthorization();
     }

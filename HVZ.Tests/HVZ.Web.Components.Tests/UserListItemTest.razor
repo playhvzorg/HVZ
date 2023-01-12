@@ -1,3 +1,4 @@
+@using HVZ.Web.Services
 @using HVZ.Web.Shared.Users
 @inherits Bunit.TestContext
 
@@ -10,6 +11,10 @@
 
     Mock<IUserRepo> mockUserRepo = new Mock<IUserRepo>();
     Mock<IOrgRepo> mockOrgRepo = new Mock<IOrgRepo>();
+    Mock<ImageService> mockImageSerice = new Mock<ImageService>();
+
+    // Use in instances where information about the user is not relevant
+    User defaultUser = new User("0", "Default User", "default.user@mail.tld");
 
     [OneTimeSetUp]
     public void Setup()
@@ -27,8 +32,13 @@
             )
         );
 
+        mockUserRepo.Setup(repo => repo.GetUserById(adminId)).ReturnsAsync(defaultUser);
+        mockUserRepo.Setup(repo => repo.GetUserById(ownerId)).ReturnsAsync(defaultUser);
+        mockUserRepo.Setup(repo => repo.GetUserById(modId)).ReturnsAsync(defaultUser);
+
         Services.AddSingleton<IOrgRepo>(mockOrgRepo.Object);
         Services.AddSingleton<IUserRepo>(mockUserRepo.Object);
+        Services.AddSingleton<ImageService>(mockImageSerice.Object);
     }
 
     IRenderedFragment RenderAsAdmin(string id)
