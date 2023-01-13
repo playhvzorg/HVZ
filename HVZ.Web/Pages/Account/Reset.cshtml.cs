@@ -13,6 +13,8 @@ namespace HVZ.Web.Pages
         private IHttpContextAccessor httpContextAccessor;
         private ILogger<LoginModel> logger;
         private SignInManager<ApplicationUser> signInManager;
+        public bool passwordResetSuccess;
+        
         [BindProperty]
         public ResetModel ResetModelProperty { get; set; }
         public ResetPageModel(UserManager<ApplicationUser> userManager, IHttpContextAccessor httpContextAccessor, ILogger<LoginModel> logger, EmailService emailService, SignInManager<ApplicationUser> signInManager)
@@ -22,6 +24,7 @@ namespace HVZ.Web.Pages
             this.logger = logger;
             this.signInManager = signInManager;
             this.ResetModelProperty = new();
+            this.passwordResetSuccess = false;
         }
 
         public async Task<IActionResult> OnPostAsync(string requestId, string userId)
@@ -41,7 +44,7 @@ namespace HVZ.Web.Pages
             {
                 logger.LogInformation($"Password reset for {appUser.Email} from {HttpContext.Connection.RemoteIpAddress?.ToString()}");
                 await signInManager.PasswordSignInAsync(appUser, ResetModelProperty.Password, false, false);
-                return Redirect("/");
+                passwordResetSuccess = true;
             }
             else
             {

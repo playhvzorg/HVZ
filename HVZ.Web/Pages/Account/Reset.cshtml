@@ -17,6 +17,17 @@
 <title>Reset Password</title>
 <body class="pt-5">
     <div class="container align-middle">
+        @if (Model.passwordResetSuccess == true)
+        {
+            <div class="justify-content-center">
+                <h1 class="text-center">Password successfully updated</h1>
+                <div class="text-center">
+                    <a href="/" class="btn btn-primary btn-lg">Home</a>
+                </div>
+            </div>
+        }
+        @if (Model.passwordResetSuccess == false)
+        {
         <div class="row">
             <h1 class="text-center">Reset Password</h1>
             
@@ -42,6 +53,7 @@
                 </form>
             </div>
         </div>
+        }
     </div>
 
     
