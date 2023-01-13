@@ -54,7 +54,7 @@ namespace HVZ.Web.Pages
 
                 HVZ.Models.User dbUser;
 
-                try 
+                try
                 {
                     dbUser = await userRepo.CreateUser(
                         UserModel.FullName,
