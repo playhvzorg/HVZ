@@ -13,6 +13,7 @@ namespace HVZ.Web.Pages
         private IHttpContextAccessor httpContextAccessor;
         private ILogger<LoginModel> logger;
         private EmailService emailService;
+        public bool emailSent;
         [BindProperty]
         public ResetRequestModel ResetRequestModelProperty { get; set; }
         public ResetRequestPageModel(UserManager<ApplicationUser> userManager, IHttpContextAccessor httpContextAccessor, ILogger<LoginModel> logger, EmailService emailService)
@@ -22,6 +23,7 @@ namespace HVZ.Web.Pages
             this.logger = logger;
             this.emailService = emailService;
             this.ResetRequestModelProperty = new();
+            this.emailSent = false;
         }
 
         public async Task<IActionResult> OnPostAsync()
@@ -36,6 +38,7 @@ namespace HVZ.Web.Pages
             string passwordResetToken = await userManager.GeneratePasswordResetTokenAsync(appUser);
             await emailService.SendPasswordChangeEmailAsync(appUser.Email, appUser.FullName, HttpUtility.UrlEncode(passwordResetToken), appUser.Id.ToString());
             logger.LogInformation($"Password reset requested for {appUser.Email} from {HttpContext.Connection.RemoteIpAddress?.ToString()}");
+            emailSent = true;
             return Page();
         }
     }
