@@ -14,7 +14,7 @@ namespace HVZ.Web.Pages
         private ILogger<LoginModel> logger;
         private SignInManager<ApplicationUser> signInManager;
         public bool passwordResetSuccess;
-        
+
         [BindProperty]
         public ResetModel ResetModelProperty { get; set; }
         public ResetPageModel(UserManager<ApplicationUser> userManager, IHttpContextAccessor httpContextAccessor, ILogger<LoginModel> logger, EmailService emailService, SignInManager<ApplicationUser> signInManager)
