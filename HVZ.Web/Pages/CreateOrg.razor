@@ -114,11 +114,9 @@
         if(orgName == string.Empty || orgName == null)
             return;
         
-        @* TODO check that org with name or URL does not exist already and update validation *@
         var existingOrg = await OrgRepo.FindOrgByUrl(orgUrl);
         if (existingOrg is not null)
         {
-            @* Error is already being displayed *@
             return;
         }
 
