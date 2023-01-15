@@ -107,15 +107,15 @@
         var email = authState.User.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value;
         var authUser = await UserManager.FindByEmailAsync(email ?? "");
         
+        if(authUser == null)
+            // Something has gone seriously wrong
+            return;
+        
         if (!authUser.EmailConfirmed)
         {
             error = "Confirm your email before creating an org";
             return;
         }
-
-        if(authUser == null)
-            // Something has gone seriously wrong
-            return;
 
         if(orgName == string.Empty || orgName == null)
             return;
