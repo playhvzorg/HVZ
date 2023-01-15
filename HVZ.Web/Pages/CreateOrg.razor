@@ -103,9 +103,15 @@
     async Task CreateNewOrg()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        
         var email = authState.User.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value;
-        // Email cannot be null, but dotnet does not know that
         var authUser = await UserManager.FindByEmailAsync(email ?? "");
+        
+        if (!authUser.EmailConfirmed)
+        {
+            error = "Confirm your email before creating an org";
+            return;
+        }
 
         if(authUser == null)
             // Something has gone seriously wrong
