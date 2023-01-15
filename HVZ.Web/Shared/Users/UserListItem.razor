@@ -69,9 +69,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if (UserId == null) return;
-        if (OrgId == null) return;
-        if (OwnerId == null) return;
+        if (UserId == null || OrgId == null || OwnerId == null) throw new ArgumentNullException($"UserId, OrgId, and OwnerId cannot be null.\nUserId: {UserId ?? "null"}\nOrgId: {OrgId ?? "null"}\nOwnerId: {OwnerId ?? "null"}");
         
         user = await UserRepo.FindUserById(UserId);
         userIsAdmin = await OrgRepo.IsAdminOfOrg(OrgId, UserId);
@@ -81,8 +79,7 @@
 
     async Task SetMod()
     {
-        if (UserId == null) return;
-        if (OrgId == null) return;
+        if (UserId == null || OrgId == null) return;
 
         await OrgRepo.RemoveAdmin(OrgId, UserId);
         await OrgRepo.AddModerator(OrgId, UserId);
@@ -91,7 +88,7 @@
         Organization? org = await OrgRepo.FindOrgById(OrgId);
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
 
-        string? validationError = Validate(authState, org);
+        string? validationError = ValidateState(authState, org);
 
         if(validationError != null)
         {
@@ -105,8 +102,7 @@
 
     async Task SetAdmin()
     {
-        if (UserId == null) return;
-        if (OrgId == null) return;
+        if (UserId == null || OrgId == null) return;
         
         await OrgRepo.RemoveModerator(OrgId, UserId);
         await OrgRepo.AddAdmin(OrgId, UserId);
@@ -115,7 +111,7 @@
         Organization? org = await OrgRepo.FindOrgById(OrgId);
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
 
-        string? validationError = Validate(authState, org);
+        string? validationError = ValidateState(authState, org);
 
         if(validationError != null)
         {
@@ -129,8 +125,7 @@
 
     async Task RemoveUser()
     {
-        if (UserId == null) return;
-        if (OrgId == null) return;
+        if (UserId == null || OrgId == null) return;
 
         await OrgRepo.RemoveAdmin(OrgId, UserId);
         await OrgRepo.RemoveModerator(OrgId, UserId);
@@ -139,7 +134,7 @@
         Organization? org = await OrgRepo.FindOrgById(OrgId);
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
 
-        string? validationError = Validate(authState, org);
+        string? validationError = ValidateState(authState, org);
 
         if(validationError != null)
         {
@@ -155,9 +150,8 @@
     /// Verify that state is correct
     /// </summary>
     /// <returns>error message if there is an error or null if there are no errors</returns>
-    string? Validate(AuthenticationState? authState, Organization? org)
+    string? ValidateState(AuthenticationState? authState, Organization? org)
     {
-        // Check that the user is valid
         if (user is null)
         {
             return $"User with ID {UserId} is null";
