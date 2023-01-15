@@ -174,8 +174,6 @@
         var cut = RenderAsAdmin(adminId);
 
         Assert.Throws<Bunit.ElementNotFoundException>(() =>cut.Find($"#set-admin-{adminId}"));
-    
-        @* cut.Find($"#set-admin-{adminId}"); *@
     }
 
     [Test]

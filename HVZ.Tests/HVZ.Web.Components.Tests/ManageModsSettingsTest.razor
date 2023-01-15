@@ -55,15 +55,15 @@
     {
         mockOrgRepo.Setup(repo => repo.FindOrgById(orgId)).ReturnsAsync(
             new Organization(
-                "0",
-                "Test Org",
-                "1",
-                modIds,
-                adminIds,
-                new HashSet<Game>(),
-                "",
-                NodaTime.Instant.MinValue,
-                "testorg"
+                id:"0",
+                name:"Test Org",
+                ownerid:"1",
+                moderators:modIds,
+                administrators:adminIds,
+                games:new HashSet<Game>(),
+                activegameid:"",
+                createdat:NodaTime.Instant.MinValue,
+                url:"testorg"
             )
         );
 
@@ -94,7 +94,6 @@
         this.AddTestAuthorization();
     }
 
-    @* Test  *@
     [Test]
     public void Test_CorrectNumberOfUsersInLists()
     {

@@ -69,8 +69,8 @@
     [CascadingParameter(Name = "OrgId")]
     public string? OrgId { get; set; }
 
+    string inviteEmailTrimmed = "";
     public string? InviteEmail { get; set; }
-
     string ownerId = "";
 
     Organization? org;
@@ -83,34 +83,35 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if (OrgId is null) return;
+        if (OrgId is null) throw new ArgumentNullException("OrgId cannot be null");
+        org = await OrgRepo.GetOrgById(OrgId);
         authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        admins = await OrgRepo.GetAdminsOfOrg(OrgId);
-        mods = await OrgRepo.GetModsOfOrg(OrgId);
-        org = await OrgRepo.FindOrgById(OrgId);
-        ownerId = org?.OwnerId ?? "";
+        admins = org.Administrators;
+        mods = org.Moderators;
+        ownerId = org.OwnerId;
     }
 
     string InviteButtonEnabled() => String.IsNullOrEmpty(InviteEmail?.Trim()) ? "disabled" : "";
 
     async Task InviteUser()
     {
-        if (String.IsNullOrEmpty(InviteEmail?.Trim())) throw new ArgumentNullException("Invite email cannot be null");
+        inviteEmailTrimmed = InviteEmail?.Trim() ?? "";
+        if (String.IsNullOrEmpty(inviteEmailTrimmed)) throw new ArgumentNullException("Invite email cannot be null");
         if (OrgId is null) return;
 
-        ApplicationUser? invitedUser = await UserManager.FindByEmailAsync(InviteEmail.Trim());
+        ApplicationUser? invitedUser = await UserManager.FindByEmailAsync(inviteEmailTrimmed);
 
         if (invitedUser is null)
         {
-            SetErrorText($"Could not find user with with the email {InviteEmail.Trim()}");
-            InviteEmail = null;
+            SetErrorText($"Could not find user with with the email {inviteEmailTrimmed}");
+            ClearEmailField();
             return;
         }
 
         if (mods?.Contains(invitedUser.DatabaseId) ?? false)
         {
             SetErrorText($"{invitedUser.FullName} is already a moderator");
-            InviteEmail = null;
+            ClearEmailField();
             return;
         }
 
@@ -120,17 +121,23 @@
         Logger.LogInformation($"{userName}: {userId} has added {invitedUser.FullName}: {invitedUser.DatabaseId} as a moderator to {org?.Name}");
         mods?.Add(invitedUser.DatabaseId);
         SetSuccessText($"Added {invitedUser.FullName} to {org?.Name}");
+        ClearEmailField();
+    }
+
+    void ClearEmailField()
+    {
         InviteEmail = null;
+        inviteEmailTrimmed = "";
     }
 
     async Task RefreshMenus()
     {
         if (OrgId == null) return;
 
-        mods = await OrgRepo.GetModsOfOrg(OrgId);
-        admins = await OrgRepo.GetAdminsOfOrg(OrgId);
         org = await OrgRepo.FindOrgById(OrgId);
         if (org == null) return;
+        mods = org.Moderators;
+        admins = org.Administrators;
         ownerId = org.OwnerId;
     }
 
