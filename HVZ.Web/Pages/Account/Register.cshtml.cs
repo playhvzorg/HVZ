@@ -1,11 +1,9 @@
 using System.Web;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using HVZ.Web.Identity.Models;
 using HVZ.Web.Services;
-using HVZ.Models;
 using HVZ.Persistence;
 
 namespace HVZ.Web.Pages
@@ -50,14 +48,24 @@ namespace HVZ.Web.Pages
                 ApplicationUser? authUser = await userManager.FindByEmailAsync(UserModel.Email);
                 if (authUser != null)
                 {
-                    ModelState.AddModelError("User.Email", "User with this email already exists");
+                    ModelState.AddModelError("UserModel.Email", "This email is already in use.");
                     return Page();
                 }
 
-                HVZ.Models.User dbUser = await userRepo.CreateUser(
-                    UserModel.FullName,
-                    UserModel.Email
-                );
+                HVZ.Models.User dbUser;
+
+                try
+                {
+                    dbUser = await userRepo.CreateUser(
+                        UserModel.FullName,
+                        UserModel.Email
+                    );
+                }
+                catch (ArgumentException e)
+                {
+                    ModelState.AddModelError("UserModel.Email", e.Message);
+                    return Page();
+                }
 
                 authUser = new ApplicationUser
                 {
