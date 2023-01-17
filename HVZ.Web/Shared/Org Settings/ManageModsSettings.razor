@@ -81,14 +81,29 @@
     string? successText;
     string? errorText;
 
+    bool shouldRender = false;
+
+    protected override bool ShouldRender() => shouldRender;
+
     protected override async Task OnParametersSetAsync()
     {
-        if (OrgId is null) throw new ArgumentNullException("OrgId cannot be null");
+        if (OrgId is null)
+        {
+            // For some reason OrgId is null on the first call for OnParameterSetAsync()
+            // OnParametersSetAsync() is called twice. Once at the start
+            // and again after all the async functions have completed.
+            // shouldRender is set to true after all the async functions
+            // have completed and should throw an error if OrgId is still null
+            if (shouldRender)
+                throw new ArgumentNullException("OrgId cannot be null");
+            return;
+        }
         org = await OrgRepo.GetOrgById(OrgId);
         authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         admins = org.Administrators;
         mods = org.Moderators;
         ownerId = org.OwnerId;
+        shouldRender = true;
     }
 
     string InviteButtonEnabled() => String.IsNullOrEmpty(InviteEmail?.Trim()) ? "disabled" : "";
@@ -157,3 +172,5 @@
         errorText = text;
     }
 }
+
+

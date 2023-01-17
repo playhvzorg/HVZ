@@ -17,7 +17,7 @@
     
     User defaultUser = new User("0", "Default User", "default.user@mail.tld");
 
-    string orgId = "0";
+    readonly string orgId = "0";
 
     HashSet<string> adminIds = new HashSet<string>(
         new string[] {"1", "2"});
@@ -53,7 +53,7 @@
     [OneTimeSetUp]
     public void Setup()
     {
-        mockOrgRepo.Setup(repo => repo.FindOrgById(orgId)).ReturnsAsync(
+        mockOrgRepo.Setup(repo => repo.GetOrgById(orgId)).ReturnsAsync(
             new Organization(
                 id:"0",
                 name:"Test Org",
@@ -90,7 +90,7 @@
         Services.AddSingleton<IUserRepo>(mockUserRepo.Object);
         Services.AddSingleton<UserManager<ApplicationUser>>(mockUserManager.Object);
         Services.AddSingleton<ImageService>(mockImageService.Object);
-        Services.AddAuthorization();
+        @* Services.AddAuthorization(); *@
         this.AddTestAuthorization();
     }
 
