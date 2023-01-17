@@ -10,6 +10,8 @@ using HVZ.Web.Services;
 using MongoDB.Driver;
 using NodaTime;
 using Discord.WebSocket;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
 
 namespace HVZ.Web;
 internal static class Program
@@ -58,9 +60,9 @@ internal static class Program
             mongoConfig?.Name
         );
 
-        IGameRepo gameRepo = new GameRepo(mongoDatabase, SystemClock.Instance, logger);
-        IUserRepo userRepo = new UserRepo(mongoDatabase, SystemClock.Instance, logger);
-        IOrgRepo orgRepo = new OrgRepo(mongoDatabase, SystemClock.Instance, userRepo, gameRepo, logger);
+        IGameRepo gameRepo = new GameRepo(mongoDatabase, NodaTime.SystemClock.Instance, logger);
+        IUserRepo userRepo = new UserRepo(mongoDatabase, NodaTime.SystemClock.Instance, logger);
+        IOrgRepo orgRepo = new OrgRepo(mongoDatabase, NodaTime.SystemClock.Instance, userRepo, gameRepo, logger);
 
         builder.Services.AddSingleton<IGameRepo>(gameRepo);
         builder.Services.AddSingleton<IUserRepo>(userRepo);
@@ -108,14 +110,16 @@ internal static class Program
             builder.Services.AddSingleton<DiscordSocketClient>();
             builder.Services.AddSingleton<DiscordBot>(discordBot);
             builder.Services.AddAuthentication(opt =>
-                opt.RequireAuthenticatedSignIn = true
-            ).AddCookie().AddDiscord(x =>
             {
-                x.ClientId = discordIntegrationSettings?.ClientId!;
-                x.ClientSecret = discordIntegrationSettings?.ClientSecret!;
-                x.SaveTokens = true;
+                opt.RequireAuthenticatedSignIn = true;
             }
-        );
+            ).AddDiscord(options =>
+            {
+                options.ClientId = discordIntegrationSettings?.ClientId!;
+                options.ClientSecret = discordIntegrationSettings?.ClientSecret!;
+                options.SaveTokens = true;
+                options.ClaimActions.MapJsonKey("DiscordId", "id");
+            });
 
             #endregion
 
