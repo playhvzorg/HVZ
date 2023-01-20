@@ -22,7 +22,6 @@ namespace HVZ.Web.Identity
             // Claims that we will likely need
             identity.AddClaim(new Claim("DatabaseId", user.DatabaseId));
             identity.AddClaim(new Claim("FullName", user.FullName));
-            System.Console.WriteLine("Email Confirmed: " + user.EmailConfirmed);
             identity.AddClaim(new Claim("EmailConfirmed", user.EmailConfirmed.ToString()));
 
             return identity;
