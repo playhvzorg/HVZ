@@ -27,15 +27,15 @@
     {
         mockOrgRepo.Setup(repo => repo.FindOrgByUrl(orgUrl)).ReturnsAsync(
             new Organization(
-                "0",
-                "Test Org",
-                "1",
-                new HashSet<string>(new string[] { modId }),
-                new HashSet<string>(new string[] { adminId }),
-                new HashSet<Game>(),
-                null,
-                NodaTime.Instant.MinValue,
-                orgUrl
+                id:"0",
+                name:"Test Org",
+                ownerid:"1",
+                moderators:new HashSet<string>(new string[] { modId }),
+                administrators:new HashSet<string>(new string[] { adminId }),
+                games:new HashSet<Game>(),
+                activegameid:null,
+                createdat:NodaTime.Instant.MinValue,
+                url:orgUrl
             )
         );
         mockOrgRepo.Setup(repo => repo.IsAdminOfOrg(orgId, adminId)).ReturnsAsync(true);

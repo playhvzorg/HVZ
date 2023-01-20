@@ -151,13 +151,12 @@
 
     async Task RefreshMenus()
     {
-        if (OrgId == null) return;
+        @* if (OrgId == null) return; *@
 
-        org = await OrgRepo.FindOrgById(OrgId);
-        if (org == null) return;
-        mods = org.Moderators;
-        admins = org.Administrators;
-        ownerId = org.OwnerId;
+        org = await OrgRepo.GetOrgById(OrgId!);
+        mods = org!.Moderators;
+        admins = org!.Administrators;
+        ownerId = org!.OwnerId;
     }
 
     void SetSuccessText(string text)

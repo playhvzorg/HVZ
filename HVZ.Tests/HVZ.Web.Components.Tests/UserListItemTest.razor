@@ -27,9 +27,7 @@
         mockOrgRepo.Setup(repo => repo.IsModOfOrg(orgId, modId)).ReturnsAsync(true);
 
         mockUserRepo.Setup(repo => repo.FindUserById(adminId)).ReturnsAsync(
-            new User(
-                adminId, "Bill Smith", "bsmith@mail.com"
-            )
+            defaultUser
         );
 
         mockUserRepo.Setup(repo => repo.GetUserById(adminId)).ReturnsAsync(defaultUser);
@@ -71,7 +69,8 @@
         );
     }
 
-    @* Content Rendering Tests *@
+#region Content Rendering Tests
+    
     [Test]
     public void Test_CardHasUserFullName()
     {
@@ -137,8 +136,6 @@
         Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find($"#set-mod-{ownerId}"));
     }
 
-    @* Test that admin is handled properly *@
-
     [Test]
     public void Test_AdminDoesNotHaveOwnerBadgeForAdmin()
     {
@@ -165,8 +162,9 @@
             @<button diff:ignoreAttributes diff:ignoreChildren></button>
         );
     }
+#endregion
 
-    @* Functionality test button *@
+#region Functionality Tests
 
     [Test]
     public void Test_AdminDoesNotHaveSetAdminButtonForAdmin()
@@ -251,5 +249,6 @@
         Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find($"#user-settings-menu-{adminId}"));
     }
 
-}
+#endregion
 
+}
