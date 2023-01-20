@@ -116,7 +116,6 @@
             SetErrorText("Email cannot be empty");
             return;
         }
-        if (OrgId is null) return;
 
         ApplicationUser? invitedUser = await UserManager.FindByEmailAsync(inviteEmailTrimmed);
 
@@ -134,7 +133,7 @@
             return;
         }
 
-        await OrgRepo.AddModerator(OrgId, invitedUser.DatabaseId);
+        await OrgRepo.AddModerator(OrgId!, invitedUser.DatabaseId);
         string? userName = authState?.User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value;
         string? userId = authState?.User.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value;
         Logger.LogInformation($"{userName}: {userId} has added {invitedUser.FullName}: {invitedUser.DatabaseId} as a moderator to {org?.Name}");
@@ -151,8 +150,6 @@
 
     async Task RefreshMenus()
     {
-        @* if (OrgId == null) return; *@
-
         org = await OrgRepo.GetOrgById(OrgId!);
         mods = org!.Moderators;
         admins = org!.Administrators;
