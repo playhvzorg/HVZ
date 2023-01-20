@@ -251,4 +251,58 @@
 
 #endregion
 
+#region Null Testing
+
+    [Test]
+    public void Test_NullOrgIdThrowsError()
+    {
+        Assert.Throws<ArgumentNullException>( () =>
+            Render(
+                @<CascadingValue Value="@ownerId" Name="OwnerId">
+                    <CascadingValue Value="false" Name="IsAdmin">
+                        <CascadingValue Value="true" Name="IsMod">
+                            <UserListItem UserId="@adminId" />
+                        </CascadingValue>
+                    </CascadingValue>
+                </CascadingValue>
+            )
+        );
+    }
+
+    [Test]
+    public void Test_NullUserIdThrowsError()
+    {
+        Assert.Throws<ArgumentNullException>( () =>
+            Render(
+                @<CascadingValue Value="@orgId" Name="OrgId">
+                    <CascadingValue Value="@ownerId" Name="OwnerId">
+                        <CascadingValue Value="false" Name="IsAdmin">
+                            <CascadingValue Value="true" Name="IsMod">
+                                <UserListItem />
+                            </CascadingValue>
+                        </CascadingValue>
+                    </CascadingValue>
+                </CascadingValue>
+            )
+        );
+    }
+
+    [Test]
+    public void Test_NullOwnerIdThrowsError()
+    {
+        Assert.Throws<ArgumentNullException>( () =>
+            Render(
+                @<CascadingValue Value="@orgId" Name="OrgId">
+                    <CascadingValue Value="false" Name="IsAdmin">
+                        <CascadingValue Value="true" Name="IsMod">
+                            <UserListItem UserId="@adminId" />
+                        </CascadingValue>
+                    </CascadingValue>
+                </CascadingValue>
+            )
+        );
+    }
+
+#endregion
+
 }
