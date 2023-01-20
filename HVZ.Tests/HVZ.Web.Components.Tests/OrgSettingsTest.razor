@@ -69,7 +69,7 @@
     public void Test_UnaothorizedIsRedirected()
     {
         authContext?.SetClaims(
-            new Claim("DatabaseId", "3")
+            new Claim("DatabaseId", unauthorizedId)
         );
 
         var cut = Render(
