@@ -79,7 +79,7 @@
         var nameText = cut.Find($"#name-{adminId}");
 
         nameText.MarkupMatches(
-            @<p diff:ignoreAttributes>Bill Smith</p>
+            @<p diff:ignoreAttributes>@defaultUser.FullName</p>
         );
     }
 
@@ -91,7 +91,7 @@
         var emailText = cut.Find($"#email-{adminId}");
 
         emailText.MarkupMatches(
-            @<p diff:ignoreAttributes>bsmith@mail.com</p>
+            @<p diff:ignoreAttributes>@defaultUser.Email</p>
         );
     }
 
