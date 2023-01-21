@@ -79,13 +79,13 @@
 
     async Task SetMod()
     {
-        if (UserId == null || OrgId == null) return;
+        if (UserId == null || OrgId == null) LogCriticalThrowArgumentNullException();
 
-        await OrgRepo.RemoveAdmin(OrgId, UserId);
-        await OrgRepo.AddModerator(OrgId, UserId);
+        await OrgRepo.RemoveAdmin(OrgId!, UserId!);
+        await OrgRepo.AddModerator(OrgId!, UserId!);
         await OnChange.InvokeAsync();
         @* Logging *@
-        Organization? org = await OrgRepo.FindOrgById(OrgId);
+        Organization? org = await OrgRepo.FindOrgById(OrgId!);
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
 
         string? validationError = ValidateState(authState, org);
@@ -102,13 +102,13 @@
 
     async Task SetAdmin()
     {
-        if (UserId == null || OrgId == null) return;
+        if (UserId == null || OrgId == null) LogCriticalThrowArgumentNullException();
         
-        await OrgRepo.RemoveModerator(OrgId, UserId);
-        await OrgRepo.AddAdmin(OrgId, UserId);
+        await OrgRepo.RemoveModerator(OrgId!, UserId!);
+        await OrgRepo.AddAdmin(OrgId!, UserId!);
         await OnChange.InvokeAsync();
         @* Logging *@
-        Organization? org = await OrgRepo.FindOrgById(OrgId);
+        Organization? org = await OrgRepo.FindOrgById(OrgId!);
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
 
         string? validationError = ValidateState(authState, org);
@@ -125,13 +125,13 @@
 
     async Task RemoveUser()
     {
-        if (UserId == null || OrgId == null) return;
+        if (UserId == null || OrgId == null) LogCriticalThrowArgumentNullException();
 
-        await OrgRepo.RemoveAdmin(OrgId, UserId);
-        await OrgRepo.RemoveModerator(OrgId, UserId);
+        await OrgRepo.RemoveAdmin(OrgId!, UserId!);
+        await OrgRepo.RemoveModerator(OrgId!, UserId!);
         await OnChange.InvokeAsync();
         @* Logging *@
-        Organization? org = await OrgRepo.FindOrgById(OrgId);
+        Organization? org = await OrgRepo.FindOrgById(OrgId!);
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
 
         string? validationError = ValidateState(authState, org);
@@ -168,6 +168,17 @@
         }
 
         return null;
+    }
+
+    void LogCriticalThrowArgumentNullException()
+    {
+        string msg = "Null value escaped OnParametersSetAsync:";
+
+        if (UserId is null) msg += " UserId";
+        if (OrgId is null) msg += " OrgId";
+        
+        Logger.LogCritical(msg);
+        throw new ArgumentNullException(msg);
     }
 }
 
