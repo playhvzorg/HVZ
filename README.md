@@ -1,4 +1,5 @@
-[playhvz.org](https://playhvz.org)
+[playhvz.org](https://playhvz.org) ![Deploy status](https://github.com/github/charlotteoutdoorgaming/HVZ/actions/workflows/deploy.yml/badge.svg)
+
 ***
 
 This is a website dedicated to managing Humans Vs Zombies games. Originally created by the computer science department of UNCC's Charlotte Outdoor Gaming club, this project supports both a standalone website and optional discord integration. 
