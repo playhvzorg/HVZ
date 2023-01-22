@@ -76,6 +76,44 @@ public class UserRepoTest : MongoTestBase
     }
 
     [Test]
+    public async Task test_finduserbyemail()
+    {
+        UserRepo userRepo = CreateUserRepo();
+        string userName = "bacon";
+        string userEmail = "Bacon@bacon.bacon";
+        User createdUser = await userRepo.CreateUser(userName, userEmail);
+
+        User? foundUser = await userRepo.FindUserByEmail(userEmail);
+
+        Assert.That(foundUser, Is.Not.Null);
+        Assert.That(foundUser, Is.EqualTo(createdUser));
+
+        //test case sensitive
+        Assert.That(await userRepo.FindUserByEmail(userEmail.ToUpperInvariant()), Is.EqualTo(createdUser));
+        Assert.That(await userRepo.FindUserByEmail(userEmail.ToLowerInvariant()), Is.EqualTo(createdUser));
+
+        //test empty string passed
+        Assert.That(await userRepo.FindUserByEmail(string.Empty), Is.Null);
+    }
+
+    [Test]
+    public async Task test_getuserbyemail()
+    {
+        UserRepo userRepo = CreateUserRepo();
+        string userName = "bacon";
+        string userEmail = "Bacon@bacon.bacon";
+        string unregisteredEmail = "bob@aol.com";
+        User createdUser = await userRepo.CreateUser(userName, userEmail);
+
+        User? foundUser = await userRepo.GetUserByEmail(userEmail);
+
+        Assert.That(foundUser, Is.Not.Null);
+        Assert.That(foundUser, Is.EqualTo(createdUser));
+
+        Assert.Throws<ArgumentException>(() => userRepo.GetUserByEmail(unregisteredEmail).GetAwaiter().GetResult());
+    }
+
+    [Test]
     public async Task test_deleteUser()
     {
         UserRepo userRepo = CreateUserRepo();
