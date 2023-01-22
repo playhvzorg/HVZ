@@ -50,9 +50,6 @@
 {
     [Parameter]
     public string? UserId { get; set; }
-
-    [Parameter]
-    public EventCallback OnChange { get; set; }
     
     [CascadingParameter(Name = "OrgId")]
     public string? OrgId { get; set; }
@@ -83,7 +80,6 @@
 
         await OrgRepo.RemoveAdmin(OrgId!, UserId!);
         await OrgRepo.AddModerator(OrgId!, UserId!);
-        await OnChange.InvokeAsync();
         @* Logging *@
         Organization? org = await OrgRepo.FindOrgById(OrgId!);
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -106,7 +102,6 @@
         
         await OrgRepo.RemoveModerator(OrgId!, UserId!);
         await OrgRepo.AddAdmin(OrgId!, UserId!);
-        await OnChange.InvokeAsync();
         @* Logging *@
         Organization? org = await OrgRepo.FindOrgById(OrgId!);
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -129,7 +124,6 @@
 
         await OrgRepo.RemoveAdmin(OrgId!, UserId!);
         await OrgRepo.RemoveModerator(OrgId!, UserId!);
-        await OnChange.InvokeAsync();
         @* Logging *@
         Organization? org = await OrgRepo.FindOrgById(OrgId!);
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();

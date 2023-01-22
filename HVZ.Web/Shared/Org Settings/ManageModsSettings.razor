@@ -19,14 +19,14 @@
         <h4>Admins <span class="badge bg-secondary" id="num-admins">@admins?.Count</span></h4>
         <div id="admins-list">
             <Virtualize Items="@admins" Context="id">
-                <UserListItem UserId="@id" OnChange="RefreshMenus" />
+                <UserListItem UserId="@id" />
             </Virtualize>
         </div>
         <hr>
         <h4>Mods <span class="badge bg-secondary" id="num-mods">@mods?.Count</span></h4>
         <div id="mods-list">
             <Virtualize Items="@mods" Context="id">
-                <UserListItem UserId="@id" OnChange="RefreshMenus" />
+                <UserListItem UserId="@id" />
             </Virtualize>
         </div>
     </CascadingValue>
@@ -104,6 +104,26 @@
         mods = org.Moderators;
         ownerId = org.OwnerId;
         shouldRender = true;
+
+        OrgRepo.AdminsUpdated += delegate(object? sender, OrgUpdatedEventArgs eventArgs)
+        {
+            if (eventArgs.Org.Id == OrgId)
+            {
+                org = eventArgs.Org;
+                admins = org.Administrators;
+                InvokeAsync(StateHasChanged);
+            }
+        };
+
+        OrgRepo.ModsUpdated += delegate(object? sender, OrgUpdatedEventArgs eventArgs)
+        {
+            if (eventArgs.Org.Id == OrgId)
+            {
+                org = eventArgs.Org;
+                mods = org.Moderators;
+                InvokeAsync(StateHasChanged);
+            }
+        };
     }
 
     string InviteButtonEnabled() => String.IsNullOrEmpty(InviteEmail?.Trim()) ? "disabled" : "";
@@ -146,14 +166,6 @@
     {
         InviteEmail = null;
         inviteEmailTrimmed = "";
-    }
-
-    async Task RefreshMenus()
-    {
-        org = await OrgRepo.GetOrgById(OrgId!);
-        mods = org!.Moderators;
-        admins = org!.Administrators;
-        ownerId = org!.OwnerId;
     }
 
     void SetSuccessText(string text)
