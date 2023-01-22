@@ -8,10 +8,7 @@ on: [push]
 jobs:
   build:
 
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        mongodb-version: ['5.0']
+    runs-on: ubuntu-latest      
 
     steps:
     - name: Git checkout
@@ -30,6 +27,8 @@ jobs:
     
     - name: Start MongoDB
       uses: supercharge/mongodb-github-action@1.8.0
+      with:
+        mongodb-version: '5.0'
 
     - name: Test
       run: dotnet test --no-build --verbosity normal
