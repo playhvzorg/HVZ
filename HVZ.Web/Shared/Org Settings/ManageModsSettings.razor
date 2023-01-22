@@ -157,7 +157,6 @@
         string? userName = authState?.User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value;
         string? userId = authState?.User.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value;
         Logger.LogInformation($"{userName}: {userId} has added {invitedUser.FullName}: {invitedUser.DatabaseId} as a moderator to {org?.Name}");
-        mods?.Add(invitedUser.DatabaseId);
         SetSuccessText($"Added {invitedUser.FullName} to {org?.Name}");
         ClearEmailField();
     }
