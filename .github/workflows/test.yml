@@ -29,6 +29,7 @@ jobs:
       uses: supercharge/mongodb-github-action@1.8.0
       with:
         mongodb-version: '5.0'
+        mongodb-replica-set: rs0
 
     - name: Test
       run: dotnet test --no-build --verbosity normal
