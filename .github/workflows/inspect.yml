@@ -26,7 +26,12 @@ jobs:
 
     - name: build solution before analysis
       run: dotnet build -c Debug -warnaserror
-
+      
+    - name: determine changed files
+      uses: lots0logs/gh-action-get-changed-files@2.1.4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
     - name: run resharper
       run: |
         changed_files=$(jq --raw-output 'join(";")' "${HOME}/files.json")
