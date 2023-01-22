@@ -101,4 +101,24 @@ public interface IOrgRepo
     /// <param name="userId"></param>
     /// <returns>Whether the user is an moderator</returns>
     public Task<bool> IsModOfOrg(string orgId, string userId);
+
+    /// <summary>
+    /// Event that fires whenever someone is added to or removed from an org's Administrators
+    /// </summary>
+    public event EventHandler<OrgUpdatedEventArgs> AdminsUpdated;
+
+    /// <summary>
+    /// Event that fires whenever someone is added to or removed from an org's Moderators
+    /// </summary>
+    public event EventHandler<OrgUpdatedEventArgs> ModsUpdated;
+}
+
+public class OrgUpdatedEventArgs : EventArgs
+{
+    public Organization Org;
+
+    public OrgUpdatedEventArgs(Organization org)
+    {
+        Org = org;
+    }
 }
