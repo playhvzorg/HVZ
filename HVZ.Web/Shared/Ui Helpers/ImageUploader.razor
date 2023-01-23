@@ -1,0 +1,86 @@
+@using HVZ.Web.Services
+@inject ImageService ImageService
+
+<label class="label">
+    @if (file is null)
+    {
+        <Thumbnail UserId="@UserId" OrgId="@OrgId" Size="@Size" />
+    }
+    else
+    {
+        <img src="@imgSrc" height="@sizeInt" width="@sizeInt" >
+        <p class="text-muted "><em>@file.Name</em></p>
+    }
+    <InputFile class="d-none" name="img-upload" accept="image/*" OnChange="@StageFile" />
+</label>
+
+@code
+{
+    [Parameter]
+    public ImageService.ImageSize Size { get; set; } = ImageService.ImageSize.MEDIUM;
+    
+    [Parameter]
+    public string? UserId { get; set; }
+
+    [Parameter]
+    public string? OrgId { get; set; }
+
+    string imgSrc = "";
+
+    IBrowserFile? file;
+
+    int sizeInt = (int)ImageService.ImageSize.MEDIUM;
+
+    protected override void OnParametersSet()
+    {
+        sizeInt = (int)Size;
+    }
+
+    public async Task SaveFile()
+    {
+        if (file is null) return;
+
+        if (UserId is not null)
+        {
+            await ImageService.SaveUserImage(file, UserId);
+            file = null;
+            return;
+        }
+
+        if (OrgId is not null)
+        {
+            await ImageService.SaveOrgImage(file, OrgId);
+            file = null;
+            return;
+        }
+    }
+
+    private async Task StageFile(InputFileChangeEventArgs e)
+    {
+        file = e.File;
+        if (file.ContentType.Split("/")[0] != "image")
+        {
+            throw new ArgumentException("Content type must be image");
+        }
+        string imgBase64 = await BrowserFileToBase64String(file);
+        imgSrc = String.Format(
+            "data:{0};base64,{1}",
+            file.ContentType,
+            imgBase64
+        );
+    }
+
+    private async Task<string> BrowserFileToBase64String(IBrowserFile file)
+    {
+        byte[] bytes;
+
+        using (var ms = new MemoryStream())
+        {
+            @* Max upload size 4Mb *@
+            await file.OpenReadStream(4000000).CopyToAsync(ms);
+            bytes = ms.ToArray();
+        }
+
+        return System.Convert.ToBase64String(bytes);
+    }
+}
