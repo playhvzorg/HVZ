@@ -21,22 +21,29 @@
     string modId = "2";
     string unauthorizedId = "3";
     string orgUrl = "testorg";
+
+    Organization org = null!;
     
     [OneTimeSetUp]
     public void Setup()
     {
+        org = new Organization(
+            id:orgId,
+            name:"Test Org",
+            ownerid:"1",
+            moderators:new HashSet<string>(new string[] { modId }),
+            administrators:new HashSet<string>(new string[] { adminId }),
+            games:new HashSet<Game>(),
+            activegameid:null,
+            createdat:NodaTime.Instant.MinValue,
+            url:orgUrl
+        );
+
         mockOrgRepo.Setup(repo => repo.FindOrgByUrl(orgUrl)).ReturnsAsync(
-            new Organization(
-                id:"0",
-                name:"Test Org",
-                ownerid:"1",
-                moderators:new HashSet<string>(new string[] { modId }),
-                administrators:new HashSet<string>(new string[] { adminId }),
-                games:new HashSet<Game>(),
-                activegameid:null,
-                createdat:NodaTime.Instant.MinValue,
-                url:orgUrl
-            )
+            org
+        );
+        mockOrgRepo.Setup(repo => repo.GetOrgById(orgId)).ReturnsAsync(
+            org
         );
         mockOrgRepo.Setup(repo => repo.IsAdminOfOrg(orgId, adminId)).ReturnsAsync(true);
         mockOrgRepo.Setup(repo => repo.IsAdminOfOrg(orgId, modId)).ReturnsAsync(false);
