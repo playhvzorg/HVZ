@@ -6,8 +6,12 @@
 
 <CascadingValue Value="@IsAdmin" Name="IsAdmin">
     <CascadingValue Value="@IsMod" Name="IsMod">
-        <CascadingValue Value="@OrgId" Name="OrgId">
-            @ChildContent
+        <CascadingValue Value="@OwnerId" Name="OwnerId">
+            <CascadingValue Value="@this" Name="OrgAuth">
+                <CascadingValue Value="@Org" Name="Org">
+                    @ChildContent
+                </CascadingValue>
+            </CascadingValue>
         </CascadingValue>
     </CascadingValue>
 </CascadingValue>
@@ -25,6 +29,8 @@
     private string? userId = "";
     public bool IsAdmin { get; private set; }
     public bool IsMod { get; private set; }
+    public string OwnerId { get; set; } = "";
+    public Organization Org { get; set; } = null!;
     private bool shouldRender;
 
     protected override bool ShouldRender() => shouldRender;
@@ -37,12 +43,20 @@
         
         if(OrgId != null && userId != null)
         {
+            Org = await OrgRepo.GetOrgById(OrgId);
+
             IsAdmin = await OrgRepo.IsAdminOfOrg(OrgId, userId);
             IsMod = IsAdmin || await OrgRepo.IsModOfOrg(OrgId, userId);
+            OwnerId = Org.OwnerId;
+
             Logger.LogDebug($"User ID: {userId}; Org ID: {OrgId}\nUser has admin: {IsAdmin}; User has mod: {IsMod}");
             shouldRender = true;
         }
+    }
 
-        shouldRender = true;
+    public void Refresh()
+    {
+        StateHasChanged();
+        InvokeAsync(OnParametersSetAsync);
     }
 }
