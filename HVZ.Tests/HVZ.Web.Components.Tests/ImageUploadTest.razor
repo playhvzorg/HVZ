@@ -1,0 +1,132 @@
+
+@using HVZ.Web.Shared.Ui_Helpers
+
+@inherits Bunit.TestContext
+
+@code
+{
+    Mock<ImageService> mockImageService = new Mock<ImageService>();
+    Mock<IUserRepo> mockUserRepo = new Mock<IUserRepo>();
+    Mock<IOrgRepo> mockOrgRepo = new Mock<IOrgRepo>();
+
+    string orgId = "0";
+    string userId = "1";
+
+    byte[] imageData = null!;
+    string imageDataBase64 = null!;
+
+    [OneTimeSetUp]
+    public void Setup()
+    {
+        using (var fs = new FileStream($"../../../resources/0.png", FileMode.Open))
+        {
+            using (var ms = new MemoryStream())
+            {
+                fs.CopyTo(ms);
+                imageData = ms.ToArray();
+            }
+        }
+
+        imageDataBase64 = Convert.ToBase64String(imageData);
+
+        @* Services *@
+        mockImageService.Setup(service => service.HasUploadedOrgImage(orgId)).Returns(true);
+        mockImageService.Setup(service => service.HasUploadedUserImage(userId)).Returns(true);
+    
+        Services.AddSingleton<ImageService>(mockImageService.Object);
+        Services.AddSingleton<IUserRepo>(mockUserRepo.Object);
+        Services.AddSingleton<IOrgRepo>(mockOrgRepo.Object);
+    }
+
+    [Test]
+    public void Test_CurrentThumnailPreviewForUser()
+    {
+        var cut = Render(@<ImageUploader UserId="@userId" />);
+        
+        Assert.DoesNotThrow(
+            () => cut.FindComponent<Thumbnail>()
+        );
+    }
+
+    [Test]
+    public void Test_CurrentThumbnailPreviewForOrg()
+    {
+        var cut = Render(@<ImageUploader OrgId="@orgId" />);
+
+        Assert.DoesNotThrow(
+            () => cut.FindComponent<Thumbnail>()
+        );
+    }
+
+    [TestCase(ImageService.ImageSize.SMALL)]
+    [TestCase(ImageService.ImageSize.MEDIUM)]
+    [TestCase(ImageService.ImageSize.LARGE)]
+    public void Test_UploadedImagePreviewForUser(ImageService.ImageSize size)
+    {
+        int sizeInt = (int)size;
+        var testFile = InputFileContent.CreateFromBinary(imageData, "0.png", null, "image/png");
+
+        var cut = Render(
+            @<ImageUploader UserId="@userId" Size=size />
+        );
+
+        string srcString = $"data:image/png;base64,{imageDataBase64}";
+
+        var input = cut.FindComponent<InputFile>();
+        
+        input.UploadFiles(testFile);
+
+        var img = cut.Find("img");
+        img.MarkupMatches(
+            @<img src="@srcString" height="@sizeInt" width="@sizeInt">
+        );
+    }
+
+    [TestCase(ImageService.ImageSize.SMALL)]
+    [TestCase(ImageService.ImageSize.MEDIUM)]
+    [TestCase(ImageService.ImageSize.LARGE)]
+    public void Test_UploadedImagePreviewForOrg(ImageService.ImageSize size)
+    {
+        int sizeInt = (int)size;
+        var testFile = InputFileContent.CreateFromBinary(imageData, "0.png", null, "image/png");
+
+        var cut = Render(
+            @<ImageUploader OrgId="@orgId" Size=size />
+        );
+
+        string srcString = $"data:image/png;base64,{imageDataBase64}";
+
+        var input = cut.FindComponent<InputFile>();
+
+        input.UploadFiles(testFile);
+
+        var img = cut.Find("img");
+        img.MarkupMatches(
+            @<img src="@srcString" height="@sizeInt" width="@sizeInt">
+        );
+    }
+
+    [Test]
+    public void Test_ThrowErrorForNonImage()
+    {
+        var testFile = InputFileContent.CreateFromText("Not an image", "text.txt", null, "text/txt");
+
+        var cut = Render(
+            @<ImageUploader UserId="@userId" />
+        );
+
+        var input = cut.FindComponent<InputFile>();
+
+        input.UploadFiles(testFile);
+
+        var errorText = cut.Find("#error-text");
+        errorText.MarkupMatches(
+            @<p class="text-danger" id="error-text">File must be an image</p>
+        );
+
+        Assert.DoesNotThrow(
+            () => cut.FindComponent<Thumbnail>()
+        );
+
+    }
+}

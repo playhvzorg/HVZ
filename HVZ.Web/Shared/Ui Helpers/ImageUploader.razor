@@ -5,6 +5,7 @@
     @if (file is null)
     {
         <Thumbnail UserId="@UserId" OrgId="@OrgId" Size="@Size" />
+        <p class="text-danger" id="error-text">@errorText</p>
     }
     else
     {
@@ -26,6 +27,8 @@
     public string? OrgId { get; set; }
 
     string imgSrc = "";
+
+    string? errorText = null;
 
     IBrowserFile? file;
 
@@ -57,10 +60,14 @@
 
     private async Task StageFile(InputFileChangeEventArgs e)
     {
+        errorText = null;
         file = e.File;
         if (file.ContentType.Split("/")[0] != "image")
         {
-            throw new ArgumentException("Content type must be image");
+            @* throw new ArgumentException("Content type must be image"); *@
+            errorText = "File must be an image";
+            file = null;
+            return;
         }
         string imgBase64 = await BrowserFileToBase64String(file);
         imgSrc = String.Format(
