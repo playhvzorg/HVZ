@@ -80,6 +80,13 @@
         img.MarkupMatches(
             @<img src="@srcString" height="@sizeInt" width="@sizeInt">
         );
+
+        var imgName = cut.Find("#img-name");
+        imgName.MarkupMatches(
+            @<p class="text-muted" id="img-name">
+                <em>0.png</em>
+            </p>
+        );
     }
 
     [TestCase(ImageService.ImageSize.SMALL)]
@@ -103,6 +110,13 @@
         var img = cut.Find("img");
         img.MarkupMatches(
             @<img src="@srcString" height="@sizeInt" width="@sizeInt">
+        );
+
+        var imgName = cut.Find("#img-name");
+        imgName.MarkupMatches(
+            @<p class="text-muted" id="img-name">
+                <em>0.png</em>
+            </p>
         );
     }
 
