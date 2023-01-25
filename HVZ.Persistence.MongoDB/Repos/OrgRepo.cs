@@ -17,6 +17,9 @@ public class OrgRepo : IOrgRepo
     private readonly IClock _clock;
     private readonly ILogger _logger;
 
+    public event EventHandler<OrgUpdatedEventArgs>? AdminsUpdated;
+    public event EventHandler<OrgUpdatedEventArgs>? ModsUpdated;
+
     static OrgRepo()
     {
         BsonClassMap.RegisterClassMap<Organization>(cm =>
@@ -152,6 +155,8 @@ public class OrgRepo : IOrgRepo
 
         org.Administrators.Add(userId);
         _logger.LogTrace($"User {userId} added to admin group of org {orgId}");
+        OnAdminsUpdated(new(org));
+
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Administrators, org.Administrators),
             new() { ReturnDocument = ReturnDocument.After }
@@ -166,6 +171,8 @@ public class OrgRepo : IOrgRepo
 
         org.Administrators.Remove(userId);
         _logger.LogTrace($"User {userId} removed from admin group of org {orgId}");
+        OnAdminsUpdated(new(org));
+
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Administrators, org.Administrators),
             new() { ReturnDocument = ReturnDocument.After }
@@ -196,6 +203,8 @@ public class OrgRepo : IOrgRepo
 
         org.Moderators.Add(userId);
         _logger.LogTrace($"User {userId} added to moderator group of org {orgId}");
+        OnModsUpdated(new(org));
+
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Moderators, org.Moderators),
             new() { ReturnDocument = ReturnDocument.After }
@@ -208,6 +217,8 @@ public class OrgRepo : IOrgRepo
 
         org.Moderators.Remove(userId);
         _logger.LogTrace($"User {userId} removed from moderator group of org {orgId}");
+        OnModsUpdated(new(org));
+
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Moderators, org.Moderators),
             new() { ReturnDocument = ReturnDocument.After }
@@ -224,5 +235,23 @@ public class OrgRepo : IOrgRepo
     {
         var mods = await GetModsOfOrg(orgId);
         return mods.Contains(userId);
+    }
+
+    protected virtual void OnAdminsUpdated(OrgUpdatedEventArgs o)
+    {
+        EventHandler<OrgUpdatedEventArgs>? handler = AdminsUpdated;
+        if (handler != null)
+        {
+            handler(this, o);
+        }
+    }
+
+    protected virtual void OnModsUpdated(OrgUpdatedEventArgs o)
+    {
+        EventHandler<OrgUpdatedEventArgs>? handler = ModsUpdated;
+        if (handler != null)
+        {
+            handler(this, o);
+        }
     }
 }

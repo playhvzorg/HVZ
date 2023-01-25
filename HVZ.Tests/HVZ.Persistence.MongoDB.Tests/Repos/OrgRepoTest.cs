@@ -301,4 +301,54 @@ public class OrgRepotest : MongoTestBase
         Assert.That(await orgRepo.CreateGame(gameName, userid, org.Id), Is.Not.Null);
         Assert.ThrowsAsync<ArgumentException>(() => orgRepo.CreateGame(gameName, otherUserId, org.Id));
     }
+
+    [Test]
+    public async Task test_orgadminsupdatedevent()
+    {
+        string orgname = "test";
+        string orgurl = "testurl";
+        string userid = "0";
+        string newuserid = "1";
+        Organization? eventOrg = null;
+
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
+
+        orgRepo.AdminsUpdated += delegate (object? sender, OrgUpdatedEventArgs args)
+        {
+            eventOrg = args.Org;
+        };
+
+        await orgRepo.AddAdmin(org.Id, newuserid);
+        Assert.That(eventOrg, Is.Not.Null);
+
+        eventOrg = null;
+
+        await orgRepo.RemoveAdmin(org.Id, newuserid);
+        Assert.That(eventOrg, Is.Not.Null);
+    }
+
+    [Test]
+    public async Task test_orgmodsupdatedevent()
+    {
+        string orgname = "test";
+        string orgurl = "testurl";
+        string userid = "0";
+        string newuserid = "1";
+        Organization? eventOrg = null;
+
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
+
+        orgRepo.ModsUpdated += delegate (object? sender, OrgUpdatedEventArgs args)
+        {
+            eventOrg = args.Org;
+        };
+
+        await orgRepo.AddModerator(org.Id, newuserid);
+        Assert.That(eventOrg, Is.Not.Null);
+
+        eventOrg = null;
+
+        await orgRepo.RemoveModerator(org.Id, newuserid);
+        Assert.That(eventOrg, Is.Not.Null);
+    }
 }
