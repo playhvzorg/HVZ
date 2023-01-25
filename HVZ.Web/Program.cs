@@ -150,12 +150,8 @@ internal static class Program
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.UseEndpoints(endpoints =>
-            endpoints.MapDefaultControllerRoute()
-        );
-
         app.MapBlazorHub();
-        // app.MapControllers(); // Enable for API
+        app.MapControllers();
         app.MapFallbackToPage("/_Host");
 
         app.Run();
