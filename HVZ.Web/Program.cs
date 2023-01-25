@@ -102,25 +102,10 @@ internal static class Program
         bool discordIntegrationEnabled = discordIntegrationSettings is not null;
         if (discordIntegrationEnabled)
         {
-            var config = new DiscordSocketConfig()
-            {
-
-            };
             var discordBot = DiscordBot.instance;
             builder.Services.AddSingleton<DiscordSocketClient>();
             builder.Services.AddSingleton<DiscordBot>(discordBot);
-            builder.Services.AddAuthentication(opt =>
-            {
-                opt.RequireAuthenticatedSignIn = true;
-            }
-            ).AddDiscord(options =>
-            {
-                options.ClientId = discordIntegrationSettings?.ClientId!;
-                options.ClientSecret = discordIntegrationSettings?.ClientSecret!;
-                options.SaveTokens = true;
-                options.ClaimActions.MapJsonKey("DiscordId", "id");
-            });
-
+            builder.Services.AddSingleton<DiscordIntegrationSettings>(discordIntegrationSettings!);
             #endregion
 
         }
