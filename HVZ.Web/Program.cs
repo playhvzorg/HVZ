@@ -33,11 +33,9 @@ internal static class Program
 
         #region Generic options
 
-        builder.Services.Configure<WebConfig>(
-            builder.Configuration.GetSection(
-                nameof(WebConfig)
-            )
-        );
+        var webConfig = builder.Configuration.GetSection(nameof(WebConfig));
+        builder.Services.Configure<WebConfig>(webConfig);
+        builder.Services.AddSingleton<WebConfig>(webConfig.Get<WebConfig>()!);
 
         #endregion
 

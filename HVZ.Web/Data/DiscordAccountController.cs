@@ -1,8 +1,9 @@
 using System.Net.Http.Headers;
+using System.Security.Claims;
+using HVZ.Web.Identity.Models;
 using HVZ.Web.Settings;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 
@@ -15,34 +16,37 @@ namespace HVZ.Web.Data
         public IDataProtectionProvider Provider { get; }
 
         private DiscordIntegrationSettings DiscordSettings;
+        private UserManager<ApplicationUser> UserManager;
+        private WebConfig WebConfig;
 
-        public DiscordAccountController(IDataProtectionProvider provider, DiscordIntegrationSettings settings)
+        public DiscordAccountController(IDataProtectionProvider provider, DiscordIntegrationSettings settings, UserManager<ApplicationUser> userManager, WebConfig webConfig)
         {
             Provider = provider;
             DiscordSettings = settings;
+            UserManager = userManager;
+            WebConfig = webConfig;
         }
 
         [HttpGet]
-        public IActionResult Login(string returnUrl = "/discord/logincallback")
+        public IActionResult Login()
         {
-            string redirectUri = "https://localhost:7284/discord/logincallback";
+            string redirectUri = WebConfig.DomainName + "discord/logincallback";
             return Redirect($"https://discord.com/api/oauth2/authorize?client_id={DiscordSettings.ClientId!}&redirect_uri={redirectUri}&response_type=code&scope=identify");
         }
 
-        public async Task<IActionResult> LoginCallback(string returnUrl = "https://localhost:7284/discord/logincallback")
+        public async Task<IActionResult> LoginCallback()
         {
             string accessToken = null!;
             using (var client = new HttpClient())
             {
                 var request = new HttpRequestMessage(HttpMethod.Post, DISCORD_AUTH_URL);
-                string code = Request.Query["code"]!;
                 request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
             {
                 { "client_id", DiscordSettings.ClientId! },
                 { "client_secret", DiscordSettings.ClientSecret! },
                 { "grant_type", "authorization_code" },
-                { "code", code },
-                { "redirect_uri", returnUrl },
+                { "code", Request.Query["code"]! },
+                { "redirect_uri", WebConfig.DomainName + "discord/logincallback" },
                 { "scope", "identify" },
             });
                 var response = await client.SendAsync(request);
@@ -55,8 +59,9 @@ namespace HVZ.Web.Data
                 var response = await client.GetAsync("https://discord.com/api/users/@me");
                 var json = JObject.Parse(await response.Content.ReadAsStringAsync());
                 string userId = json["id"].Value<string>();
-                //TODO: put this in user's claims as 'DiscordId'
-                Console.WriteLine($"DiscordId: {userId}");
+                var user = await UserManager.GetUserAsync(HttpContext.User);
+                await UserManager.RemoveClaimAsync(user, new Claim("DiscordId", string.Empty));
+                await UserManager.AddClaimAsync(user, new Claim("DiscordId", userId));
             }
             return LocalRedirect("/");
         }
@@ -64,7 +69,7 @@ namespace HVZ.Web.Data
         [HttpGet]
         public async Task<IActionResult> Logout(string returnUrl = "/")
         {
-            //TODO: delete discordid from the user's claims
+            await UserManager.RemoveClaimAsync(await UserManager.GetUserAsync(HttpContext.User), new Claim("DiscordId", string.Empty));
             return LocalRedirect(returnUrl);
         }
     }
