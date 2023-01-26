@@ -104,9 +104,9 @@ internal static class Program
             builder.Services.AddSingleton<DiscordSocketClient>();
             builder.Services.AddSingleton<DiscordBot>(discordBot);
             builder.Services.AddSingleton<DiscordIntegrationSettings>(discordIntegrationSettings!);
-            #endregion
-
         }
+        #endregion
+
         #region Email
 
         builder.Services.Configure<EmailServiceOptions>(
