@@ -90,7 +90,6 @@
         Services.AddSingleton<IUserRepo>(mockUserRepo.Object);
         Services.AddSingleton<UserManager<ApplicationUser>>(mockUserManager.Object);
         Services.AddSingleton<ImageService>(mockImageService.Object);
-        @* Services.AddAuthorization(); *@
         this.AddTestAuthorization();
     }
 
