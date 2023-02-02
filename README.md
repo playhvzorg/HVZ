@@ -1,4 +1,4 @@
-[playhvz.org](https://playhvz.org)
+[playhvz.org](https://playhvz.org) Launching March 2023
 ***
 
 This is a website dedicated to managing Humans Vs Zombies games. Originally created by the computer science department of UNCC's Charlotte Outdoor Gaming club, this project supports both a standalone website and optional discord integration. 
