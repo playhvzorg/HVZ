@@ -102,11 +102,6 @@ public interface IGameRepo
     /// Event that fires when a game's isActive status is changed
     /// </summary>
     public event EventHandler<GameActiveStatusChangedEventArgs> GameActiveStatusChanged;
-    /// <summary>
-    /// Event that fires when a game is updated in a way not covered by other events
-    /// </summary>
-    public event EventHandler<GameUpdatedEventArgs> GameUpdated;
-
 }
 
 public class GameUpdatedEventArgs : EventArgs

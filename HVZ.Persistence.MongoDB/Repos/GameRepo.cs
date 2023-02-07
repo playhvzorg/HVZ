@@ -19,7 +19,6 @@ public class GameRepo : IGameRepo
     public event EventHandler<PlayerUpdatedEventArgs>? PlayerJoinedGame;
     public event EventHandler<PlayerRoleChangedEventArgs>? PlayerRoleChanged;
     public event EventHandler<TagEventArgs>? TagLogged;
-    public event EventHandler<GameUpdatedEventArgs>? GameUpdated;
     public event EventHandler<GameActiveStatusChangedEventArgs>? GameActiveStatusChanged;
 
     static GameRepo()
