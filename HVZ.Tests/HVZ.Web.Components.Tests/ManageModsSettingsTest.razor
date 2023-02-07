@@ -53,18 +53,34 @@
     [OneTimeSetUp]
     public void Setup()
     {
+        Organization org = new Organization(
+            id:"0",
+            name:"Test Org",
+            ownerid:"1",
+            moderators:modIds,
+            administrators:adminIds,
+            games:new HashSet<Game>(),
+            activegameid:"",
+            createdat:NodaTime.Instant.MinValue,
+            url:"testorg"
+        );
+
+        @* Pass this into the event args when calling AddModerator *@
+        @* Scuffed but functional *@
+        Organization updatedOrg = new Organization(
+            id:"0",
+            name:"Test Org",
+            ownerid:"1",
+            moderators:new HashSet<string>(new string[] {"3", "4", "5", "6"}),
+            administrators:adminIds,
+            games:new HashSet<Game>(),
+            activegameid:"",
+            createdat:NodaTime.Instant.MinValue,
+            url:"testorg"
+        );
+
         mockOrgRepo.Setup(repo => repo.GetOrgById(orgId)).ReturnsAsync(
-            new Organization(
-                id:"0",
-                name:"Test Org",
-                ownerid:"1",
-                moderators:modIds,
-                administrators:adminIds,
-                games:new HashSet<Game>(),
-                activegameid:"",
-                createdat:NodaTime.Instant.MinValue,
-                url:"testorg"
-            )
+            org
         );
 
         mockOrgRepo.Setup(repo => repo.GetModsOfOrg(orgId)).ReturnsAsync(
@@ -74,6 +90,11 @@
         mockOrgRepo.Setup(repo => repo.GetAdminsOfOrg(orgId)).ReturnsAsync(
             adminIds
         );
+
+        mockOrgRepo
+            .Setup(repo => repo.AddModerator(orgId, It.IsAny<string>()))
+            .ReturnsAsync(updatedOrg)
+            .Raises(repo => repo.ModsUpdated += null, new OrgUpdatedEventArgs(updatedOrg));
 
         mockUserManager.Setup(manager => manager.FindByEmailAsync("test@mail.com"))
             .ReturnsAsync(
@@ -176,8 +197,6 @@
 
         Assert.AreEqual(modsList.ChildElementCount, 6);
         Assert.AreEqual(adminsList.ChildElementCount, 4);
-
-        modIds.Remove("6"); // This is being committed to the hash set and messing up other tests
     }
 
     [Test]
