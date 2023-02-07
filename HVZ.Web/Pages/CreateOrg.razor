@@ -20,9 +20,11 @@
                     <input @bind="OrgName" @bind:event="oninput" class="form-control mb-1" placeholder="Organization name">
                     <label for="orgNameFoating">Organization name</label>
                 </div>
-                <p class="text-muted mb-3">Org URL: <code class="p-2">https://www.playhvz.org/org/<span style="border: 1px; border-radius: 5px; border-style: solid">@orgUrl</span>/</code></p>
-
-                <button @onclick="CreateNewOrg" class="btn btn-primary">Create</button>
+                <p class="text-muted">Org URL: <code class="p-2">https://www.playhvz.org/org/<span style="border: 1px; border-radius: 5px; border-style: solid">@orgUrl</span>/</code></p>
+                <div>
+                    <span class="text-danger">@error</span>
+                </div>
+                <button @onclick="CreateNewOrg" class="btn btn-primary mt-3 @ButtonEnabled()">Create</button>
             </div>
         </div>
     </div>
@@ -33,6 +35,7 @@
     
     private string orgName = "";
     private string orgUrl = "";
+    private string? error;
 
     public string OrgName {
         get
@@ -43,6 +46,14 @@
         {
             orgName = value.Replace("/", string.Empty);
             orgUrl = FormatOrgUrl(value);
+            var existingOrg = Task.Run(() => OrgRepo.FindOrgByUrl(orgUrl)).Result;
+            if (existingOrg is not null)
+            {
+                error = "This URL is already in use";
+                return;
+            }
+            error = null;
+
         } 
     }
 
@@ -81,6 +92,8 @@
         .Replace("\"", string.Empty)
         .Replace("\\", string.Empty);
 
+    private string ButtonEnabled() => error is null ? "" : "disabled";
+
     private void UpdateOrgUrl()
     {
         orgUrl = orgName;
@@ -90,18 +103,28 @@
     async Task CreateNewOrg()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        
         var email = authState.User.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value;
-        // Email cannot be null, but dotnet does not know that
         var authUser = await UserManager.FindByEmailAsync(email ?? "");
-
+        
         if(authUser == null)
             // Something has gone seriously wrong
             return;
+        
+        if (!authUser.EmailConfirmed)
+        {
+            error = "Confirm your email before creating an org";
+            return;
+        }
 
         if(orgName == string.Empty || orgName == null)
             return;
         
-        @* TODO check that org with name or URL does not exist already and update validation *@
+        var existingOrg = await OrgRepo.FindOrgByUrl(orgUrl);
+        if (existingOrg is not null)
+        {
+            return;
+        }
 
         Logger.LogInformation($"{authUser.FullName}:{authUser.DatabaseId} has created a new org: {orgName}");
 
