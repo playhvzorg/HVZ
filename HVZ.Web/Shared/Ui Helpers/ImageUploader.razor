@@ -50,14 +50,15 @@
         {
             await ImageService.SaveUserImage(file, UserId);
             file = null;
-            return;
         }
-
-        if (OrgId is not null)
+        else if (OrgId is not null)
         {
             await ImageService.SaveOrgImage(file, OrgId);
             file = null;
-            return;
+        }
+        else
+        {
+            throw new ArgumentNullException("UserId and OrgId are both null");
         }
     }
 
