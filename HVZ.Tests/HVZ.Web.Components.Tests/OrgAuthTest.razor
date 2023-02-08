@@ -425,7 +425,7 @@
         var cut = RenderModContent();
         Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find(".mod-content"));
 
-        @* await mockOrgRepo.Object.AddModerator(orgId, unauthorizedId); *@
+        await mockOrgRepo.Object.AddModerator(orgId, unauthorizedId);
 
         mockOrgRepo.Raise(repo => repo.ModsUpdated += null,
             new OrgUpdatedEventArgs(BuildOrg(
