@@ -1,5 +1,6 @@
 @using HVZ.Web.Shared.Org_Authorization
 @using System.Security.Claims
+@using NodaTime
 @inherits Bunit.TestContext
 
 @code
@@ -8,8 +9,11 @@
     
     private string orgId = "1";
     private string adminId = "2";
+    private string ownerId = "2";
     private string modId = "3";
     private string unauthorizedId = "4";
+
+    private Organization org = null!;
 
     TestAuthorizationContext? authContext;
 
@@ -17,6 +21,18 @@
     [OneTimeSetUp]
     public void Setup()
     {
+        
+        org = new(
+            id: orgId,
+            name: "Test Org",
+            ownerid: ownerId,
+            moderators: new HashSet<string>( new string[] { modId } ),
+            administrators: new HashSet<string>( new string[] { adminId }),
+            games: new HashSet<Game>(),
+            activegameid: null,
+            createdat: Instant.MinValue,
+            url: "testorg"
+        );
 
         mockOrgRepo = new Mock<IOrgRepo>();
         
@@ -28,6 +44,8 @@
 
         mockOrgRepo.Setup(repo => repo.IsModOfOrg(orgId, unauthorizedId)).ReturnsAsync(false);
         mockOrgRepo.Setup(repo => repo.IsAdminOfOrg(orgId, unauthorizedId)).ReturnsAsync(false);
+
+        mockOrgRepo.Setup(repo => repo.GetOrgById(orgId)).ReturnsAsync(org);
 
         Services.AddSingleton<IOrgRepo>(mockOrgRepo.Object);
         authContext = this.AddTestAuthorization();
@@ -142,11 +160,34 @@
             new Claim("DatabaseId", unauthorizedId)
         );
 
-        IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(parameter => parameter
+        IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(
+            parameter => parameter
             .Add(p => p.OrgId, orgId));
         OrgAuth auth = cut.Instance;
 
         Assert.That(auth.IsMod, Is.False);
+    }
+
+    [Test]
+    public void Test_OwnerIdValue()
+    {
+        IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(
+            parameter => parameter
+            .Add(p => p.OrgId, orgId));
+        OrgAuth auth = cut.Instance;
+
+        Assert.That(auth.OwnerId == ownerId, Is.True);
+    }
+
+    [Test]
+    public void Test_OrgValue()
+    {
+        IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(
+            parameter => parameter
+            .Add(p => p.OrgId, orgId));
+        OrgAuth auth = cut.Instance;
+
+        Assert.That(auth.Org == org, Is.True);
     }
 #endregion
 
@@ -186,7 +227,7 @@
         );
 
         var cut = Render(
-            @<OrgAuth>
+            @<OrgAuth OrgId="@orgId">
                 <p class="public-content">public</p>
             </OrgAuth>
         );
@@ -242,7 +283,7 @@
         );
 
         var cut = Render(
-            @<OrgAuth>
+            @<OrgAuth OrgId="@orgId">
                 <p class="public-content">public</p>
             </OrgAuth>
         );
@@ -295,7 +336,7 @@
         );
 
         var cut = Render(
-            @<OrgAuth>
+            @<OrgAuth OrgId="@orgId">
                 <p class="public-content">public</p>
             </OrgAuth>
         );
