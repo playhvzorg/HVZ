@@ -249,6 +249,40 @@ public class GameRepoTest : MongoTestBase
     }
 
     [Test]
+    public async Task Test_getgameswithuser()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string otheruserid = "1";
+        string orgid = "123";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        await gameRepo.AddPlayer(game.Id, userid);
+
+        Assert.That(await gameRepo.GetGamesWithUser(userid), Is.Not.Empty);
+        Assert.That(await gameRepo.GetGamesWithUser(otheruserid), Is.Empty);
+    }
+
+    [Test]
+    public async Task Test_getactivegameswithuser()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        await gameRepo.AddPlayer(game.Id, userid);
+
+        await gameRepo.SetActive(game.Id, false);
+        Assert.That(await gameRepo.GetActiveGamesWithUser(userid), Is.Empty);
+
+        await gameRepo.SetActive(game.Id, true);
+        Assert.That(await gameRepo.GetActiveGamesWithUser(userid), Is.Not.Empty);
+    }
+
+    [Test]
     public async Task test_gamecreated_event()
     {
         GameRepo gameRepo = CreateGameRepo();
