@@ -24,6 +24,9 @@
     public string? UserId { get; set; }
 
     [Parameter]
+    public int MaxImageSizeBytes { get; set; } = 4194304; // 4MB
+
+    [Parameter]
     public string? OrgId { get; set; }
 
     string imgSrc = "";
@@ -64,8 +67,13 @@
         file = e.File;
         if (file.ContentType.Split("/")[0] != "image")
         {
-            @* throw new ArgumentException("Content type must be image"); *@
             errorText = "File must be an image";
+            file = null;
+            return;
+        }
+        if (file.Size > MaxImageSizeBytes)
+        {
+            errorText = "Image too large! Max image size is 4MB";
             file = null;
             return;
         }
@@ -81,10 +89,14 @@
     {
         byte[] bytes;
 
+        if (file.Size > MaxImageSizeBytes)
+        {
+            throw new ArgumentException("Image too large. Max image size is 4MB (4194304 bytes)");
+        }
+
         using (var ms = new MemoryStream())
         {
-            @* Max upload size 4Mb *@
-            await file.OpenReadStream(4000000).CopyToAsync(ms);
+            await file.OpenReadStream(MaxImageSizeBytes).CopyToAsync(ms);
             bytes = ms.ToArray();
         }
 

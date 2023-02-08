@@ -143,4 +143,28 @@
         );
 
     }
+
+    [Test]
+    public void Test_FileUploadSize()
+    {
+        var testFile = InputFileContent.CreateFromBinary(imageData, "0.png", null, "image/png");
+
+        var cut = Render(
+            @<ImageUploader UserId="@userId" MaxImageSizeBytes=10 /> // Intentionally lower number of bytes to make testing easier
+        );
+
+        var input = cut.FindComponent<InputFile>();
+
+        input.UploadFiles(testFile);
+
+        var errorText = cut.Find("#error-text");
+        errorText.MarkupMatches(
+            @<p class="text-danger" id="error-text">Image too large! Max image size is 4MB</p>
+        );
+
+        Assert.DoesNotThrow(
+            () => cut.FindComponent<Thumbnail>()
+        );
+        
+    }
 }
