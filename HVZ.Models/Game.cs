@@ -29,6 +29,11 @@ public class Game : IdEquatable<Game>
     /// </summary>
     public Boolean IsActive { get; init; }
     /// <summary>
+    /// List of events that have happened this game
+    /// </summary>
+    /// <value></value>
+    public List<GameEventLog> EventLog { get; init; }
+    /// <summary>
     /// Players who are a human in this game
     /// </summary>
     public HashSet<Player> Humans
@@ -81,7 +86,7 @@ public class Game : IdEquatable<Game>
     /// </summary>
     public Player.gameRole DefaultRole { get; init; }
 
-    public Game(string name, string gameid, string creatorid, string orgid, Instant createdat, Boolean isActive, Player.gameRole defaultrole, HashSet<Player> players)
+    public Game(string name, string gameid, string creatorid, string orgid, Instant createdat, Boolean isActive, Player.gameRole defaultrole, HashSet<Player> players, List<GameEventLog> eventLog)
     {
         Name = name;
         Id = gameid;
@@ -91,6 +96,7 @@ public class Game : IdEquatable<Game>
         IsActive = isActive;
         DefaultRole = defaultrole;
         Players = players;
+        EventLog = eventLog;
     }
 
     public override string ToString()
