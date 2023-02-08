@@ -21,7 +21,8 @@ Supported features:
 ***
 # Setup
 ## Discord
-Create a discord bot and add it to your server [(Instructions here)](https://discordnet.dev/guides/getting_started/first-bot.html)
+Create a discord bot and add it to your server [(Instructions here)](https://discordnet.dev/guides/getting_started/first-bot.html)<br>
+Add an OAuth2 redirect URL with the endpoint `/discord/logincallback` (E.G. https://localhost:7284/discord/logincallback for development)
 
 Configure your DiscordIntegrationSettings. The recommended way is to use `dotnet user-secrets`:<br>
 `dotnet user-secrets set "DiscordIntegrationSettings.Token" "<your token here>"`<br>
