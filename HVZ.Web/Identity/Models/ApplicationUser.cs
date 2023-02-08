@@ -12,5 +12,6 @@ namespace HVZ.Web.Identity.Models
     {
         public string FullName { get; set; } = "";
         public string DatabaseId { get; set; } = "";
+        public string DiscordId { get; set; } = "";
     }
 }
