@@ -16,8 +16,6 @@
             <h1>
                 Hello, @context.User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value!
             </h1>
-
-            <HVZ.Web.Shared.Ui_Helpers.ImageUploader UserId="63cc14deb663d5fdb345418b" />
         </Authorized>
         <NotAuthorized>
             <a href="Account/Login" class="btn btn-primary btn-lg">Login</a>
