@@ -1,5 +1,5 @@
 using NodaTime;
-namespace HVZ.Models;
+namespace HVZ.Persistence.Models;
 
 /// <summary>
 /// Represents all of the info about a user in a specific game.
