@@ -1,0 +1,75 @@
+
+@using HVZ.Web.Shared.Ui_Helpers
+@inject IOrgRepo OrgRepo
+
+@* Org Picture *@
+@* Org name *@
+@* Picture and name are inline until md then stacked vertically *@
+@* Require verified email for players *@
+@* Require profile picture for players *@
+
+<div class="row">
+    @* Cursed but necessary *@
+    <div class="col-lg-auto">
+        @if (OrgId != null)
+        {
+            <Thumbnail OrgId="@OrgId" class="ml-3" />
+        }
+    </div>
+    
+    <div class="col-lg-4 mt-3 mt-lg-0">
+        <label for="org-name" class="form-label">Name</label>
+        <input class="form-control" @bind="orgName" id="org-name">
+
+        <label for="description" class="form-label mt-3">About</label>
+        <textarea name="description" id="description" cols="30" rows="5" class="form-control" @bind="orgDesc"></textarea>
+
+        <label for="org-location" class="form-label mt-3">Location</label>
+        <input class="form-control" @bind="location" id="org-location">
+
+        <div class="ml-4 mt-3">
+            <input type="checkbox" @bind="publicOrg" class="form-check-input" id="public-check">
+            <label for="public-check">Public</label>
+        </div>
+
+        <div class="ml-4 mt-1">
+            <input type="checkbox" @bind="requireVerifiedEmail" class="form-check-input" id="emailCheck">
+            <label for="emailCheck">Require players to have verified email</label>
+        </div>
+
+        <div class="ml-4 mt-1">
+            <input type="checkbox" @bind="requireProfilePicture" class="form-check-input" id="pictureCheck">
+            <label for="pictureCheck">Require players to have a profile picture</label>
+        </div>
+        
+    </div>
+</div>
+
+
+
+@code
+{
+    [CascadingParameter(Name = "OrgId")]
+    public string? OrgId { get; set; }
+
+    Organization? org;
+
+    string orgName = "";
+    string orgUrl = "";
+    string location = "";
+    string orgDesc = "";
+    bool publicOrg = false;
+    bool requireVerifiedEmail = false;
+    bool requireProfilePicture = false;
+
+    protected override bool ShouldRender() => OrgId != null;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (OrgId is null) return;
+        
+        org = await OrgRepo.FindOrgById(OrgId);
+        orgName = org?.Name ?? "";
+        orgUrl = org?.Url ?? "";
+    }
+}
