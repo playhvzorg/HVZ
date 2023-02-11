@@ -231,6 +231,12 @@ public class GameRepo : IGameRepo
         } while (game.Players.Where(p => p.GameId == id.ToString()).Any());
         return id.ToString();
     }
+
+    public async Task<List<Game>> GetGamesWithUser(string userId, int? limit = null)
+        => await Collection.Find<Game>(g => g.Players.Where(p => p.UserId == userId).Any()).ToListAsync();
+
+    public async Task<List<Game>> GetActiveGamesWithUser(string userId, int? limit = null)
+        => (await GetGamesWithUser(userId, limit)).Where(g => g.IsActive).ToList();
     protected virtual void OnGameCreated(GameUpdatedEventArgs g)
     {
         EventHandler<GameUpdatedEventArgs>? handler = GameCreated;

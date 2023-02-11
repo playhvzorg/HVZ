@@ -63,6 +63,20 @@ public interface IGameRepo
     public Task<Game> LogTag(string gameName, string taggerUserId, string tagRecieverGameId);
 
     /// <summary>
+    /// Get an IEnumerable of games which contain the given user.
+    /// </summary>
+    /// <param name="limit">Max amount of games to return. Unlimited if not provided</param>
+    /// <returns>An IEnumerable of games. May be empty.</returns>
+    public Task<List<Game>> GetGamesWithUser(string userId, int? limit = null);
+
+    /// <summary>
+    /// Get an IEnumerable of games which contain the given user and are active.
+    /// </summary>
+    /// <param name="limit">Max amount of games to return. Unlimited if not provided</param>
+    /// <returns>An IEnumerable of games. May be empty.</returns>
+    public Task<List<Game>> GetActiveGamesWithUser(string userId, int? limit = null);
+
+    /// <summary>
     /// Event that fires when a new game is created
     /// </summary>
     public event EventHandler<GameUpdatedEventArgs> GameCreated;
