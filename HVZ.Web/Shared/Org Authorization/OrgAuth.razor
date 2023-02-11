@@ -56,37 +56,37 @@
             {
                 Organization eventOrg = eventArgs.Org;
 
-                if (eventOrg.Id == OrgId)
-                {
-                    if (UserPermissionsChanged(eventOrg, userId))
-                    {
-                        Org = eventOrg;
-                        Refresh();
-                    }
-                }
+                ProcRefresh(eventOrg);
             };
 
             OrgRepo.ModsUpdated += delegate(object? sender, OrgUpdatedEventArgs eventArgs)
             {
                 Organization eventOrg = eventArgs.Org;
 
-                if (eventOrg.Id == OrgId)
-                {
-                    if (UserPermissionsChanged(eventOrg, userId))
-                    {
-                        Org = eventOrg;
-                        Refresh();
-                    }
-                }
+                ProcRefresh(eventOrg);
             };
         }
     }
 
-    public void Refresh()
+    void ProcRefresh(Organization eventOrg)
+    {
+        if (userId is null) return;
+
+        if (eventOrg.Id == OrgId)
+        {
+            if (UserPermissionsChanged(eventOrg, userId))
+            {
+                Org = eventOrg;
+                Refresh(userId);
+            }
+        }
+    }
+
+    void Refresh(string targetUserId)
     {
         shouldRender = true;
-        IsAdmin = Org.Administrators.Contains(userId!);
-        IsMod = IsAdmin || Org.Moderators.Contains(userId!);
+        IsAdmin = Org.Administrators.Contains(targetUserId!);
+        IsMod = IsAdmin || Org.Moderators.Contains(targetUserId!);
         InvokeAsync(StateHasChanged);
     }
 
