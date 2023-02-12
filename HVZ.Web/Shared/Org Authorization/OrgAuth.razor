@@ -52,19 +52,9 @@
             Logger.LogDebug($"User ID: {userId}; Org ID: {OrgId}\nUser has admin: {IsAdmin}; User has mod: {IsMod}");
             shouldRender = true;
 
-            OrgRepo.AdminsUpdated += delegate(object? sender, OrgUpdatedEventArgs eventArgs)
-            {
-                Organization eventOrg = eventArgs.Org;
+            OrgRepo.AdminsUpdated += (_, eventArgs) => ProcRefresh(eventArgs.Org);
 
-                ProcRefresh(eventOrg);
-            };
-
-            OrgRepo.ModsUpdated += delegate(object? sender, OrgUpdatedEventArgs eventArgs)
-            {
-                Organization eventOrg = eventArgs.Org;
-
-                ProcRefresh(eventOrg);
-            };
+            OrgRepo.ModsUpdated += (_, eventArgs) => ProcRefresh(eventArgs.Org);
         }
     }
 
