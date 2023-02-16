@@ -7,8 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace HVZ.Persistence.MongoDB.Tests;
 
-public class OrgRepotest : MongoTestBase
-{
+public class OrgRepotest : MongoTestBase {
     private OrgRepo orgRepo = null!;
     private Mock<IUserRepo> userRepoMock = null!;
     private Mock<IGameRepo> gameRepoMock = null!;
@@ -36,8 +35,8 @@ public class OrgRepotest : MongoTestBase
         Organization foundOrg = await orgRepo.Collection.Find(o => o.OwnerId == userid).FirstAsync();
 
         Assert.That(createdOrg, Is.EqualTo(foundOrg));
-        Assert.That(foundOrg.Id, Is.Not.EqualTo(String.Empty));
-        Assert.That(createdOrg.Id, Is.Not.EqualTo(String.Empty));
+        Assert.That(foundOrg.Id, Is.Not.EqualTo(string.Empty));
+        Assert.That(createdOrg.Id, Is.Not.EqualTo(string.Empty));
     }
 
     [Test]
@@ -64,8 +63,8 @@ public class OrgRepotest : MongoTestBase
         string userid = "0";
 
         Organization createdOrg = await orgRepo.CreateOrg(orgname, orgurl, userid);
-        Organization foundOrg = await orgRepo.GetOrgById(createdOrg.Id);
 
+        Assert.That(await orgRepo.GetOrgById(createdOrg.Id), Is.Not.Null);
         Assert.ThrowsAsync<ArgumentException>(() => orgRepo.GetOrgById("000000000000000000000000"));
 
     }
@@ -109,9 +108,9 @@ public class OrgRepotest : MongoTestBase
         string orgurl = "testurl";
         string userid = "0";
 
-        Organization createdOrg = await orgRepo.CreateOrg(orgname, orgurl, userid);
-        Organization foundOrg = await orgRepo.GetOrgByUrl(orgurl);
+        await orgRepo.CreateOrg(orgname, orgurl, userid);
 
+        Assert.That(await orgRepo.GetOrgByuRL(orgurl), Is.Not.Null);
         Assert.ThrowsAsync<ArgumentException>(() => orgRepo.GetOrgByUrl("none"));
     }
 
@@ -140,7 +139,7 @@ public class OrgRepotest : MongoTestBase
         string userid = "0";
         string gameid = "1";
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
-        Game newGame = new("test", gameid, userid, org.Id, Instant.MinValue, true, Player.gameRole.Human, new HashSet<Player>(), new());
+        Game newGame = new("test", gameid, userid, org.Id, Instant.MinValue, true, Player.GameRole.Human, new HashSet<Player>(), new());
         gameRepoMock.Setup(repo => repo.GetGameById("1")).ReturnsAsync(newGame);
         await orgRepo.SetActiveGameOfOrg(org.Id, gameid);
 
@@ -158,7 +157,7 @@ public class OrgRepotest : MongoTestBase
         string userid1 = "1";
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid1);
 
-        var admins = await orgRepo.GetAdminsOfOrg(org.Id);
+        HashSet<string> admins = await orgRepo.GetAdminsOfOrg(org.Id);
 
         Assert.That(admins.Contains(userid1), Is.True);
     }
@@ -173,10 +172,10 @@ public class OrgRepotest : MongoTestBase
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid1);
 
         org = await orgRepo.AddAdmin(org.Id, userid2);
-        Assert.That(org.Administrators.Contains(userid2), Is.True);
+        Assert.That(org.Administrators, Does.Contain(userid2));
 
         org = await orgRepo.RemoveAdmin(org.Id, userid2);
-        Assert.That(org.Administrators.Contains(userid2), Is.False);
+        Assert.That(org.Administrators, Does.Not.Contain(userid2));
     }
 
     [Test]
@@ -187,7 +186,7 @@ public class OrgRepotest : MongoTestBase
         string userid = "0";
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
 
-        Assert.That(org.Administrators.Contains(userid), Is.True);
+        Assert.That(org.Administrators, Does.Contain(userid));
     }
 
     [Test]
@@ -209,9 +208,9 @@ public class OrgRepotest : MongoTestBase
         string userid1 = "1";
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid1);
 
-        var mods = await orgRepo.GetModsOfOrg(org.Id);
+        HashSet<string> mods = await orgRepo.GetModsOfOrg(org.Id);
 
-        Assert.That(mods.Count(), Is.EqualTo(0));
+        Assert.That(mods, Is.Empty);
     }
 
     [Test]
@@ -223,11 +222,12 @@ public class OrgRepotest : MongoTestBase
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid1);
 
         org = await orgRepo.AddModerator(org.Id, userid1);
-        Assert.That(org.Moderators.Contains(userid1), Is.True);
+        Assert.That(org.Moderators, Does.Contain(userid1));
 
         org = await orgRepo.RemoveModerator(org.Id, userid1);
-        Assert.That(org.Moderators.Contains(userid1), Is.False);
+        Assert.That(org.Moderators, Does.Not.Contain(userid1));
     }
+
     [Test]
     public async Task test_setorgowner()
     {
@@ -259,14 +259,14 @@ public class OrgRepotest : MongoTestBase
 
         Game game = new Game(
             name: "gamename",
-            gameid: "1",
-            creatorid: userid,
-            orgid: org.Id,
-            createdat: Instant.MinValue,
+            gameId: "1",
+            creatorId: userid,
+            orgId: org.Id,
+            createdAt: Instant.MinValue,
             isActive: true,
-            defaultrole: Player.gameRole.Human,
+            defaultRole: Player.GameRole.Human,
             players: new HashSet<Player>(),
-            eventLog: new()
+            eventLog: new List<GameEventLog>()
         );
 
         gameRepoMock.Setup(repo => repo.CreateGame(gameName, userid, org.Id)).ReturnsAsync(game);
@@ -288,14 +288,14 @@ public class OrgRepotest : MongoTestBase
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
         Game game = new Game(
             name: "gamename",
-            gameid: "1",
-            creatorid: userid,
-            orgid: org.Id,
-            createdat: Instant.MinValue,
+            gameId: "1",
+            creatorId: userid,
+            orgId: org.Id,
+            createdAt: Instant.MinValue,
             isActive: true,
-            defaultrole: Player.gameRole.Human,
+            defaultRole: Player.GameRole.Human,
             players: new HashSet<Player>(),
-            new()
+            eventLog: new List<GameEventLog>()
         );
 
         gameRepoMock.Setup(repo => repo.CreateGame(gameName, userid, org.Id)).ReturnsAsync(game);
@@ -315,8 +315,7 @@ public class OrgRepotest : MongoTestBase
 
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
 
-        orgRepo.AdminsUpdated += delegate (object? sender, OrgUpdatedEventArgs args)
-        {
+        orgRepo.AdminsUpdated += (_, args) => {
             eventOrg = args.Org;
         };
 
@@ -340,8 +339,7 @@ public class OrgRepotest : MongoTestBase
 
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
 
-        orgRepo.ModsUpdated += delegate (object? sender, OrgUpdatedEventArgs args)
-        {
+        orgRepo.ModsUpdated += (_, args) => {
             eventOrg = args.Org;
         };
 

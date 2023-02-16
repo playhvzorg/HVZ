@@ -19,7 +19,7 @@ public class Player : IdEquatable<Player>
 
     protected override object EqualityId => UserId + "@" + GameId;
 
-    public enum gameRole
+    public enum GameRole
     {
         Human,
         Zombie,
@@ -27,12 +27,12 @@ public class Player : IdEquatable<Player>
     }
 
     /// <summary>
-    /// The role of the player in this game. See <see cref="gameRole"/>
+    /// The role of the player in this game. See <see cref="GameRole"/>
     /// </summary>
-    public gameRole Role { get; set; }
+    public GameRole Role { get; set; }
 
     /// <summary>
-    /// The amount of tags this player has goten this game
+    /// The amount of tags this player has gotten this game
     /// </summary>
     /// <value></value>
     public int Tags { get; set; }
@@ -42,7 +42,7 @@ public class Player : IdEquatable<Player>
     /// </summary>
     public Instant JoinedGameAt { get; init; }
 
-    public Player(string userid, string gameId, gameRole role, int tags, Instant joinedGameAt)
+    public Player(string userid, string gameId, GameRole role, int tags, Instant joinedGameAt)
     {
         UserId = userid;
         GameId = gameId;

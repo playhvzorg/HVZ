@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-using NUnit.Framework;
 using NodaTime;
 using Moq;
 using HVZ.Models;
@@ -11,9 +9,9 @@ namespace HVZ.Persistence.MongoDB.Tests;
 [Parallelizable(ParallelScope.All)]
 public class GameRepoTest : MongoTestBase
 {
-    public GameRepo CreateGameRepo() =>
+    private GameRepo CreateGameRepo() =>
             new GameRepo(CreateTemporaryDatabase(), Mock.Of<IClock>(), Mock.Of<ILogger>());
-    private const string defaultTimeString = "1970-01-01T00:00:00Z";
+    private const string DefaultTimeString = "1970-01-01T00:00:00Z";
 
     [Test]
     public async Task create_then_read_are_equal()
@@ -21,13 +19,12 @@ public class GameRepoTest : MongoTestBase
         GameRepo gameRepo = CreateGameRepo();
         string gameName = Random.Shared.Next().ToString();
         string userid = "0";
-        string orgid = "123";
-        Game createdGame = await gameRepo.CreateGame(gameName, userid, orgid);
+        string orgId = "123";
+        Game createdGame = await gameRepo.CreateGame(gameName, userid, orgId);
         Game foundGame = await gameRepo.Collection.Find(g => g.CreatorId == userid).FirstAsync();
-
         Assert.That(createdGame.Id, Is.EqualTo(foundGame.Id));
-        Assert.That(foundGame.Id, Is.Not.EqualTo(String.Empty));
-        Assert.That(createdGame.Id, Is.Not.EqualTo(String.Empty));
+        Assert.That(foundGame.Id, Is.Not.EqualTo(string.Empty));
+        Assert.That(createdGame.Id, Is.Not.EqualTo(string.Empty));
     }
 
     [Test]
@@ -118,7 +115,7 @@ public class GameRepoTest : MongoTestBase
         Player? foundPlayer = await gameRepo.FindPlayerByGameId(game.Id, userid);
         Assert.That(foundPlayer, Is.Null);
         game = await gameRepo.AddPlayer(game.Id, userid);
-        Player createdPlayer = game.Players.Where(p => p.UserId == userid).First();
+        Player createdPlayer = game.Players.First(p => p.UserId == userid);
         foundPlayer = await gameRepo.FindPlayerByGameId(game.Id, createdPlayer.GameId);
         Assert.That(foundPlayer, Is.Not.Null);
 
@@ -164,7 +161,7 @@ public class GameRepoTest : MongoTestBase
         string gameName = "test";
         string userid = "0";
         string orgid = "123";
-        Player.gameRole role = Player.gameRole.Oz;
+        var role = Player.GameRole.Oz;
 
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
         await gameRepo.AddPlayer(game.Id, userid);
@@ -186,13 +183,13 @@ public class GameRepoTest : MongoTestBase
         Game game = await gameRepo.CreateGame(gameName, userid1, orgid);
         await gameRepo.AddPlayer(game.Id, userid1);
         game = await gameRepo.AddPlayer(game.Id, userid2);
-        String user2gameid = game.Players.Where(p => p.UserId == userid2).First().GameId;
+        string user2GameId = game.Players.First(p => p.UserId == userid2).GameId;
 
         await gameRepo.SetActive(game.Id, false, string.Empty);
         //tag while game is inactive
-        await gameRepo.SetPlayerToRole(game.Id, userid1, Player.gameRole.Zombie, string.Empty);
-        await gameRepo.SetPlayerToRole(game.Id, userid2, Player.gameRole.Human, string.Empty);
-        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.LogTag(game.Id, userid1, user2gameid));
+        await gameRepo.SetPlayerToRole(game.Id, userid1, Player.GameRole.Zombie, string.Empty);
+        await gameRepo.SetPlayerToRole(game.Id, userid2, Player.GameRole.Human, string.Empty);
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.LogTag(game.Id, userid1, user2GameId));
 
         await gameRepo.SetActive(game.Id, true, string.Empty);
         //unregistered tags player
@@ -202,27 +199,27 @@ public class GameRepoTest : MongoTestBase
         //player tags self
         Assert.ThrowsAsync<ArgumentException>(() => gameRepo.LogTag(game.Id, userid1, userid1));
         //zombie tags zombie
-        await gameRepo.SetPlayerToRole(game.Id, userid1, Player.gameRole.Zombie, string.Empty);
-        await gameRepo.SetPlayerToRole(game.Id, userid2, Player.gameRole.Zombie, string.Empty);
-        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.LogTag(game.Id, userid1, user2gameid));
+        await gameRepo.SetPlayerToRole(game.Id, userid1, Player.GameRole.Zombie, string.Empty);
+        await gameRepo.SetPlayerToRole(game.Id, userid2, Player.GameRole.Zombie, string.Empty);
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.LogTag(game.Id, userid1, user2GameId));
         //zombie tags oz
-        await gameRepo.SetPlayerToRole(game.Id, userid1, Player.gameRole.Zombie, string.Empty);
-        await gameRepo.SetPlayerToRole(game.Id, userid2, Player.gameRole.Oz, string.Empty);
-        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.LogTag(game.Id, userid1, user2gameid));
+        await gameRepo.SetPlayerToRole(game.Id, userid1, Player.GameRole.Zombie, string.Empty);
+        await gameRepo.SetPlayerToRole(game.Id, userid2, Player.GameRole.Oz, string.Empty);
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.LogTag(game.Id, userid1, user2GameId));
         //human tags human
-        await gameRepo.SetPlayerToRole(game.Id, userid1, Player.gameRole.Human, string.Empty);
-        await gameRepo.SetPlayerToRole(game.Id, userid2, Player.gameRole.Human, string.Empty);
-        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.LogTag(game.Id, userid1, user2gameid));
+        await gameRepo.SetPlayerToRole(game.Id, userid1, Player.GameRole.Human, string.Empty);
+        await gameRepo.SetPlayerToRole(game.Id, userid2, Player.GameRole.Human, string.Empty);
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.LogTag(game.Id, userid1, user2GameId));
         //zombie tags human
-        await gameRepo.SetPlayerToRole(game.Id, userid1, Player.gameRole.Zombie, string.Empty);
-        await gameRepo.SetPlayerToRole(game.Id, userid2, Player.gameRole.Human, string.Empty);
-        game = await gameRepo.LogTag(game.Id, userid1, user2gameid);
-        Assert.That(game.Players.Where(p => p.UserId == userid2).First().Role, Is.EqualTo(Player.gameRole.Zombie));
+        await gameRepo.SetPlayerToRole(game.Id, userid1, Player.GameRole.Zombie, string.Empty);
+        await gameRepo.SetPlayerToRole(game.Id, userid2, Player.GameRole.Human, string.Empty);
+        game = await gameRepo.LogTag(game.Id, userid1, user2GameId);
+        Assert.That(game.Players.First(p => p.UserId == userid2).Role, Is.EqualTo(Player.GameRole.Zombie));
         //oz tags human
-        await gameRepo.SetPlayerToRole(game.Id, userid1, Player.gameRole.Oz, string.Empty);
-        await gameRepo.SetPlayerToRole(game.Id, userid2, Player.gameRole.Human, string.Empty);
-        game = await gameRepo.LogTag(game.Id, userid1, user2gameid);
-        Assert.That(game.Players.Where(p => p.UserId == userid2).First().Role, Is.EqualTo(Player.gameRole.Zombie));
+        await gameRepo.SetPlayerToRole(game.Id, userid1, Player.GameRole.Oz, string.Empty);
+        await gameRepo.SetPlayerToRole(game.Id, userid2, Player.GameRole.Human, string.Empty);
+        game = await gameRepo.LogTag(game.Id, userid1, user2GameId);
+        Assert.That(game.Players.First(p => p.UserId == userid2).Role, Is.EqualTo(Player.GameRole.Zombie));
     }
     [Test]
     public async Task test_logtag_updates_tag_count()
@@ -237,16 +234,16 @@ public class GameRepoTest : MongoTestBase
         await gameRepo.AddPlayer(game.Id, userid1);
         await gameRepo.AddPlayer(game.Id, userid2);
         game = await gameRepo.SetActive(game.Id, true, string.Empty);
-        String gameid2 = game.Players.Where(p => p.UserId == userid2).First().GameId;
+        string gameId2 = game.Players.First(p => p.UserId == userid2).GameId;
 
-        await gameRepo.SetPlayerToRole(game.Id, userid1, Player.gameRole.Zombie, string.Empty);
-        await gameRepo.SetPlayerToRole(game.Id, userid2, Player.gameRole.Human, string.Empty);
-        game = await gameRepo.LogTag(game.Id, userid1, gameid2);
+        await gameRepo.SetPlayerToRole(game.Id, userid1, Player.GameRole.Zombie, string.Empty);
+        await gameRepo.SetPlayerToRole(game.Id, userid2, Player.GameRole.Human, string.Empty);
+        game = await gameRepo.LogTag(game.Id, userid1, gameId2);
 
-        int p1tags = game.Players.Where(p => p.UserId == userid1).First().Tags;
-        int p2tags = game.Players.Where(p => p.UserId == userid2).First().Tags;
-        Assert.That(p1tags, Is.EqualTo(1));
-        Assert.That(p2tags, Is.EqualTo(0));
+        int p1Tags = game.Players.First(p => p.UserId == userid1).Tags;
+        int p2Tags = game.Players.First(p => p.UserId == userid2).Tags;
+        Assert.That(p1Tags, Is.EqualTo(1));
+        Assert.That(p2Tags, Is.EqualTo(0));
     }
 
     [Test]
@@ -292,9 +289,8 @@ public class GameRepoTest : MongoTestBase
         string userid = "0";
         string orgid = "123";
 
-        gameRepo.GameCreated += delegate (object? sender, GameUpdatedEventArgs args)
-        {
-            eventGame = args.game;
+        gameRepo.GameCreated += (_, args) => {
+            eventGame = args.Game;
         };
 
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
@@ -313,10 +309,9 @@ public class GameRepoTest : MongoTestBase
         string userid = "0";
         string orgid = "123";
 
-        gameRepo.PlayerJoinedGame += delegate (object? sender, PlayerUpdatedEventArgs args)
-        {
-            eventGame = args.game;
-            eventPlayer = args.player;
+        gameRepo.PlayerJoinedGame += (_, args) => {
+            eventGame = args.Game;
+            eventPlayer = args.Player;
         };
 
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
@@ -338,16 +333,15 @@ public class GameRepoTest : MongoTestBase
         string userid = "0";
         string orgid = "123";
 
-        gameRepo.PlayerRoleChanged += delegate (object? sender, PlayerRoleChangedEventArgs args)
-        {
-            eventGame = args.game;
-            eventPlayer = args.player;
-            eventInstigator = args.instigatorId;
+        gameRepo.PlayerRoleChanged += (_, args) => {
+            eventGame = args.Game;
+            eventPlayer = args.Player;
+            eventInstigator = args.InstigatorId;
         };
 
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
         await gameRepo.AddPlayer(game.Id, userid);
-        game = await gameRepo.SetPlayerToRole(game.Id, userid, Player.gameRole.Oz, string.Empty);
+        game = await gameRepo.SetPlayerToRole(game.Id, userid, Player.GameRole.Oz, string.Empty);
 
         Assert.That(eventGame, Is.Not.Null);
         Assert.That(eventPlayer, Is.Not.Null);
@@ -367,28 +361,27 @@ public class GameRepoTest : MongoTestBase
         string userid2 = "2";
         string orgid = "123";
 
-        gameRepo.TagLogged += delegate (object? sender, TagEventArgs args)
-        {
-            eventGame = args.game;
+        gameRepo.TagLogged += (_, args) => {
+            eventGame = args.Game;
             eventTagger = args.Tagger;
-            eventTagReciever = args.TagReciever;
+            eventTagReciever = args.TagReceiver;
         };
 
         Game game = await gameRepo.CreateGame(gameName, userid1, orgid);
         await gameRepo.AddPlayer(game.Id, userid1);
         await gameRepo.AddPlayer(game.Id, userid2);
-        await gameRepo.SetPlayerToRole(game.Id, userid1, Player.gameRole.Zombie, string.Empty);
-        await gameRepo.SetPlayerToRole(game.Id, userid2, Player.gameRole.Human, string.Empty);
+        await gameRepo.SetPlayerToRole(game.Id, userid1, Player.GameRole.Zombie, string.Empty);
+        await gameRepo.SetPlayerToRole(game.Id, userid2, Player.GameRole.Human, string.Empty);
         game = await gameRepo.SetActive(game.Id, true, string.Empty);
 
-        String gameid2 = game.Players.Where(p => p.UserId == userid2).First().GameId;
+        string gameId2 = game.Players.First(p => p.UserId == userid2).GameId;
 
-        game = await gameRepo.LogTag(game.Id, userid1, gameid2);
+        game = await gameRepo.LogTag(game.Id, userid1, gameId2);
 
         Assert.That(eventGame, Is.Not.Null);
         Assert.That(eventTagger, Is.Not.Null);
         Assert.That(eventTagReciever, Is.Not.Null);
-        Assert.That(eventTagReciever!.Role, Is.EqualTo(Player.gameRole.Zombie));
+        Assert.That(eventTagReciever!.Role, Is.EqualTo(Player.GameRole.Zombie));
         Assert.That(game, Is.EqualTo(eventGame));
     }
 
@@ -402,10 +395,9 @@ public class GameRepoTest : MongoTestBase
         string userid = "0";
         string orgid = "123";
 
-        gameRepo.GameActiveStatusChanged += delegate (object? sender, GameActiveStatusChangedEventArgs args)
-        {
-            eventGame = args.game;
-            eventUpdatorId = args.updatorId;
+        gameRepo.GameActiveStatusChanged += (_ , args) => {
+            eventGame = args.Game;
+            eventUpdatorId = args.UpdaterId;
         };
 
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
@@ -426,7 +418,7 @@ public class GameRepoTest : MongoTestBase
 
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
         game = await gameRepo.GetGameById(game.Id);
-        string logMessage = $"{defaultTimeString} Game {gameName} created by {userid}";
+        string logMessage = $"{DefaultTimeString} Game {gameName} created by {userid}";
 
         Assert.That(game.EventLog.First().ToString(), Is.EqualTo(logMessage));
     }
@@ -442,7 +434,7 @@ public class GameRepoTest : MongoTestBase
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
         await gameRepo.AddPlayer(game.Id, userid);
         game = await gameRepo.GetGameById(game.Id);
-        string logMessage = $"{defaultTimeString} User {userid} joined the game";
+        string logMessage = $"{DefaultTimeString} User {userid} joined the game";
 
         Assert.That(game.EventLog.Last().ToString(), Is.EqualTo(logMessage));
     }
@@ -460,11 +452,11 @@ public class GameRepoTest : MongoTestBase
         Player user = (await gameRepo.AddPlayer(game.Id, userid)).Players.First();
         await gameRepo.AddPlayer(game.Id, taggerid);
         await gameRepo.SetActive(game.Id, true, userid);
-        await gameRepo.SetPlayerToRole(game.Id, taggerid, Player.gameRole.Zombie, userid);
+        await gameRepo.SetPlayerToRole(game.Id, taggerid, Player.GameRole.Zombie, userid);
         await gameRepo.LogTag(game.Id, taggerid, user.GameId);
 
         game = await gameRepo.GetGameById(game.Id);
-        string logMessage = $"{defaultTimeString} User {taggerid} tagged user {userid}";
+        string logMessage = $"{DefaultTimeString} User {taggerid} tagged user {userid}";
 
         Assert.That(game.EventLog.Last().ToString(), Is.EqualTo(logMessage));
     }
@@ -477,7 +469,7 @@ public class GameRepoTest : MongoTestBase
         string userid = "0";
         string otheruserid = "1";
         string orgid = "123";
-        Player.gameRole role = Player.gameRole.Zombie;
+        var role = Player.GameRole.Zombie;
 
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
         await gameRepo.AddPlayer(game.Id, userid);
@@ -485,7 +477,7 @@ public class GameRepoTest : MongoTestBase
         await gameRepo.SetPlayerToRole(game.Id, otheruserid, role, userid);
 
         game = await gameRepo.GetGameById(game.Id);
-        string logMessage = $"{defaultTimeString} User {otheruserid} was set to {role.ToString()} by {userid}";
+        string logMessage = $"{DefaultTimeString} User {otheruserid} was set to {role.ToString()} by {userid}";
 
         Assert.That(game.EventLog.Last().ToString(), Is.EqualTo(logMessage));
     }
@@ -504,7 +496,7 @@ public class GameRepoTest : MongoTestBase
         await gameRepo.SetActive(game.Id, active, userid);
 
         game = await gameRepo.GetGameById(game.Id);
-        string logMessage = $"{defaultTimeString} Game set to {"active"} by {userid}";
+        string logMessage = $"{DefaultTimeString} Game set to {"active"} by {userid}";
 
         Assert.That(game.EventLog.Last().ToString(), Is.EqualTo(logMessage));
     }

@@ -22,12 +22,12 @@
         return new(
             id: orgId,
             name: "Test Org",
-            ownerid: ownerId,
+            ownerId: ownerId,
             moderators: new HashSet<string>(mods),
             administrators: new HashSet<string>(admins),
             games: new HashSet<Game>(),
-            activegameid: null,
-            createdat: Instant.MinValue,
+            activeGameId: null,
+            createdAt: Instant.MinValue,
             url: "testorg"
         );
     }

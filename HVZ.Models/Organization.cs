@@ -49,16 +49,16 @@ public class Organization : IdEquatable<Organization>
     /// </summary>
     public Instant CreatedAt { get; init; }
 
-    public Organization(string id, string name, string ownerid, HashSet<string> moderators, HashSet<string> administrators, HashSet<Game> games, string? activegameid, Instant createdat, string url)
+    public Organization(string id, string name, string ownerId, HashSet<string> moderators, HashSet<string> administrators, HashSet<Game> games, string? activeGameId, Instant createdAt, string url)
     {
         Id = id;
         Name = name;
-        OwnerId = ownerid;
+        OwnerId = ownerId;
         Moderators = moderators;
         Administrators = administrators;
         Games = games;
-        ActiveGameId = activegameid;
-        CreatedAt = createdat;
+        ActiveGameId = activeGameId;
+        CreatedAt = createdAt;
         Url = url;
     }
 }

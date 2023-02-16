@@ -12,8 +12,8 @@ public class UserRepo : IUserRepo
 {
     private const string CollectionName = "Users";
     public readonly IMongoCollection<User> Collection;
-    private readonly IClock _clock;
-    private readonly ILogger _logger;
+    private readonly IClock clock;
+    private readonly ILogger logger;
 
     static UserRepo()
     {
@@ -36,8 +36,8 @@ public class UserRepo : IUserRepo
         if (!collections.Any())
             database.CreateCollection(CollectionName);
         Collection = database.GetCollection<User>(CollectionName);
-        _clock = clock;
-        _logger = logger;
+        this.clock = clock;
+        this.logger = logger;
         InitIndexes();
     }
 
@@ -65,7 +65,7 @@ public class UserRepo : IUserRepo
             fullName: name,
             email: email
         );
-        _logger.LogTrace($"Creating new user: name: {name} | email: {email}");
+        logger.LogTrace($"Creating new user: name: {name} | email: {email}");
         await Collection.InsertOneAsync(user);
         return user;
     }
@@ -102,7 +102,7 @@ public class UserRepo : IUserRepo
     }
     public async Task DeleteUser(string userId)
     {
-        _logger.LogTrace($"Deleting user {userId}");
+        logger.LogTrace($"Deleting user {userId}");
         await Collection.FindOneAndDeleteAsync(u => u.Id == userId);
     }
 

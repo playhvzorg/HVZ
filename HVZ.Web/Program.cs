@@ -18,7 +18,7 @@ internal static class Program
 {
     public static void Main(string[] args)
     {
-        var builder = WebApplication.CreateBuilder(
+        WebApplicationBuilder builder = WebApplication.CreateBuilder(
             new WebApplicationOptions()
             {
                 ApplicationName = "HVZ.Web",
@@ -100,7 +100,7 @@ internal static class Program
         bool discordIntegrationEnabled = discordIntegrationSettings is not null;
         if (discordIntegrationEnabled)
         {
-            var discordBot = DiscordBot.instance;
+            var discordBot = DiscordBot.Instance;
             builder.Services.AddSingleton<DiscordSocketClient>();
             builder.Services.AddSingleton<DiscordBot>(discordBot);
             builder.Services.AddSingleton<DiscordIntegrationSettings>(discordIntegrationSettings!);
@@ -120,7 +120,7 @@ internal static class Program
 
         builder.Services.AddSingleton<WeatherForecastService>();
 
-        var app = builder.Build();
+        WebApplication app = builder.Build();
 
         if (discordIntegrationEnabled)
         {
@@ -129,7 +129,7 @@ internal static class Program
                 throw new InvalidOperationException("Discord integration is enabled but the service is not configured");
             if (discordIntegrationSettings?.Token is null)
                 throw new InvalidOperationException("Discord integration is enabled but the token is not configured");
-            discordBot.init(discordIntegrationSettings?.Token!, app.Services);
+            discordBot.Init(discordIntegrationSettings?.Token!, app.Services);
             Task.Run(() => discordBot.Run());
         }
 

@@ -5,7 +5,7 @@ public interface IGameRepo
     /// <summary>
     /// Add a new game to the repo. This is usually done from the OrgRepo, see <see cref="IOrgRepo.CreateGame"/>
     /// </summary>
-    public Task<Game> CreateGame(string Name, string creatorUserId, string orgid);
+    public Task<Game> CreateGame(string name, string creatorUserId, string orgId);
     /// <summary>
     /// Find a game by its Id
     /// </summary>
@@ -53,15 +53,15 @@ public interface IGameRepo
     public Task<Game> SetActive(string gameName, bool active, string instigatorId);
 
     /// <summary>
-    /// Set the <see cref="HVZ.Models.Player.gameRole"/> of a player
+    /// Set the <see cref="Player.GameRole"/> of a player
     /// </summary>
     /// <param name="instigatorId">User who is causing the player to change role</param>
-    public Task<Game> SetPlayerToRole(string gameName, string userId, Player.gameRole role, string instigatorId);
+    public Task<Game> SetPlayerToRole(string gameName, string userId, Player.GameRole role, string instigatorId);
 
     /// <summary>
     /// Log a tag in the specified game
     /// </summary>
-    public Task<Game> LogTag(string gameName, string taggerUserId, string tagRecieverGameId);
+    public Task<Game> LogTag(string gameName, string taggerUserId, string tagReceiverGameId);
 
     /// <summary>
     /// Get an IEnumerable of games which contain the given user.
@@ -106,63 +106,62 @@ public interface IGameRepo
 
 public class GameUpdatedEventArgs : EventArgs
 {
-    public Game game { get; init; }
-    public string updatorId { get; init; }
+    public Game Game { get; init; }
+    public string UpdaterId { get; init; }
     public GameUpdatedEventArgs(Game g, string id)
     {
-        game = g;
-        updatorId = id;
+        Game = g;
+        UpdaterId = id;
     }
 }
 
 public class PlayerUpdatedEventArgs : EventArgs
 {
-    public Game game { get; init; }
-    public Player player { get; init; }
+    public Game Game { get; init; }
+    public Player Player { get; init; }
     public PlayerUpdatedEventArgs(Game g, Player p)
     {
-        game = g;
-        player = p;
+        Game = g;
+        Player = p;
     }
 }
 
 public class PlayerRoleChangedEventArgs : EventArgs
 {
-    public Game game { get; init; }
-    public Player player { get; init; }
-    public string instigatorId { get; init; }
-    public Player.gameRole Role { get; init; }
-    public PlayerRoleChangedEventArgs(Game g, Player p, string instigatorid, Player.gameRole role)
+    public Game Game { get; init; }
+    public Player Player { get; init; }
+    public string InstigatorId { get; init; }
+    public Player.GameRole Role { get; init; }
+    public PlayerRoleChangedEventArgs(Game g, Player p, string instigatorId, Player.GameRole role)
     {
-        game = g;
-        player = p;
-        instigatorId = instigatorid;
+        Game = g;
+        Player = p;
+        InstigatorId = instigatorId;
         Role = role;
     }
 }
 
 public class TagEventArgs : EventArgs
 {
-    public Game game { get; init; }
+    public Game Game { get; init; }
     public Player Tagger { get; init; }
-    public Player TagReciever { get; init; }
-    public TagEventArgs(Game g, Player tagger, Player tagreciever)
+    public Player TagReceiver { get; init; }
+    public TagEventArgs(Game g, Player tagger, Player tagReceiver)
     {
-        game = g;
+        Game = g;
         Tagger = tagger;
-        TagReciever = tagreciever;
+        TagReceiver = tagReceiver;
     }
 }
 
-public class GameActiveStatusChangedEventArgs : EventArgs
-{
-    public Game game { get; init; }
-    public string updatorId { get; init; }
-    public bool Active { get; init; }
+public class GameActiveStatusChangedEventArgs : EventArgs {
+    public readonly Game Game;
+    public readonly string UpdaterId;
+    public readonly bool Active;
     public GameActiveStatusChangedEventArgs(Game g, string id, bool active)
     {
-        game = g;
-        updatorId = id;
+        Game = g;
+        UpdaterId = id;
         Active = active;
     }
 }

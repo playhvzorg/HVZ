@@ -115,7 +115,7 @@ public interface IOrgRepo
 
 public class OrgUpdatedEventArgs : EventArgs
 {
-    public Organization Org;
+    public readonly Organization Org;
 
     public OrgUpdatedEventArgs(Organization org)
     {

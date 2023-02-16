@@ -12,10 +12,10 @@ public class OrgRepo : IOrgRepo
 {
     private const string CollectionName = "Orgs";
     public readonly IMongoCollection<Organization> Collection;
-    public readonly IUserRepo _userRepo;
-    public readonly IGameRepo _gameRepo;
-    private readonly IClock _clock;
-    private readonly ILogger _logger;
+    public readonly IUserRepo UserRepo;
+    public readonly IGameRepo GameRepo;
+    private readonly IClock clock;
+    private readonly ILogger logger;
 
     public event EventHandler<OrgUpdatedEventArgs>? AdminsUpdated;
     public event EventHandler<OrgUpdatedEventArgs>? ModsUpdated;
@@ -46,10 +46,10 @@ public class OrgRepo : IOrgRepo
         if (!collections.Any())
             database.CreateCollection(CollectionName);
         Collection = database.GetCollection<Organization>(CollectionName);
-        _userRepo = userRepo;
-        _gameRepo = gameRepo;
-        _clock = clock;
-        _logger = logger;
+        UserRepo = userRepo;
+        GameRepo = gameRepo;
+        this.clock = clock;
+        this.logger = logger;
         InitIndexes();
     }
 
@@ -70,16 +70,16 @@ public class OrgRepo : IOrgRepo
         Organization org = new(
             id: string.Empty,
             name: name,
-            ownerid: creatorUserId,
-            moderators: new(),
-            administrators: new() { creatorUserId },
-            games: new(),
-            activegameid: null,
-            createdat: _clock.GetCurrentInstant(),
+            ownerId: creatorUserId,
+            moderators: new HashSet<string>(),
+            administrators: new HashSet<string> { creatorUserId },
+            games: new HashSet<Game>(),
+            activeGameId: null,
+            createdAt: clock.GetCurrentInstant(),
             url: url
         );
         await Collection.InsertOneAsync(org);
-        _logger.LogTrace($"New organization {name} created by {creatorUserId}");
+        logger.LogTrace($"New organization {name} created by {creatorUserId}");
 
         return org;
     }
@@ -90,7 +90,7 @@ public class OrgRepo : IOrgRepo
             throw new ArgumentException($"User {creatorId} is not an admin of org {orgId} and cannot create a game in this org.");
         if (await FindActiveGameOfOrg(orgId) is not null)
             throw new ArgumentException($"There is already an active game in org {orgId}, not allowing creation of a new game");
-        Game game = await _gameRepo.CreateGame(name, creatorId, orgId);
+        Game game = await GameRepo.CreateGame(name, creatorId, orgId);
         await SetActiveGameOfOrg(orgId, game.Id);
         return game;
     }
@@ -139,7 +139,7 @@ public class OrgRepo : IOrgRepo
     public async Task<Game?> FindActiveGameOfOrg(string orgId)
     {
         Organization org = await GetOrgById(orgId);
-        return org.ActiveGameId == null ? null : await _gameRepo.GetGameById(org.ActiveGameId);
+        return org.ActiveGameId == null ? null : await GameRepo.GetGameById(org.ActiveGameId);
     }
 
     public async Task<HashSet<string>> GetAdminsOfOrg(string orgId)
@@ -151,11 +151,11 @@ public class OrgRepo : IOrgRepo
     public async Task<Organization> AddAdmin(string orgId, string userId)
     {
         Organization org = await GetOrgById(orgId);
-        await _userRepo.GetUserById(userId); //sanity check that the user exists
+        await UserRepo.GetUserById(userId); //sanity check that the user exists
 
         org.Administrators.Add(userId);
-        _logger.LogTrace($"User {userId} added to admin group of org {orgId}");
-        OnAdminsUpdated(new(org));
+        logger.LogTrace($"User {userId} added to admin group of org {orgId}");
+        OnAdminsUpdated(new OrgUpdatedEventArgs(org));
 
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Administrators, org.Administrators),
@@ -170,8 +170,8 @@ public class OrgRepo : IOrgRepo
             throw new ArgumentException($"User with ID {userId} is the owner of org with id {org.Id}, cannot remove them from this org's admins.");
 
         org.Administrators.Remove(userId);
-        _logger.LogTrace($"User {userId} removed from admin group of org {orgId}");
-        OnAdminsUpdated(new(org));
+        logger.LogTrace($"User {userId} removed from admin group of org {orgId}");
+        OnAdminsUpdated(new OrgUpdatedEventArgs(org));
 
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Administrators, org.Administrators),
@@ -199,11 +199,11 @@ public class OrgRepo : IOrgRepo
     public async Task<Organization> AddModerator(string orgId, string userId)
     {
         Organization org = await GetOrgById(orgId);
-        await _userRepo.GetUserById(userId); //sanity check that the user exists
+        await UserRepo.GetUserById(userId); //sanity check that the user exists
 
         org.Moderators.Add(userId);
-        _logger.LogTrace($"User {userId} added to moderator group of org {orgId}");
-        OnModsUpdated(new(org));
+        logger.LogTrace($"User {userId} added to moderator group of org {orgId}");
+        OnModsUpdated(new OrgUpdatedEventArgs(org));
 
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Moderators, org.Moderators),
@@ -216,7 +216,7 @@ public class OrgRepo : IOrgRepo
         Organization org = await GetOrgById(orgId);
 
         org.Moderators.Remove(userId);
-        _logger.LogTrace($"User {userId} removed from moderator group of org {orgId}");
+        logger.LogTrace($"User {userId} removed from moderator group of org {orgId}");
         OnModsUpdated(new(org));
 
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
@@ -227,31 +227,25 @@ public class OrgRepo : IOrgRepo
 
     public async Task<bool> IsAdminOfOrg(string orgId, string userId)
     {
-        var admins = await GetAdminsOfOrg(orgId);
+        HashSet<string> admins = await GetAdminsOfOrg(orgId);
         return admins.Contains(userId);
     }
 
     public async Task<bool> IsModOfOrg(string orgId, string userId)
     {
-        var mods = await GetModsOfOrg(orgId);
+        HashSet<string> mods = await GetModsOfOrg(orgId);
         return mods.Contains(userId);
     }
 
     protected virtual void OnAdminsUpdated(OrgUpdatedEventArgs o)
     {
         EventHandler<OrgUpdatedEventArgs>? handler = AdminsUpdated;
-        if (handler != null)
-        {
-            handler(this, o);
-        }
+        handler?.Invoke(this, o);
     }
 
     protected virtual void OnModsUpdated(OrgUpdatedEventArgs o)
     {
         EventHandler<OrgUpdatedEventArgs>? handler = ModsUpdated;
-        if (handler != null)
-        {
-            handler(this, o);
-        }
+        handler?.Invoke(this, o);
     }
 }

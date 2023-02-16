@@ -19,23 +19,16 @@ public record GameEventLog
     }
     public override string ToString()
     {
-        switch (this.GameEvent)
+        return this.GameEvent switch
         {
-            case GameEvent.GameCreated:
-                return $"{this.Timestamp.ToString()} Game {this.AdditionalInfo["name"]} created by {this.UserId}";
-            case GameEvent.PlayerJoined:
-                return $"{this.Timestamp.ToString()} User {this.UserId} joined the game";
-            case GameEvent.PlayerLeft:
-                return $"{this.Timestamp.ToString()} User {this.UserId} left the game";
-            case GameEvent.Tag:
-                return $"{this.Timestamp.ToString()} User {this.UserId} tagged user {this.AdditionalInfo["tagreciever"]}";
-            case GameEvent.PlayerRoleChangedByMod:
-                return $"{this.Timestamp.ToString()} User {this.UserId} was set to {(Player.gameRole)this.AdditionalInfo["role"]} by {this.AdditionalInfo["modid"]}";
-            case GameEvent.ActiveStatusChanged:
-                return $"{this.Timestamp.ToString()} Game set to {((bool)this.AdditionalInfo["state"] ? "active" : "inactive")} by {this.UserId}";
-            default:
-                return $"{this.Timestamp.ToString()} Unrecognized event: {this.GameEvent.ToString()} user: {this.UserId} {this.AdditionalInfo.ToString()}";
-        }
+            GameEvent.GameCreated => $"{this.Timestamp.ToString()} Game {this.AdditionalInfo["name"]} created by {this.UserId}",
+            GameEvent.PlayerJoined => $"{this.Timestamp.ToString()} User {this.UserId} joined the game",
+            GameEvent.PlayerLeft => $"{this.Timestamp.ToString()} User {this.UserId} left the game",
+            GameEvent.Tag => $"{this.Timestamp.ToString()} User {this.UserId} tagged user {this.AdditionalInfo["tagreciever"]}",
+            GameEvent.PlayerRoleChangedByMod => $"{this.Timestamp.ToString()} User {this.UserId} was set to {(Player.GameRole)this.AdditionalInfo["role"]} by {this.AdditionalInfo["modid"]}",
+            GameEvent.ActiveStatusChanged => $"{this.Timestamp.ToString()} Game set to {((bool)this.AdditionalInfo["state"] ? "active" : "inactive")} by {this.UserId}",
+            _ => $"{this.Timestamp.ToString()} Unrecognized event: {this.GameEvent.ToString()} user: {this.UserId} {this.AdditionalInfo.ToString()}"
+        };
     }
 }
 public enum GameEvent

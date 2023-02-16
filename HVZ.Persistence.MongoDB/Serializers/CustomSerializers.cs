@@ -10,12 +10,12 @@ namespace HVZ.Persistence.MongoDB.Serializers
     /// </summary>
     public static class CustomSerializers
     {
-        private static bool _registered = false;
+        private static bool Registered = false;
 
         public static void RegisterAll()
         {
-            if (_registered) return;
-            _registered = true;
+            if (Registered) return;
+            Registered = true;
             BsonSerializer.RegisterSerializer(InstantSerializer.Instance);
         }
     }

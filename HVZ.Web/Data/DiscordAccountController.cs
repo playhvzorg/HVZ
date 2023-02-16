@@ -12,21 +12,21 @@ namespace HVZ.Web.Data
     [Route("discord/[action]")]
     public class DiscordAccountController : ControllerBase
     {
-        private const string DISCORD_AUTH_URL = "https://discord.com/api/oauth2/token";
+        private const string DiscordAuthUrl = "https://discord.com/api/oauth2/token";
         public IDataProtectionProvider Provider { get; }
 
-        private DiscordIntegrationSettings DiscordSettings;
-        private UserManager<ApplicationUser> UserManager;
-        private WebConfig WebConfig;
-        private SignInManager<ApplicationUser> SignInManager;
+        private readonly DiscordIntegrationSettings DiscordSettings;
+        private readonly UserManager<ApplicationUser> UserManager;
+        private readonly WebConfig webConfig;
+        private readonly SignInManager<ApplicationUser> signInManager;
 
         public DiscordAccountController(IDataProtectionProvider provider, DiscordIntegrationSettings settings, UserManager<ApplicationUser> userManager, WebConfig webConfig, SignInManager<ApplicationUser> signInManager)
         {
             Provider = provider;
             DiscordSettings = settings;
             UserManager = userManager;
-            WebConfig = webConfig;
-            SignInManager = signInManager;
+            this.webConfig = webConfig;
+            this.signInManager = signInManager;
         }
 
         [HttpGet]
@@ -34,7 +34,7 @@ namespace HVZ.Web.Data
         {
             if (DiscordSettings.ClientId is null || DiscordSettings.ClientSecret is null)
                 return LocalRedirect("/");
-            string redirectUri = WebConfig.DomainName + "discord/logincallback";
+            string redirectUri = webConfig.DomainName + "discord/logincallback";
             return Redirect($"https://discord.com/api/oauth2/authorize?client_id={DiscordSettings.ClientId!}&redirect_uri={redirectUri}&response_type=code&scope=identify");
         }
 
@@ -45,7 +45,7 @@ namespace HVZ.Web.Data
             string accessToken = null!;
             using (var client = new HttpClient())
             {
-                var request = new HttpRequestMessage(HttpMethod.Post, DISCORD_AUTH_URL);
+                var request = new HttpRequestMessage(HttpMethod.Post, DiscordAuthUrl);
                 string? code = Request.Query["code"];
                 if (code is null)
                     throw new InvalidOperationException("Error getting code property. Make sure you are starting at discord/login and discord will provide the code");
@@ -55,7 +55,7 @@ namespace HVZ.Web.Data
                 { "client_secret", DiscordSettings.ClientSecret },
                 { "grant_type", "authorization_code" },
                 { "code", code },
-                { "redirect_uri", WebConfig.DomainName + "discord/logincallback" },
+                { "redirect_uri", webConfig.DomainName + "discord/logincallback" },
                 { "scope", "identify" },
             });
                 var response = await client.SendAsync(request);
@@ -73,7 +73,7 @@ namespace HVZ.Web.Data
                     throw new InvalidOperationException("Must be signed in with an account to link discord");
                 user.DiscordId = userId;
                 await UserManager.UpdateAsync(user);
-                await SignInManager.RefreshSignInAsync(user);
+                await signInManager.RefreshSignInAsync(user);
 
             }
             return LocalRedirect("/");
@@ -87,7 +87,7 @@ namespace HVZ.Web.Data
                 return LocalRedirect(returnUrl);
             user.DiscordId = string.Empty;
             await UserManager.UpdateAsync(user);
-            await SignInManager.RefreshSignInAsync(user);
+            await signInManager.RefreshSignInAsync(user);
             return LocalRedirect(returnUrl);
         }
     }

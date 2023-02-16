@@ -12,8 +12,8 @@ public class GameRepo : IGameRepo
 {
     private const string CollectionName = "Games";
     public readonly IMongoCollection<Game> Collection;
-    private readonly IClock _clock;
-    private readonly ILogger _logger;
+    private readonly IClock clock;
+    private readonly ILogger logger;
 
     public event EventHandler<GameUpdatedEventArgs>? GameCreated;
     public event EventHandler<PlayerUpdatedEventArgs>? PlayerJoinedGame;
@@ -56,8 +56,8 @@ public class GameRepo : IGameRepo
         if (!collections.Any())
             database.CreateCollection(CollectionName);
         Collection = database.GetCollection<Game>(CollectionName);
-        _clock = clock;
-        this._logger = logger;
+        this.clock = clock;
+        this.logger = logger;
         InitIndexes();
     }
 
@@ -71,22 +71,22 @@ public class GameRepo : IGameRepo
         });
     }
 
-    public async Task<Game> CreateGame(string name, string creatorid, string orgid)
+    public async Task<Game> CreateGame(string name, string creatorId, string orgId)
     {
         Game game = new Game(
             name: name,
-            gameid: string.Empty,
-            creatorid: creatorid,
-            orgid: orgid,
-            createdat: _clock.GetCurrentInstant(),
+            gameId: string.Empty,
+            creatorId: creatorId,
+            orgId: orgId,
+            createdAt: clock.GetCurrentInstant(),
             isActive: true,
-            defaultrole: Player.gameRole.Human,
+            defaultRole: Player.GameRole.Human,
             players: new HashSet<Player>(),
             eventLog: new List<GameEventLog>()
             );
         await Collection.InsertOneAsync(game);
-        GameUpdatedEventArgs gameCreatedEventArgs = new GameUpdatedEventArgs(game, creatorid);
-        _logger.LogTrace($"New game created in org {orgid} by user {creatorid}");
+        var gameCreatedEventArgs = new GameUpdatedEventArgs(game, creatorId);
+        logger.LogTrace($"New game created in org {orgId} by user {creatorId}");
         await OnGameCreated(gameCreatedEventArgs);
         return game;
     }
@@ -136,15 +136,15 @@ public class GameRepo : IGameRepo
         if (FindPlayerByUserId(gameId, userId).Result != null)
             throw new ArgumentException($"User {userId} is already in Game {gameId}!");
 
-        Player player = new Player(userId, await GeneratePlayerGameId(gameId), game.DefaultRole, 0, _clock.GetCurrentInstant());
+        var player = new Player(userId, await GeneratePlayerGameId(gameId), game.DefaultRole, 0, clock.GetCurrentInstant());
         HashSet<Player> newPlayers = game.Players;
         newPlayers.Add(player);
 
-        Game newGame = await Collection.FindOneAndUpdateAsync<Game>(g => g.Id == gameId,
+        var newGame = await Collection.FindOneAndUpdateAsync<Game>(g => g.Id == gameId,
             Builders<Game>.Update.Set(g => g.Players, newPlayers),
             new FindOneAndUpdateOptions<Game, Game>() { ReturnDocument = ReturnDocument.After }
         );
-        _logger.LogTrace($"User {userId} added to game {game}");
+        logger.LogTrace($"User {userId} added to game {game}");
         await OnPlayerJoined(new(game, player));
         return newGame;
     }
@@ -154,16 +154,16 @@ public class GameRepo : IGameRepo
         //TODO disallow if there is an active game in the org this game belongs to
         Game game = await GetGameById(gameId);
 
-        Game newGame = await Collection.FindOneAndUpdateAsync<Game>(g => g.Id == gameId,
+        var newGame = await Collection.FindOneAndUpdateAsync<Game>(g => g.Id == gameId,
             Builders<Game>.Update.Set(g => g.IsActive, active),
             new FindOneAndUpdateOptions<Game, Game>() { ReturnDocument = ReturnDocument.After }
         );
-        _logger.LogTrace($"game {game} IsActive updated to {active}");
-        await OnGameActiveStatusChanged(new(game, updatorId, active));
+        logger.LogTrace($"game {game} IsActive updated to {active}");
+        await OnGameActiveStatusChanged(new GameActiveStatusChangedEventArgs(game, updatorId, active));
         return newGame;
     }
 
-    public async Task<Game> SetPlayerToRole(string gameId, string userId, Player.gameRole role, string instigatorId)
+    public async Task<Game> SetPlayerToRole(string gameId, string userId, Player.GameRole role, string instigatorId)
     {
         Game game = await GetGameById(gameId);
 
@@ -172,22 +172,22 @@ public class GameRepo : IGameRepo
         if (player == null)
             throw new ArgumentException($"User {userId} not found in game {gameId}");
 
-        var players = game.Players;
-        players.Where(p => p.UserId == userId).First().Role = role;
+        HashSet<Player> players = game.Players;
+        players.First(p => p.UserId == userId).Role = role;
         player.Role = role;
 
-        Game newGame = await Collection.FindOneAndUpdateAsync<Game>(g => g.Id == gameId,
+        var newGame = await Collection.FindOneAndUpdateAsync<Game>(g => g.Id == gameId,
             Builders<Game>.Update.Set(g => g.Players, players),
             new FindOneAndUpdateOptions<Game, Game>() { ReturnDocument = ReturnDocument.After }
         );
-        _logger.LogTrace($"User {userId} updated to role {role} in game {game} by user {instigatorId}");
-        await OnPlayerRoleChanged(new(game, player, instigatorId, role));
+        logger.LogTrace($"User {userId} updated to role {role} in game {game} by user {instigatorId}");
+        await OnPlayerRoleChanged(new PlayerRoleChangedEventArgs(game, player, instigatorId, role));
         return newGame;
     }
 
-    public async Task<Game> LogTag(string gameId, string taggerUserId, string tagRecieverGameId)
+    public async Task<Game> LogTag(string gameId, string taggerUserId, string tagReceiverGameId)
     {
-        if (taggerUserId == tagRecieverGameId)
+        if (taggerUserId == tagReceiverGameId)
             throw new ArgumentException("players cannot tag themselves.");
 
         Game game = await GetGameById(gameId);
@@ -195,37 +195,37 @@ public class GameRepo : IGameRepo
         if (!game.IsActive)
             throw new ArgumentException($"Game {gameId} is not active!");
 
-        if (game.Players.Where(p => p.UserId == taggerUserId).Any() is false)
+        if (game.Players.Any(p => p.UserId == taggerUserId) is false)
             throw new ArgumentException($"Player {taggerUserId} not found in Game {gameId}!");
 
-        if (game.Players.Where(p => p.GameId == tagRecieverGameId).Any() is false)
-            throw new ArgumentException($"Player {tagRecieverGameId} not found in Game {gameId}!");
+        if (game.Players.Any(p => p.GameId == tagReceiverGameId) is false)
+            throw new ArgumentException($"Player {tagReceiverGameId} not found in Game {gameId}!");
 
-        var Players = game.Players;
-        Player.gameRole taggerRole = Players.Where(p => p.UserId == taggerUserId).First().Role;
-        if (taggerRole != Player.gameRole.Zombie && taggerRole != Player.gameRole.Oz)
+        HashSet<Player> players = game.Players;
+        Player.GameRole taggerRole = players.First(p => p.UserId == taggerUserId).Role;
+        if (taggerRole != Player.GameRole.Zombie && taggerRole != Player.GameRole.Oz)
             throw new ArgumentException($"Tagger {taggerUserId} is not a zombie or OZ!");
 
-        Player.gameRole tagRecieverRole = Players.Where(p => p.GameId == tagRecieverGameId).First().Role;
-        if (tagRecieverRole != Player.gameRole.Human)
-            throw new ArgumentException($"tagReciever {tagRecieverGameId} is not Human!");
+        Player.GameRole tagReceiverRole = players.First(p => p.GameId == tagReceiverGameId).Role;
+        if (tagReceiverRole != Player.GameRole.Human)
+            throw new ArgumentException($"tagReciever {tagReceiverGameId} is not Human!");
 
-        Players.Where(p => p.UserId == taggerUserId).First().Tags += 1;
-        Players.Where(p => p.GameId == tagRecieverGameId).First().Role = Player.gameRole.Zombie;
+        players.First(p => p.UserId == taggerUserId).Tags += 1;
+        players.First(p => p.GameId == tagReceiverGameId).Role = Player.GameRole.Zombie;
 
         Game newGame = await Collection.FindOneAndUpdateAsync<Game>(g => g.Id == gameId,
-            Builders<Game>.Update.Set(g => g.Players, Players),
+            Builders<Game>.Update.Set(g => g.Players, players),
             new FindOneAndUpdateOptions<Game, Game>() { ReturnDocument = ReturnDocument.After }
         );
 
-        _logger.LogTrace($"User {taggerUserId} tagged user {tagRecieverGameId} in game {game}");
-        Player tagger = Players.Where(p => p.UserId == taggerUserId).First();
-        Player tagReciever = Players.Where(p => p.GameId == tagRecieverGameId).First();
-        await OnTag(new(game, tagger, tagReciever));
+        logger.LogTrace($"User {taggerUserId} tagged user {tagReceiverGameId} in game {game}");
+        Player tagger = players.First(p => p.UserId == taggerUserId);
+        Player tagReceiver = players.First(p => p.GameId == tagReceiverGameId);
+        await OnTag(new TagEventArgs(game, tagger, tagReceiver));
         return newGame;
     }
 
-    private async Task<String> GeneratePlayerGameId(string gameId)
+    private async Task<string> GeneratePlayerGameId(string gameId)
     {
         Game game = await GetGameById(gameId);
 
@@ -233,12 +233,12 @@ public class GameRepo : IGameRepo
         do
         {
             id = Random.Shared.Next(1000, 9999);
-        } while (game.Players.Where(p => p.GameId == id.ToString()).Any());
+        } while (game.Players.Any(p => p.GameId == id.ToString()));
         return id.ToString();
     }
 
     public async Task<List<Game>> GetGamesWithUser(string userId, int? limit = null)
-        => await Collection.Find<Game>(g => g.Players.Where(p => p.UserId == userId).Any()).ToListAsync();
+        => await Collection.Find<Game>(g => g.Players.Any(p => p.UserId == userId)).ToListAsync();
 
     public async Task<List<Game>> GetActiveGamesWithUser(string userId, int? limit = null)
         => (await GetGamesWithUser(userId, limit)).Where(g => g.IsActive).ToList();
@@ -258,43 +258,31 @@ public class GameRepo : IGameRepo
         {
             handler(this, args);
         }
-        await LogGameEvent(args.game.Id, new(GameEvent.GameCreated, _clock.GetCurrentInstant(), args.game.CreatorId, new Dictionary<string, object>() { { "name", args.game.Name } }));
+        await LogGameEvent(args.Game.Id, new GameEventLog(GameEvent.GameCreated, clock.GetCurrentInstant(), args.Game.CreatorId, new Dictionary<string, object>() { { "name", args.Game.Name } }));
     }
 
     protected virtual async Task OnPlayerJoined(PlayerUpdatedEventArgs args)
     {
         EventHandler<PlayerUpdatedEventArgs>? handler = PlayerJoinedGame;
-        if (handler != null)
-        {
-            handler(this, args);
-        }
-        await LogGameEvent(args.game.Id, new(GameEvent.PlayerJoined, _clock.GetCurrentInstant(), args.player.UserId));
+        handler?.Invoke(this, args);
+        await LogGameEvent(args.Game.Id, new GameEventLog(GameEvent.PlayerJoined, clock.GetCurrentInstant(), args.Player.UserId));
     }
     protected virtual async Task OnPlayerRoleChanged(PlayerRoleChangedEventArgs args)
     {
         EventHandler<PlayerRoleChangedEventArgs>? handler = PlayerRoleChanged;
-        if (handler != null)
-        {
-            handler(this, args);
-        }
-        await LogGameEvent(args.game.Id, new(GameEvent.PlayerRoleChangedByMod, _clock.GetCurrentInstant(), args.player.UserId, new Dictionary<string, object> { { "modid", args.instigatorId }, { "role", args.Role } }));
+        handler?.Invoke(this, args);
+        await LogGameEvent(args.Game.Id, new GameEventLog(GameEvent.PlayerRoleChangedByMod, clock.GetCurrentInstant(), args.Player.UserId, new Dictionary<string, object> { { "modid", args.InstigatorId }, { "role", args.Role } }));
     }
     protected virtual async Task OnGameActiveStatusChanged(GameActiveStatusChangedEventArgs args)
     {
         EventHandler<GameActiveStatusChangedEventArgs>? handler = GameActiveStatusChanged;
-        if (handler != null)
-        {
-            handler(this, args);
-        }
-        await LogGameEvent(args.game.Id, new(GameEvent.ActiveStatusChanged, _clock.GetCurrentInstant(), args.updatorId, new Dictionary<string, object> { { "state", args.Active } }));
+        handler?.Invoke(this, args);
+        await LogGameEvent(args.Game.Id, new GameEventLog(GameEvent.ActiveStatusChanged, clock.GetCurrentInstant(), args.UpdaterId, new Dictionary<string, object> { { "state", args.Active } }));
     }
     protected virtual async Task OnTag(TagEventArgs args)
     {
         EventHandler<TagEventArgs>? handler = TagLogged;
-        if (handler != null)
-        {
-            handler(this, args);
-        }
-        await LogGameEvent(args.game.Id, new(GameEvent.Tag, _clock.GetCurrentInstant(), args.Tagger.UserId, new Dictionary<string, object> { { "tagreciever", args.TagReciever.UserId } }));
+        handler?.Invoke(this, args);
+        await LogGameEvent(args.Game.Id, new GameEventLog(GameEvent.Tag, clock.GetCurrentInstant(), args.Tagger.UserId, new Dictionary<string, object> { { "tagreciever", args.TagReceiver.UserId } }));
     }
 }

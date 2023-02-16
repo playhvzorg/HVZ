@@ -123,8 +123,8 @@ public class ImageServiceTest
     public async Task Test_SmallThumbnailSize(string category)
     {
         var smThumbnail = await OpenFileAsBitmap(Path.Combine(uploadPath, category, "0_thumbnail_64.jpeg"));
-        Assert.That(smThumbnail.Width == (int)ImageService.ImageSize.SMALL);
-        Assert.That(smThumbnail.Height == (int)ImageService.ImageSize.SMALL);
+        Assert.That(smThumbnail.Width, Is.EqualTo((int)ImageService.ImageSize.SMALL));
+        Assert.That(smThumbnail.Height, Is.EqualTo((int)ImageService.ImageSize.SMALL));
         smThumbnail.Dispose();
     }
 
@@ -133,8 +133,8 @@ public class ImageServiceTest
     public async Task Test_MediumThumbnilSize(string category)
     {
         var mdThumbnail = await OpenFileAsBitmap(Path.Combine(uploadPath, category, "0_thumbnail_128.jpeg"));
-        Assert.That(mdThumbnail.Width == (int)ImageService.ImageSize.MEDIUM);
-        Assert.That(mdThumbnail.Height == (int)ImageService.ImageSize.MEDIUM);
+        Assert.That(mdThumbnail.Width, Is.EqualTo((int)ImageService.ImageSize.MEDIUM));
+        Assert.That(mdThumbnail.Height, Is.EqualTo((int)ImageService.ImageSize.MEDIUM));
         mdThumbnail.Dispose();
     }
 
@@ -143,8 +143,8 @@ public class ImageServiceTest
     public async Task Test_LargeTumbnailSize(string category)
     {
         var lgThumbnail = await OpenFileAsBitmap(Path.Combine(uploadPath, category, "0_thumbnail_256.jpeg"));
-        Assert.That(lgThumbnail.Width == (int)ImageService.ImageSize.LARGE);
-        Assert.That(lgThumbnail.Height == (int)ImageService.ImageSize.LARGE);
+        Assert.That(lgThumbnail.Width, Is.EqualTo((int)ImageService.ImageSize.LARGE));
+        Assert.That(lgThumbnail.Height, Is.EqualTo((int)ImageService.ImageSize.LARGE));
         lgThumbnail.Dispose();
     }
 
@@ -154,10 +154,10 @@ public class ImageServiceTest
     public void Test_GetUserThumbnailResourcePath(ImageService.ImageSize size)
     {
         string sharedIdResPath = imageService.GetUserThumbnailResourceLink("0", size);
-        Assert.That(sharedIdResPath == $"images/users/0_thumbnail_{(int)size}.jpeg");
+        Assert.That(sharedIdResPath, Is.EqualTo($"images/users/0_thumbnail_{(int)size}.jpeg"));
 
         string uniqueIdResPath = imageService.GetUserThumbnailResourceLink("1", size);
-        Assert.That(uniqueIdResPath == $"images/users/1_thumbnail_{(int)size}.jpeg");
+        Assert.That(uniqueIdResPath, Is.EqualTo($"images/users/1_thumbnail_{(int)size}.jpeg"));
     }
 
     [TestCase(ImageService.ImageSize.SMALL)]
@@ -166,10 +166,10 @@ public class ImageServiceTest
     public void Test_GetOrgThumbnailResourcePath(ImageService.ImageSize size)
     {
         string sharedIdResPath = imageService.GetOrgThumbnailResourceLink("0", size);
-        Assert.That(sharedIdResPath == $"images/orgs/0_thumbnail_{(int)size}.jpeg");
+        Assert.That(sharedIdResPath, Is.EqualTo($"images/orgs/0_thumbnail_{(int)size}.jpeg"));
 
         string uniqueIdResPath = imageService.GetOrgThumbnailResourceLink("2", size);
-        Assert.That(uniqueIdResPath == $"images/orgs/2_thumbnail_{(int)size}.jpeg");
+        Assert.That(uniqueIdResPath, Is.EqualTo($"images/orgs/2_thumbnail_{(int)size}.jpeg"));
     }
 
     [Test]

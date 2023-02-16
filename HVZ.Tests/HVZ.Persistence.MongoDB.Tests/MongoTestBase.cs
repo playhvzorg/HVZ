@@ -1,11 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
-using NUnit.Framework;
 using HVZ.Persistence.MongoDB.Serializers;
 
 namespace HVZ.Persistence.MongoDB.Tests
@@ -22,8 +16,8 @@ namespace HVZ.Persistence.MongoDB.Tests
         private const string ReplicaSetName = "rs0";
         private static readonly Random Random = new Random();
 
-        private MongoClient _client = null!;
-        private readonly List<string> _temporaryDatabases = new List<string>();
+        private MongoClient client = null!;
+        private readonly List<string> temporaryDatabases = new List<string>();
 
         [OneTimeSetUp]
         public void SetUpMongoClient()
@@ -33,8 +27,8 @@ namespace HVZ.Persistence.MongoDB.Tests
             MongoClientSettings settings = MongoClientSettings
                 .FromConnectionString($"mongodb://localhost:27017/?replicaSet={ReplicaSetName}");
             settings.LinqProvider = LinqProvider.V3;
-            _client = new MongoClient(settings);
-            bool success = _client.ListDatabaseNamesAsync(CancellationToken.None).Wait(TimeSpan.FromSeconds(5));
+            client = new MongoClient(settings);
+            bool success = client.ListDatabaseNamesAsync(CancellationToken.None).Wait(TimeSpan.FromSeconds(5));
             if (!success)
             {
                 throw new AssertionException(
@@ -48,14 +42,14 @@ namespace HVZ.Persistence.MongoDB.Tests
         [OneTimeTearDown]
         public void TearDownTempDatabases()
         {
-            Task.WhenAll(_temporaryDatabases.Select(db => _client.DropDatabaseAsync(db))).Wait();
+            Task.WhenAll(temporaryDatabases.Select(db => client.DropDatabaseAsync(db))).Wait();
         }
 
         protected IMongoDatabase CreateTemporaryDatabase()
         {
             string dbName = "testdb-" + Random.Next();
-            _temporaryDatabases.Add(dbName);
-            return _client.GetDatabase(dbName);
+            temporaryDatabases.Add(dbName);
+            return client.GetDatabase(dbName);
         }
     }
 }

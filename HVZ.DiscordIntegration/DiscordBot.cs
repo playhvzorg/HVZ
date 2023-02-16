@@ -5,10 +5,10 @@ using Discord;
 public class DiscordBot
 {
     private string token = null!;
-    private DiscordSocketClient _client = null!;
-    private InteractionService _interactionService = null!;
-    private bool initialized = false;
-    public static DiscordBot instance => new DiscordBot();
+    private DiscordSocketClient client = null!;
+    private InteractionService interactionService = null!;
+    private bool initialized;
+    public static DiscordBot Instance => new DiscordBot();
     private DiscordBot() { }
     private Task Log(LogMessage msg)
     {
@@ -16,15 +16,15 @@ public class DiscordBot
         return Task.CompletedTask;
     }
 
-    public void init(string token, IServiceProvider serviceProvider)
+    public void Init(string discordToken, IServiceProvider serviceProvider)
     {
         if (initialized)
             throw new InvalidOperationException("DiscordBot is already initialized");
-        this.token = token;
-        _client = new();
-        _interactionService = new(_client);
-        _client.Log += Log;
-        _interactionService.AddModulesAsync(typeof(DiscordBot).Assembly, serviceProvider);
+        this.token = discordToken;
+        client = new();
+        interactionService = new(client);
+        client.Log += Log;
+        interactionService.AddModulesAsync(typeof(DiscordBot).Assembly, serviceProvider);
         initialized = true;
     }
 
@@ -32,8 +32,8 @@ public class DiscordBot
     {
         if (!initialized)
             throw new InvalidOperationException("DiscordBot has not yet been initialized");
-        await _client.LoginAsync(TokenType.Bot, token);
-        await _client.StartAsync();
+        await client.LoginAsync(TokenType.Bot, token);
+        await client.StartAsync();
 
         // Block this task until the program is closed.
         await Task.Delay(-1);

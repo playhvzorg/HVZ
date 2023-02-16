@@ -9,7 +9,7 @@ namespace HVZ.Persistence.MongoDB.Tests;
 [Parallelizable(ParallelScope.All)]
 public class UserRepoTest : MongoTestBase
 {
-    public UserRepo CreateUserRepo() =>
+    private UserRepo CreateUserRepo() =>
         new UserRepo(CreateTemporaryDatabase(), Mock.Of<IClock>(), Mock.Of<ILogger>());
 
     [Test]
@@ -70,9 +70,9 @@ public class UserRepoTest : MongoTestBase
         User[] oneUser = await userRepo.FindUserByName(userName2);
         User[] twoUsers = await userRepo.FindUserByName(userName1);
 
-        Assert.That(noUsers.Length, Is.EqualTo(0));
-        Assert.That(oneUser.Length, Is.EqualTo(1));
-        Assert.That(twoUsers.Length, Is.EqualTo(2));
+        Assert.That(noUsers, Is.Empty);
+        Assert.That(oneUser, Has.Length.EqualTo(1));
+        Assert.That(twoUsers, Has.Length.EqualTo(2));
     }
 
     [Test]
@@ -105,7 +105,7 @@ public class UserRepoTest : MongoTestBase
         string unregisteredEmail = "bob@aol.com";
         User createdUser = await userRepo.CreateUser(userName, userEmail);
 
-        User? foundUser = await userRepo.GetUserByEmail(userEmail);
+        User foundUser = await userRepo.GetUserByEmail(userEmail);
 
         Assert.That(foundUser, Is.Not.Null);
         Assert.That(foundUser, Is.EqualTo(createdUser));
@@ -121,8 +121,7 @@ public class UserRepoTest : MongoTestBase
         string userEmail = "karl@karl.com";
         User createdUser = await userRepo.CreateUser(userName, userEmail);
 
-        User foundUser = await userRepo.GetUserById(createdUser.Id);
-
+        Assert.That(await userRepo.GetUserById(createdUser.Id), Is.Not.Null);
         await userRepo.DeleteUser(createdUser.Id);
 
         Assert.ThrowsAsync<ArgumentException>(() => userRepo.GetUserById(createdUser.Id));

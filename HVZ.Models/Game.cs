@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using NodaTime;
 namespace HVZ.Models;
 
@@ -40,7 +39,7 @@ public class Game : IdEquatable<Game>
     {
         get
         {
-            return Players.Where(P => P.Role == Player.gameRole.Human).ToHashSet();
+            return Players.Where(p => p.Role == Player.GameRole.Human).ToHashSet();
         }
     }
     /// <summary>
@@ -50,7 +49,7 @@ public class Game : IdEquatable<Game>
     {
         get
         {
-            return Players.Where(P => P.Role == Player.gameRole.Zombie).ToHashSet();
+            return Players.Where(p => p.Role == Player.GameRole.Zombie).ToHashSet();
         }
     }
     /// <summary>
@@ -61,7 +60,7 @@ public class Game : IdEquatable<Game>
     {
         get
         {
-            return Players.Where(P => P.Role == Player.gameRole.Oz).ToHashSet();
+            return Players.Where(p => p.Role == Player.GameRole.Oz).ToHashSet();
         }
     }
     /// <summary>
@@ -77,24 +76,24 @@ public class Game : IdEquatable<Game>
     {
         get
         {
-            return Players.Where(P => P.Role == Player.gameRole.Human || P.Role == Player.gameRole.Oz).ToHashSet();
+            return Players.Where(p => p.Role == Player.GameRole.Human || p.Role == Player.GameRole.Oz).ToHashSet();
         }
     }
 
     /// <summary>
     /// The role to put new people in when they join this game
     /// </summary>
-    public Player.gameRole DefaultRole { get; init; }
+    public Player.GameRole DefaultRole { get; init; }
 
-    public Game(string name, string gameid, string creatorid, string orgid, Instant createdat, Boolean isActive, Player.gameRole defaultrole, HashSet<Player> players, List<GameEventLog> eventLog)
+    public Game(string name, string gameId, string creatorId, string orgId, Instant createdAt, bool isActive, Player.GameRole defaultRole, HashSet<Player> players, List<GameEventLog> eventLog)
     {
         Name = name;
-        Id = gameid;
-        CreatorId = creatorid;
-        OrgId = orgid;
-        CreatedAt = createdat;
+        Id = gameId;
+        CreatorId = creatorId;
+        OrgId = orgId;
+        CreatedAt = createdAt;
         IsActive = isActive;
-        DefaultRole = defaultrole;
+        DefaultRole = defaultRole;
         Players = players;
         EventLog = eventLog;
     }
