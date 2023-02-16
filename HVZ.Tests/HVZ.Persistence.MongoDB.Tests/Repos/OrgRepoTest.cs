@@ -110,7 +110,7 @@ public class OrgRepotest : MongoTestBase {
 
         await orgRepo.CreateOrg(orgname, orgurl, userid);
 
-        Assert.That(await orgRepo.GetOrgByuRL(orgurl), Is.Not.Null);
+        Assert.That(await orgRepo.GetOrgByUrl(orgurl), Is.Not.Null);
         Assert.ThrowsAsync<ArgumentException>(() => orgRepo.GetOrgByUrl("none"));
     }
 
