@@ -1,4 +1,5 @@
-﻿@inherits LayoutComponentBase
+﻿@using HVZ.Web.Shared.Navigation
+@inherits LayoutComponentBase
 
 <PageTitle>HVZ.Web</PageTitle>
 
@@ -6,12 +7,12 @@
 
     <main>
 
-        <HVZ.Web.Shared.Navigation.NavBar />
+        <NavBar />
 
         <article class="content px-4">
             @Body
         </article>
         
-        <HVZ.Web.Shared.Navigation.Footer />
+        <Footer />
     </main>
 </div>
