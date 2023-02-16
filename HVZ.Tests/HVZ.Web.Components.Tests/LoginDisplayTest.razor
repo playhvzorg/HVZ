@@ -6,11 +6,13 @@
 @code
 {
     TestAuthorizationContext? authContext;
+    Mock<IOrgRepo> mockOrgRepo = new Mock<IOrgRepo>();
 
     [OneTimeSetUp]
     public void Setup()
     {
         authContext = this.AddTestAuthorization();
+        Services.AddSingleton<IOrgRepo>(mockOrgRepo.Object);
     }
 
     [Test]
