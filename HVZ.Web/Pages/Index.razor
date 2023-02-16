@@ -6,21 +6,47 @@
 @* @inject ImageService Image *@
 @page "/"
 
-<PageTitle>Index</PageTitle>
+<PageTitle>PlayHVZ</PageTitle>
 
-<CascadingAuthenticationState>
+<div class="container">
+    <h1>Welcome to PlayHVZ.org</h1>
 
-    <AuthorizeView>
+    <p class="mb-5">PlayHVZ is a tool for managing games of Humans vs Zombies.</p>
+    <CascadingAuthenticationState>
 
-        <Authorized>
-            <h1>
-                Hello, @context.User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value!
-            </h1>
-        </Authorized>
-        <NotAuthorized>
-            <a href="Account/Login" class="btn btn-primary btn-lg">Login</a>
-        </NotAuthorized>
+        <AuthorizeView>
 
-    </AuthorizeView>
+            <Authorized>
+                <p>Welcome back</p>
+            </Authorized>
+            <NotAuthorized>
+                <div class="row d-flex justify-content-center">
+                    <div class="col-auto text-center mb-3">
+                        <h4>New to PlayHVZ?</h4>
+                        <a href="Account/Register" class="btn btn-primary btn-lg">Register</a>
+                    </div>
+                    <div class="col-auto text-center mb-3">
+                        <h4>Returning user?</h4>
+                        <a href="Account/Login" class="btn btn-primary btn-lg">Login</a>
+                    </div>
+                </div>
+            </NotAuthorized>
 
-</CascadingAuthenticationState>
+        </AuthorizeView>
+
+    </CascadingAuthenticationState>
+
+
+    <h1>Features</h1>
+    <ul>
+        <li>
+            Organization management
+        </li>
+        <li>
+            OZs
+        </li>
+        <li>
+            Discord integration
+        </li>
+    </ul>
+</div>
