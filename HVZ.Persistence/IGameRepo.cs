@@ -1,5 +1,5 @@
 namespace HVZ.Persistence;
-using HVZ.Models;
+using HVZ.Persistence.Models;
 public interface IGameRepo
 {
     /// <summary>
@@ -53,7 +53,7 @@ public interface IGameRepo
     public Task<Game> SetActive(string gameName, bool active, string instigatorId);
 
     /// <summary>
-    /// Set the <see cref="HVZ.Models.Player.gameRole"/> of a player
+    /// Set the <see cref="HVZ.Persistence.Models.Player.gameRole"/> of a player
     /// </summary>
     /// <param name="instigatorId">User who is causing the player to change role</param>
     public Task<Game> SetPlayerToRole(string gameName, string userId, Player.gameRole role, string instigatorId);

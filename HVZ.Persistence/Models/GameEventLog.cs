@@ -1,5 +1,5 @@
 using NodaTime;
-namespace HVZ.Models;
+namespace HVZ.Persistence.Models;
 
 public record GameEventLog
 {

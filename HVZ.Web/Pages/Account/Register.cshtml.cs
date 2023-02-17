@@ -52,7 +52,7 @@ namespace HVZ.Web.Pages
                     return Page();
                 }
 
-                HVZ.Models.User dbUser;
+                HVZ.Persistence.Models.User dbUser;
 
                 try
                 {

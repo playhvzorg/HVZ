@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using NodaTime;
-namespace HVZ.Models;
+namespace HVZ.Persistence.Models;
 
 public class Game : IdEquatable<Game>
 {
