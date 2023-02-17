@@ -19,7 +19,7 @@
     [Parameter]
     public string? Url { get; set; } = "";
 
-    private HVZ.Models.Organization? organization;
+    private HVZ.Persistence.Models.Organization? organization;
     protected override async Task OnInitializedAsync()
     {
         organization = await OrgRepo.FindOrgByUrl(Url??"");
