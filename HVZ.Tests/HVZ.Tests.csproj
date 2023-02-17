@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="bunit" Version="1.15.5" />
+    <PackageReference Include="bunit" Version="1.16.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.1" />
     <PackageReference Include="NUnit" Version="3.13.3" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.3.1" />
@@ -23,7 +23,6 @@
   <ItemGroup>
     <ProjectReference Include="..\HVZ.Persistence.MongoDB\HVZ.Persistence.MongoDB.csproj" />
     <ProjectReference Include="..\HVZ.Persistence\HVZ.Persistence.csproj" />
-    <ProjectReference Include="..\HVZ.Models\HVZ.Models.csproj" />
     <ProjectReference Include="..\HVZ.Web\HVZ.Web.csproj" />
   </ItemGroup>
 

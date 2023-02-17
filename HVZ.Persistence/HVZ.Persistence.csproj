@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\HVZ.Models\HVZ.Models.csproj" />
+    <PackageReference Include="NodaTime" Version="3.1.6"/>
   </ItemGroup>
 
 </Project>

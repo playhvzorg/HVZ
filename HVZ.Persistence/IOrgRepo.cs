@@ -1,5 +1,5 @@
 namespace HVZ.Persistence;
-using HVZ.Models;
+using HVZ.Persistence.Models;
 public interface IOrgRepo
 {
     public Task<Organization> CreateOrg(string name, string url, string creatorUserId);

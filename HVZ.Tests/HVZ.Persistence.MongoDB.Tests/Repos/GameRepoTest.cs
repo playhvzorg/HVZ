@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using NodaTime;
 using Moq;
-using HVZ.Models;
+using HVZ.Persistence.Models;
 using HVZ.Persistence.MongoDB.Repos;
 using MongoDB.Driver;
 using Microsoft.Extensions.Logging;
