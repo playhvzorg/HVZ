@@ -19,7 +19,6 @@
 
 @code
 {
-
     [Parameter]
     public string? OrgId { get; set; } = "";
 
@@ -43,7 +42,8 @@
         
         if(OrgId != null && userId != null)
         {
-            Org = await OrgRepo.GetOrgById(OrgId);
+            if (Org == null)
+                Org = await OrgRepo.GetOrgById(OrgId);
 
             IsAdmin = await OrgRepo.IsAdminOfOrg(OrgId, userId);
             IsMod = IsAdmin || await OrgRepo.IsModOfOrg(OrgId, userId);
@@ -51,12 +51,45 @@
 
             Logger.LogDebug($"User ID: {userId}; Org ID: {OrgId}\nUser has admin: {IsAdmin}; User has mod: {IsMod}");
             shouldRender = true;
+
+            OrgRepo.AdminsUpdated += (_, eventArgs) => ProcRefresh(eventArgs.Org);
+
+            OrgRepo.ModsUpdated += (_, eventArgs) => ProcRefresh(eventArgs.Org);
         }
     }
 
-    public void Refresh()
+    void ProcRefresh(Organization eventOrg)
     {
-        StateHasChanged();
-        InvokeAsync(OnParametersSetAsync);
+        if (userId is null) return;
+
+        if (eventOrg.Id == OrgId)
+        {
+            if (UserPermissionsChanged(eventOrg, userId))
+            {
+                Org = eventOrg;
+                Refresh(userId);
+            }
+        }
+    }
+
+    void Refresh(string targetUserId)
+    {
+        shouldRender = true;
+        IsAdmin = Org.Administrators.Contains(targetUserId!);
+        IsMod = IsAdmin || Org.Moderators.Contains(targetUserId!);
+        InvokeAsync(StateHasChanged);
+    }
+
+    bool UserPermissionsChanged(Organization targetOrg, string targetUserId)
+    {
+        HashSet<string> modifiedMods = new HashSet<string>(Org.Moderators);
+        modifiedMods.SymmetricExceptWith(targetOrg.Moderators);
+        if (modifiedMods.Contains(targetUserId)) return true;
+
+        HashSet<string> modifiedAdmins = new HashSet<string>(Org.Administrators);
+        modifiedAdmins.SymmetricExceptWith(targetOrg.Administrators);
+        if (modifiedAdmins.Contains(targetUserId)) return true;
+
+        return false;
     }
 }
