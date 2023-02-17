@@ -2,7 +2,7 @@ using MongoDB.Driver;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.IdGenerators;
-using HVZ.Models;
+using HVZ.Persistence.Models;
 using HVZ.Persistence.MongoDB.Serializers;
 using NodaTime;
 using Microsoft.Extensions.Logging;
