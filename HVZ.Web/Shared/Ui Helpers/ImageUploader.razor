@@ -1,19 +1,32 @@
 @using HVZ.Web.Services
 @inject ImageService ImageService
 
-<label class="label">
-    @if (file is null)
-    {
-        <Thumbnail UserId="@UserId" OrgId="@OrgId" Size="@Size" />
-        <p class="text-danger" id="error-text">@errorText</p>
-    }
-    else
-    {
-        <img src="@imgSrc" height="@sizeInt" width="@sizeInt" >
-        <p class="text-muted" id="img-name"><em>@file.Name</em></p>
-    }
-    <InputFile class="d-none" name="img-upload" accept="image/*" OnChange="@StageFile" />
-</label>
+<div class="position-relative">
+    <label class="label" style="width:@(sizeInt)px;">
+        @* <span class="position-absolute badge bg-secondary text-centered"
+        style="top:-.25rem;right:-.25rem;height:1.25rem;width:1.25rem;border-radius:50%"><i class="fa-solid fa-pencil"></i></span> *@
+        @if (file is null)
+        {
+            <div class="position-relative">
+                <Thumbnail UserId="@UserId" OrgId="@OrgId" Size="@Size" />
+                @editIcon
+            </div>
+            
+            <p class="text-danger" style="overflow:hidden;" id="error-text">@errorText</p>
+        }
+        else
+        {
+            <div class="position-relative" style="width:@(sizeInt)px">
+                <img src="@imgSrc" height="@sizeInt" width="@sizeInt" >
+                @editIcon
+            </div>
+            <p class="text-muted" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="img-name"><em>@file.Name</em></p>
+        }
+        <InputFile class="d-none" name="img-upload" accept="image/*" OnChange="@StageFile" />
+    </label>
+    
+</div>
+
 
 @code
 {
@@ -36,6 +49,8 @@
     IBrowserFile? file;
 
     int sizeInt;
+
+    RenderFragment editIcon = @<span class="position-absolute badge bg-secondary text-centered" style="top:-.25rem;right:-.25rem;height:1.25rem;width:1.25rem;border-radius:50%"><i class="fa-solid fa-pencil"></i></span>;
 
     protected override void OnParametersSet()
     {

@@ -13,7 +13,9 @@
     <div class="col-lg-auto">
         @if (OrgId != null)
         {
-            <ImageUploader OrgId="OrgId" class="ml-3" />
+            <div class="ml-3 w-auto position-relative">
+                <ImageUploader OrgId="@OrgId" @ref="uploader" />
+            </div>
         }
     </div>
     
@@ -44,6 +46,9 @@
         
     </div>
 </div>
+<div class="sticky-bottom my-3">
+    <button class="btn btn-success">Save</button>
+</div>
 
 
 
@@ -53,6 +58,7 @@
     public string? OrgId { get; set; }
 
     Organization? org;
+    ImageUploader? uploader;
 
     string orgName = "";
     string orgUrl = "";
