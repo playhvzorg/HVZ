@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using HVZ.Web.Data;
+using HVZ.DiscordIntegration;
 using HVZ.Persistence;
 using HVZ.Persistence.MongoDB.Repos;
 using HVZ.Web.Identity;
@@ -8,6 +9,9 @@ using HVZ.Web.Settings;
 using HVZ.Web.Services;
 using MongoDB.Driver;
 using NodaTime;
+using Discord.WebSocket;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
 
 namespace HVZ.Web;
 internal static class Program
@@ -29,11 +33,9 @@ internal static class Program
 
         #region Generic options
 
-        builder.Services.Configure<WebConfig>(
-            builder.Configuration.GetSection(
-                nameof(WebConfig)
-            )
-        );
+        var webConfig = builder.Configuration.GetSection(nameof(WebConfig));
+        builder.Services.Configure<WebConfig>(webConfig);
+        builder.Services.AddSingleton<WebConfig>(webConfig.Get<WebConfig>()!);
 
         #endregion
 
@@ -46,17 +48,19 @@ internal static class Program
 
         #region Persistence
 
+        var mongoConfig = builder.Configuration.GetSection(nameof(MongoConfig)).Get<MongoConfig>();
+
         var mongoClient = new MongoClient(
-            builder.Configuration["DatabaseSettings:ConnectionString"]
+            mongoConfig?.ConnectionString
         );
 
         var mongoDatabase = mongoClient.GetDatabase(
-            builder.Configuration["DatabaseSettings:DatabaseName"]
+            mongoConfig?.Name
         );
 
-        IGameRepo gameRepo = new GameRepo(mongoDatabase, SystemClock.Instance, logger);
-        IUserRepo userRepo = new UserRepo(mongoDatabase, SystemClock.Instance, logger);
-        IOrgRepo orgRepo = new OrgRepo(mongoDatabase, SystemClock.Instance, userRepo, gameRepo, logger);
+        IGameRepo gameRepo = new GameRepo(mongoDatabase, NodaTime.SystemClock.Instance, logger);
+        IUserRepo userRepo = new UserRepo(mongoDatabase, NodaTime.SystemClock.Instance, logger);
+        IOrgRepo orgRepo = new OrgRepo(mongoDatabase, NodaTime.SystemClock.Instance, userRepo, gameRepo, logger);
 
         builder.Services.AddSingleton<IGameRepo>(gameRepo);
         builder.Services.AddSingleton<IUserRepo>(userRepo);
@@ -66,11 +70,10 @@ internal static class Program
 
         #region Identity
 
-        var mongoIdentitySettings = builder.Configuration.GetSection(nameof(MongoIdentityConfig)).Get<MongoIdentityConfig>();
         builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
             .AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>
             (
-                mongoIdentitySettings?.ConnectionString, mongoIdentitySettings?.Name
+                mongoConfig?.ConnectionString, mongoConfig?.Name
             )
             .AddDefaultTokenProviders();
         builder.Services.AddScoped<
@@ -91,6 +94,19 @@ internal static class Program
 
         #endregion
 
+        #region DiscordIntegration
+
+        var discordIntegrationSettings = builder.Configuration.GetSection(nameof(DiscordIntegrationSettings)).Get<DiscordIntegrationSettings>();
+        bool discordIntegrationEnabled = discordIntegrationSettings is not null;
+        if (discordIntegrationEnabled)
+        {
+            var discordBot = DiscordBot.instance;
+            builder.Services.AddSingleton<DiscordSocketClient>();
+            builder.Services.AddSingleton<DiscordBot>(discordBot);
+            builder.Services.AddSingleton<DiscordIntegrationSettings>(discordIntegrationSettings!);
+        }
+        #endregion
+
         #region Email
 
         builder.Services.Configure<EmailServiceOptions>(
@@ -105,6 +121,17 @@ internal static class Program
         builder.Services.AddSingleton<WeatherForecastService>();
 
         var app = builder.Build();
+
+        if (discordIntegrationEnabled)
+        {
+            DiscordBot? discordBot = (DiscordBot?)app.Services.GetService(typeof(DiscordBot));
+            if (discordBot is null)
+                throw new InvalidOperationException("Discord integration is enabled but the service is not configured");
+            if (discordIntegrationSettings?.Token is null)
+                throw new InvalidOperationException("Discord integration is enabled but the token is not configured");
+            discordBot.init(discordIntegrationSettings?.Token!, app.Services);
+            Task.Run(() => discordBot.Run());
+        }
 
         // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
@@ -124,13 +151,10 @@ internal static class Program
         app.UseAuthorization();
 
         app.MapBlazorHub();
-        // app.MapControllers(); // Enable for API
+        app.MapControllers();
         app.MapFallbackToPage("/_Host");
 
         app.Run();
     }
 
 }
-
-
-

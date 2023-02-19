@@ -11,8 +11,6 @@ public class PasswordValidationAttribute : ValidationAttribute
     public int MinDigits { get; set; }
     public int MinSpecial { get; set; }
 
-    private string errorMessage = "";
-
     public PasswordValidationAttribute
     (
         int minCharacters = 8,

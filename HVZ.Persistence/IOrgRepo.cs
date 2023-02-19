@@ -1,5 +1,5 @@
 namespace HVZ.Persistence;
-using HVZ.Models;
+using HVZ.Persistence.Models;
 public interface IOrgRepo
 {
     public Task<Organization> CreateOrg(string name, string url, string creatorUserId);
@@ -39,6 +39,10 @@ public interface IOrgRepo
     /// </summary>
     public Task<Organization> SetActiveGameOfOrg(string orgId, string gameId);
 
+    /// <summary>
+    /// Creates a game that belongs to an org.
+    /// </summary>
+    public Task<Game> CreateGame(string name, string orgId, string creatorId);
     /// <summary>
     /// Find the game that the org is currently playing. Returns null if there is no active game.
     /// </summary>
@@ -97,4 +101,24 @@ public interface IOrgRepo
     /// <param name="userId"></param>
     /// <returns>Whether the user is an moderator</returns>
     public Task<bool> IsModOfOrg(string orgId, string userId);
+
+    /// <summary>
+    /// Event that fires whenever someone is added to or removed from an org's Administrators
+    /// </summary>
+    public event EventHandler<OrgUpdatedEventArgs> AdminsUpdated;
+
+    /// <summary>
+    /// Event that fires whenever someone is added to or removed from an org's Moderators
+    /// </summary>
+    public event EventHandler<OrgUpdatedEventArgs> ModsUpdated;
+}
+
+public class OrgUpdatedEventArgs : EventArgs
+{
+    public Organization Org;
+
+    public OrgUpdatedEventArgs(Organization org)
+    {
+        Org = org;
+    }
 }

@@ -1,0 +1,41 @@
+
+@using HVZ.Web.Shared
+
+@inherits Bunit.TestContext
+
+@code
+{
+    TestAuthorizationContext? authContext;
+
+    [OneTimeSetUp]
+    public void Setup()
+    {
+        authContext = this.AddTestAuthorization();
+    }
+
+    [Test]
+    public void Test_LoggedOutSeesLoginButton()
+    {
+        authContext?.SetNotAuthorized();
+
+        var cut = Render(
+            @<LoginDisplay />
+        );
+
+        var button = cut.Find("a");
+        button.MarkupMatches(@<a href="Account/Login" class:ignore diff:ignoreChildren></a>);
+    }
+
+    [Test]
+    public void Test_LoggedInSeesLogOutButton()
+    {
+        authContext?.SetAuthorized("TEST USER");
+
+        var cut = Render(
+            @<LoginDisplay />
+        );
+
+        var button = cut.Find("a");
+        button.MarkupMatches(@<a href="Account/Logout" class:ignore diff:ignoreChildren></a>);
+    }
+}

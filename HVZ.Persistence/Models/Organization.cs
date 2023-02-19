@@ -1,6 +1,6 @@
 using NodaTime;
 using System.Collections;
-namespace HVZ.Models;
+namespace HVZ.Persistence.Models;
 public class Organization : IdEquatable<Organization>
 {
     /// <summary>

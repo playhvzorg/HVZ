@@ -2,7 +2,7 @@ using MongoDB.Driver;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.IdGenerators;
-using HVZ.Models;
+using HVZ.Persistence.Models;
 using HVZ.Persistence.MongoDB.Serializers;
 using NodaTime;
 using Microsoft.Extensions.Logging;
@@ -90,6 +90,16 @@ public class UserRepo : IUserRepo
         return (User)user;
     }
 
+    public async Task<User?> FindUserByEmail(string email)
+        => email == string.Empty ? null : await Collection.Find(u => u.Email.ToLowerInvariant() == email.ToLowerInvariant()).FirstOrDefaultAsync();
+
+    public async Task<User> GetUserByEmail(string email)
+    {
+        User? user = await FindUserByEmail(email);
+        if (user == null)
+            throw new ArgumentException($"User with email {email} not found!");
+        return (User)user;
+    }
     public async Task DeleteUser(string userId)
     {
         _logger.LogTrace($"Deleting user {userId}");

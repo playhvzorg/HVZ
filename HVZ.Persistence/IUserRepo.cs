@@ -1,5 +1,5 @@
 ﻿namespace HVZ.Persistence;
-using HVZ.Models;
+using HVZ.Persistence.Models;
 public interface IUserRepo
 {
     /// <summary>
@@ -9,7 +9,7 @@ public interface IUserRepo
     public Task<User> CreateUser(string name, string email);
 
     /// <summary>
-    /// Find a player from their ID
+    /// Find a user from their ID
     /// </summary>
     /// <returns>The found user or Null if no user found</returns>
     public Task<User?> FindUserById(string id);
@@ -25,6 +25,18 @@ public interface IUserRepo
     /// </summary>
     /// <returns>The user. Throws ArgumentException when no user found</returns>
     public Task<User> GetUserById(string id);
+
+    /// <summary>
+    /// Find a user from their email
+    /// </summary>
+    /// <returns>The user or null if no user found</returns>
+    public Task<User?> FindUserByEmail(string email);
+
+    /// <summary>
+    /// Get a user from their email
+    /// </summary>
+    /// <returns>the found user. Throws ArgumentException when no user found</returns>
+    public Task<User> GetUserByEmail(string email);
 
     /// <summary>
     /// Delete a user with the given Id.

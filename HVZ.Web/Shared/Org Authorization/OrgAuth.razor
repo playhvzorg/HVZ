@@ -4,16 +4,21 @@
 
 @inherits LayoutComponentBase
 
-<CascadingValue Value="@isAdmin" Name="isAdmin">
-    <CascadingValue Value="@isMod" Name="isMod">
-        @ChildContent
+<CascadingValue Value="@IsAdmin" Name="IsAdmin">
+    <CascadingValue Value="@IsMod" Name="IsMod">
+        <CascadingValue Value="@OwnerId" Name="OwnerId">
+            <CascadingValue Value="@this" Name="OrgAuth">
+                <CascadingValue Value="@Org" Name="Org">
+                    @ChildContent
+                </CascadingValue>
+            </CascadingValue>
+        </CascadingValue>
     </CascadingValue>
 </CascadingValue>
 
 
 @code
 {
-
     [Parameter]
     public string? OrgId { get; set; } = "";
 
@@ -21,8 +26,10 @@
     public RenderFragment? ChildContent { get; set; }
 
     private string? userId = "";
-    private bool isAdmin;
-    private bool isMod;
+    public bool IsAdmin { get; private set; }
+    public bool IsMod { get; private set; }
+    public string OwnerId { get; set; } = "";
+    public Organization Org { get; set; } = null!;
     private bool shouldRender;
 
     protected override bool ShouldRender() => shouldRender;
@@ -35,12 +42,54 @@
         
         if(OrgId != null && userId != null)
         {
-            isAdmin = await OrgRepo.IsAdminOfOrg(OrgId, userId);
-            isMod = isAdmin || await OrgRepo.IsModOfOrg(OrgId, userId);
-            Logger.LogDebug($"User ID: {userId}; Org ID: {OrgId}\nUser has admin: {isAdmin}; User has mod: {isMod}");
-            shouldRender = true;
-        }
+            if (Org == null)
+                Org = await OrgRepo.GetOrgById(OrgId);
 
+            IsAdmin = await OrgRepo.IsAdminOfOrg(OrgId, userId);
+            IsMod = IsAdmin || await OrgRepo.IsModOfOrg(OrgId, userId);
+            OwnerId = Org.OwnerId;
+
+            Logger.LogDebug($"User ID: {userId}; Org ID: {OrgId}\nUser has admin: {IsAdmin}; User has mod: {IsMod}");
+            shouldRender = true;
+
+            OrgRepo.AdminsUpdated += (_, eventArgs) => ProcRefresh(eventArgs.Org);
+
+            OrgRepo.ModsUpdated += (_, eventArgs) => ProcRefresh(eventArgs.Org);
+        }
+    }
+
+    void ProcRefresh(Organization eventOrg)
+    {
+        if (userId is null) return;
+
+        if (eventOrg.Id == OrgId)
+        {
+            if (UserPermissionsChanged(eventOrg, userId))
+            {
+                Org = eventOrg;
+                Refresh(userId);
+            }
+        }
+    }
+
+    void Refresh(string targetUserId)
+    {
         shouldRender = true;
+        IsAdmin = Org.Administrators.Contains(targetUserId!);
+        IsMod = IsAdmin || Org.Moderators.Contains(targetUserId!);
+        InvokeAsync(StateHasChanged);
+    }
+
+    bool UserPermissionsChanged(Organization targetOrg, string targetUserId)
+    {
+        HashSet<string> modifiedMods = new HashSet<string>(Org.Moderators);
+        modifiedMods.SymmetricExceptWith(targetOrg.Moderators);
+        if (modifiedMods.Contains(targetUserId)) return true;
+
+        HashSet<string> modifiedAdmins = new HashSet<string>(Org.Administrators);
+        modifiedAdmins.SymmetricExceptWith(targetOrg.Administrators);
+        if (modifiedAdmins.Contains(targetUserId)) return true;
+
+        return false;
     }
 }

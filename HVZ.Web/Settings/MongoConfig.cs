@@ -2,7 +2,7 @@ using System;
 
 namespace HVZ.Web.Settings
 {
-    public class MongoIdentityConfig
+    public class MongoConfig
     {
         public string? Name { get; set; }
         public string? Host { get; set; }

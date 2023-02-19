@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NodaTime" Version="3.1.6"/>
+    <PackageReference Include="Discord.Net" Version="3.9.0" />
   </ItemGroup>
-
 </Project>

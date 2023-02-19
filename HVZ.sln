@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32616.157
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HVZ.Models", "HVZ.Models\HVZ.Models.csproj", "{07C591C3-C318-4815-B99A-39913A26CD8C}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HVZ.Web", "HVZ.Web\HVZ.Web.csproj", "{A015B3E2-3E3A-4504-A20F-EB7A2F26610D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HVZ.Persistence", "HVZ.Persistence\HVZ.Persistence.csproj", "{DDA3D690-D9B1-4404-8F3A-4448ABCAE214}"
@@ -12,6 +10,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HVZ.Persistence.MongoDB", "HVZ.Persistence.MongoDB\HVZ.Persistence.MongoDB.csproj", "{4AF84EDD-F4B7-4315-9EE4-63EAECCA25FC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HVZ.Tests", "HVZ.Tests\HVZ.Tests.csproj", "{66120091-6BF5-4998-88CF-2B70DE8033C4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HVZ.DiscordIntegration", "HVZ.DiscordIntegration\HVZ.DiscordIntegration.csproj", "{CB0C8E7F-980E-45CB-9C06-AB39E4362888}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -83,6 +83,18 @@ Global
 		{66120091-6BF5-4998-88CF-2B70DE8033C4}.Release|x64.Build.0 = Release|Any CPU
 		{66120091-6BF5-4998-88CF-2B70DE8033C4}.Release|x86.ActiveCfg = Release|Any CPU
 		{66120091-6BF5-4998-88CF-2B70DE8033C4}.Release|x86.Build.0 = Release|Any CPU
+		{CB0C8E7F-980E-45CB-9C06-AB39E4362888}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CB0C8E7F-980E-45CB-9C06-AB39E4362888}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CB0C8E7F-980E-45CB-9C06-AB39E4362888}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CB0C8E7F-980E-45CB-9C06-AB39E4362888}.Debug|x64.Build.0 = Debug|Any CPU
+		{CB0C8E7F-980E-45CB-9C06-AB39E4362888}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CB0C8E7F-980E-45CB-9C06-AB39E4362888}.Debug|x86.Build.0 = Debug|Any CPU
+		{CB0C8E7F-980E-45CB-9C06-AB39E4362888}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CB0C8E7F-980E-45CB-9C06-AB39E4362888}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CB0C8E7F-980E-45CB-9C06-AB39E4362888}.Release|x64.ActiveCfg = Release|Any CPU
+		{CB0C8E7F-980E-45CB-9C06-AB39E4362888}.Release|x64.Build.0 = Release|Any CPU
+		{CB0C8E7F-980E-45CB-9C06-AB39E4362888}.Release|x86.ActiveCfg = Release|Any CPU
+		{CB0C8E7F-980E-45CB-9C06-AB39E4362888}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

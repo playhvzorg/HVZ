@@ -2,7 +2,7 @@ using MongoDB.Driver;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.IdGenerators;
-using HVZ.Models;
+using HVZ.Persistence.Models;
 using HVZ.Persistence.MongoDB.Serializers;
 using NodaTime;
 using Microsoft.Extensions.Logging;
@@ -16,6 +16,9 @@ public class OrgRepo : IOrgRepo
     public readonly IGameRepo _gameRepo;
     private readonly IClock _clock;
     private readonly ILogger _logger;
+
+    public event EventHandler<OrgUpdatedEventArgs>? AdminsUpdated;
+    public event EventHandler<OrgUpdatedEventArgs>? ModsUpdated;
 
     static OrgRepo()
     {
@@ -81,6 +84,17 @@ public class OrgRepo : IOrgRepo
         return org;
     }
 
+    public async Task<Game> CreateGame(string name, string creatorId, string orgId)
+    {
+        if (await IsAdminOfOrg(orgId, creatorId) is false)
+            throw new ArgumentException($"User {creatorId} is not an admin of org {orgId} and cannot create a game in this org.");
+        if (await FindActiveGameOfOrg(orgId) is not null)
+            throw new ArgumentException($"There is already an active game in org {orgId}, not allowing creation of a new game");
+        Game game = await _gameRepo.CreateGame(name, creatorId, orgId);
+        await SetActiveGameOfOrg(orgId, game.Id);
+        return game;
+    }
+
     public async Task<Organization?> FindOrgById(string orgId)
         => orgId == string.Empty ? null : await Collection.Find<Organization>(o => o.Id == orgId).FirstOrDefaultAsync();
 
@@ -125,7 +139,7 @@ public class OrgRepo : IOrgRepo
     public async Task<Game?> FindActiveGameOfOrg(string orgId)
     {
         Organization org = await GetOrgById(orgId);
-        return org.ActiveGameId == null ? null : await _gameRepo.FindGameById(org.ActiveGameId);
+        return org.ActiveGameId == null ? null : await _gameRepo.GetGameById(org.ActiveGameId);
     }
 
     public async Task<HashSet<string>> GetAdminsOfOrg(string orgId)
@@ -141,6 +155,8 @@ public class OrgRepo : IOrgRepo
 
         org.Administrators.Add(userId);
         _logger.LogTrace($"User {userId} added to admin group of org {orgId}");
+        OnAdminsUpdated(new(org));
+
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Administrators, org.Administrators),
             new() { ReturnDocument = ReturnDocument.After }
@@ -155,6 +171,8 @@ public class OrgRepo : IOrgRepo
 
         org.Administrators.Remove(userId);
         _logger.LogTrace($"User {userId} removed from admin group of org {orgId}");
+        OnAdminsUpdated(new(org));
+
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Administrators, org.Administrators),
             new() { ReturnDocument = ReturnDocument.After }
@@ -185,6 +203,8 @@ public class OrgRepo : IOrgRepo
 
         org.Moderators.Add(userId);
         _logger.LogTrace($"User {userId} added to moderator group of org {orgId}");
+        OnModsUpdated(new(org));
+
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Moderators, org.Moderators),
             new() { ReturnDocument = ReturnDocument.After }
@@ -197,6 +217,8 @@ public class OrgRepo : IOrgRepo
 
         org.Moderators.Remove(userId);
         _logger.LogTrace($"User {userId} removed from moderator group of org {orgId}");
+        OnModsUpdated(new(org));
+
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Moderators, org.Moderators),
             new() { ReturnDocument = ReturnDocument.After }
@@ -213,5 +235,23 @@ public class OrgRepo : IOrgRepo
     {
         var mods = await GetModsOfOrg(orgId);
         return mods.Contains(userId);
+    }
+
+    protected virtual void OnAdminsUpdated(OrgUpdatedEventArgs o)
+    {
+        EventHandler<OrgUpdatedEventArgs>? handler = AdminsUpdated;
+        if (handler != null)
+        {
+            handler(this, o);
+        }
+    }
+
+    protected virtual void OnModsUpdated(OrgUpdatedEventArgs o)
+    {
+        EventHandler<OrgUpdatedEventArgs>? handler = ModsUpdated;
+        if (handler != null)
+        {
+            handler(this, o);
+        }
     }
 }
