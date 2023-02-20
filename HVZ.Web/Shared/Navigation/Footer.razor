@@ -1,17 +1,25 @@
-<div class="sticky-bottom mt-5 p-4 d-none d-md-block mt-5 pt-5">
-    @* anything that should stick to the bottom of the screen goes here *@
+@*<div class="position-sticky sticky-bottom d-none d-md-block">
+    anything that should stick to the bottom of the screen goes here
+    
+</div>*@
+<div style="
+    position:sticky;
+    position:-webkit-sticky;
+    bottom:2px;">
+    <p class="text-muted">Footer</p>
 </div>
-<hr>
-<div class="d-none d-md-block">
-    <div class="container">
-        <div class="d-flex justify-content-center">
-            <h5 class="text-muted">PlayHVZ</h5>
-        </div>
-        <div class="d-flex justify-content-center align-baseline">
-            @* Enable when github is ready to be displayed to end users *@
-            @* <a href="https://www.github.com/charlotteoutdoorgaming/hvz" target="_blank" class="nav-link text-muted"><i class="fa-brands fa-github"></i> Github</a> *@
-            <a href="" target="_blank" class="nav-link text-muted"><i class="fa-solid fa-book"></i> Terms of Service</a>
-            <a href="" target="_blank" class="nav-link text-muted"><i class="fa-regular fa-address-card"></i> Privacy</a>
+<footer class="navbar bottom-0 d-none d-md-block container" >
+    <hr>
+    <div class="d-none d-md-block">
+        <div class="container">
+        
+            <div class="d-flex justify-content-center align-baseline">
+                @* Enable when github is ready to be displayed to end users *@
+                <a class="navbar-brand text-muted" href="/">PlayHVZ</a>
+                @*<a href="https://www.github.com/charlotteoutdoorgaming/hvz" target="_blank" class="nav-link text-muted"><i class="fa-brands fa-github"></i> Github</a>*@
+                <a href="" target="_blank" class="nav-link text-muted"><i class="fa-solid fa-book"></i> Terms of Service</a>
+                <a href="" target="_blank" class="nav-link text-muted"><i class="fa-regular fa-address-card"></i> Privacy</a>
+            </div>
         </div>
     </div>
-</div>
+</footer>
