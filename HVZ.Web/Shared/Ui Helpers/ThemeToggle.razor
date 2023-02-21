@@ -1,6 +1,6 @@
 ﻿@inject IJSRuntime JS
 
-<button @onclick="async () => {ToggleTheme();}" class="font-monospace btn btn-outline-@GetButtonStyle"><i class="fa-solid fa-@GetThemeIcon"></i></button>
+<button @onclick="async () => {ToggleTheme();}" class="btn btn-outline-@GetButtonStyle"><i class="fa-solid fa-@GetThemeIcon"></i></button>
 
 @code {
     bool prefersLightTheme = true;
@@ -11,9 +11,9 @@
 
     string GetThemeIcon => prefersLightTheme ? "sun" : "moon";
 
-    protected override async Task OnAfterRenderAsync(bool firstTime)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstTime) return;
+        if (!firstRender) return;
 
         var themePref = await JS.InvokeAsync<string>("getThemePreference", new object { });
 
