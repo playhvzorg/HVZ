@@ -1,0 +1,38 @@
+﻿@inject IJSRuntime JS
+
+<button @onclick="async () => {ToggleTheme();}" class="font-monospace btn btn-outline-@GetButtonStyle"><i class="fa-solid fa-@GetThemeIcon"></i></button>
+
+@code {
+    bool prefersLightTheme = true;
+
+    string GetTheme => prefersLightTheme ? "light" : "dark";
+
+    string GetButtonStyle => prefersLightTheme ? "dark" : "light";
+
+    string GetThemeIcon => prefersLightTheme ? "sun" : "moon";
+
+    protected override async Task OnAfterRenderAsync(bool firstTime)
+    {
+        if (!firstTime) return;
+
+        var themePref = await JS.InvokeAsync<string>("getThemePreference", new object { });
+
+        if (themePref == "dark")
+        {
+            prefersLightTheme = false;
+        }
+        else
+        {
+            prefersLightTheme = true;
+        }
+
+    }
+
+    async void ToggleTheme()
+    {
+        prefersLightTheme = !prefersLightTheme;
+        await JS.InvokeVoidAsync("saveThemePreference", GetTheme);
+        await JS.InvokeVoidAsync("applyTheme", GetTheme);
+        StateHasChanged();
+    }
+}
