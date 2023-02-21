@@ -1,0 +1,61 @@
+@page
+@using Microsoft.AspNetCore.Components.Web
+@model HVZ.Web.Pages.ResetPageModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+}
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="~/" />
+    <link rel="stylesheet" href="css/bootstrap/bootstrap-dark.min.css" />
+    <link href="css/site.css" rel="stylesheet" />
+    <link href="HVZ.Web.styles.css" rel="stylesheet" />
+    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
+</head>
+<title>Reset Password</title>
+<body class="pt-5">
+    <div class="container align-middle">
+        @if (Model.passwordResetSuccess == true)
+        {
+            <div class="justify-content-center">
+                <h1 class="text-center">Password successfully updated</h1>
+                <div class="text-center">
+                    <a href="/" class="btn btn-primary btn-lg">Home</a>
+                </div>
+            </div>
+        }
+        @if (Model.passwordResetSuccess == false)
+        {
+        <div class="row">
+            <h1 class="text-center">Reset Password</h1>
+            
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <form method="post">
+                    <div class="text-danger" asp-validation-summary="All"></div>
+                    <div class="form-floating mb-3">
+                        <input asp-for="ResetModelProperty.Password" class="form-control" placeholder="Password">
+                        <label for="floatingPass">Password</label>
+                        <span class="text-danger" asp-validation-for="ResetModelProperty.Password"></span>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input asp-for="ResetModelProperty.ConfirmPassword" class="form-control" placeholder="Confirm Password">
+                        <label for="floatingConfirmPass">Confirm password</label>
+                        <span class="text-danger" asp-validation-for="ResetModelProperty.ConfirmPassword"></span>
+                    </div>
+                    
+                    <div class="d-grid mb-3">
+                        <button class="btn btn-primary btn-block" type="submit">Reset</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        }
+    </div>
+
+    
+</body>
+<script src="_framework/blazor.server.js"></script>

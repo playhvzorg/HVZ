@@ -44,13 +44,13 @@ namespace HVZ.Web.Services
             smtpClient.SendAsync(msg, requestId);
         }
 
-        public async Task SendPasswordChangeEmailAsync(string to, string name, string requestId)
+        public async Task SendPasswordChangeEmailAsync(string to, string name, string requestId, string userId)
         {
             string htmlBody = await ReadEmailTemplateAsync("PasswordResetEmailTemplate.html");
 
             MailMessage msg = new MailMessage();
-            msg.Subject = "PlayHVZ: Verify email address";
-            msg.Body = String.Format(htmlBody, name, requestId, domainName);
+            msg.Subject = "PlayHVZ: Reset Password";
+            msg.Body = String.Format(htmlBody, name, requestId, domainName, userId);
             msg.To.Add(new MailAddress(to));
             msg.From = mailAddress;
             msg.IsBodyHtml = true;
