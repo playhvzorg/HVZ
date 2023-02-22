@@ -1,9 +1,9 @@
-
 # Initial Setup
 
 ## Use Gmail
 
-The default configuration is to use `smtp.gmail.com` as the smtp provider, if you are choosing to use a different smtp provider this section does not apply.
+The default configuration is to use `smtp.gmail.com` as the smtp provider, if you are choosing to use a different smtp
+provider this section does not apply.
 
 > It is recommended that you create a new gmail account to use for testing instead of using your personal gmail account
 
@@ -20,14 +20,15 @@ You need to create an app password for your gmail account in order to use smtp.
 
 ## Configure Email Service
 
-You need to set the `EmailId` and `Password` fields for `EmailServiceOptions` with [user secrets](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-7.0%27).
+You need to set the `EmailId` and `Password` fields for `EmailServiceOptions`
+with [user secrets](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-7.0%27).
 
 ``` bash
 dotnet user-secrets set "EmailServiceOptions:EmailId" {your email}
 ```
 
 > Replace {your email} with the email account you wish to use wrapped in double quotes
-> 
+>
 > ex: `"example@gmail.com"`
 
 ``` bash

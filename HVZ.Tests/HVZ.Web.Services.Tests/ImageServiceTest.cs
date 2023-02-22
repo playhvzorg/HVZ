@@ -1,25 +1,24 @@
-using Moq;
-using HVZ.Web.Settings;
-using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.Extensions.Options;
-using SkiaSharp;
-
 namespace HVZ.Web.Services.Tests;
 
-public class ImageServiceTest
-{
+using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.Extensions.Options;
+using Moq;
+using Settings;
+using SkiaSharp;
+
+public class ImageServiceTest {
     private ImageService imageService = null!;
-    private Mock<IBrowserFile> mockBrowserFile = new Mock<IBrowserFile>();
+    private readonly Mock<IBrowserFile> mockBrowserFile = new();
+    private readonly string sharedUserAndOrgId = "0";
+    private readonly string uniqueOrgId = "2";
+    private readonly string uniqueUserId = "1";
 
     private string uploadPath = "";
-    private string sharedUserAndOrgId = "0";
-    private string uniqueUserId = "1";
-    private string uniqueOrgId = "2";
 
     private async Task<SKBitmap> OpenFileAsBitmap(string path)
     {
         SKBitmap img;
-        await using FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read);
+        await using var fs = new FileStream(path, FileMode.Open, FileAccess.Read);
         using (var stream = new SKManagedStream(fs))
         {
             img = SKBitmap.Decode(stream);
@@ -33,16 +32,15 @@ public class ImageServiceTest
     {
         uploadPath = Path.Combine(Path.GetTempPath(), "HVZ.Test", "images");
         Directory.CreateDirectory(uploadPath);
-        IOptions<ImageServiceOptions> options = Mock.Of<IOptions<ImageServiceOptions>>(
+        var options = Mock.Of<IOptions<ImageServiceOptions>>(
             x => x.Value == new ImageServiceOptions { UploadPath = uploadPath });
         imageService = new ImageService(options);
 
         mockBrowserFile.Setup(file => file.OpenReadStream(4096 * 4096 * 32, default(CancellationToken)))
             .Returns(
                 // new FileStream($"../../../resources/0.png", FileMode.Open)
-                () =>
-                {
-                    var fs = new FileStream($"../../../resources/0.png", FileMode.Open);
+                () => {
+                    var fs = new FileStream("../../../resources/0.png", FileMode.Open);
                     fs.Seek(0, SeekOrigin.Begin);
                     return fs;
                 }
@@ -110,7 +108,7 @@ public class ImageServiceTest
     [Test]
     public void Test_SaveNonImageThrowsError()
     {
-        IBrowserFile textFile = Mock.Of<IBrowserFile>(
+        var textFile = Mock.Of<IBrowserFile>(
             x => x.ContentType == "text/json"
         );
         Assert.ThrowsAsync<ArgumentException>(async () => await imageService.SaveUserImage(textFile, "1234"));
@@ -122,7 +120,7 @@ public class ImageServiceTest
     [TestCase("orgs")]
     public async Task Test_SmallThumbnailSize(string category)
     {
-        var smThumbnail = await OpenFileAsBitmap(Path.Combine(uploadPath, category, "0_thumbnail_64.jpeg"));
+        SKBitmap smThumbnail = await OpenFileAsBitmap(Path.Combine(uploadPath, category, "0_thumbnail_64.jpeg"));
         Assert.That(smThumbnail.Width, Is.EqualTo((int)ImageService.ImageSize.SMALL));
         Assert.That(smThumbnail.Height, Is.EqualTo((int)ImageService.ImageSize.SMALL));
         smThumbnail.Dispose();
@@ -132,7 +130,7 @@ public class ImageServiceTest
     [TestCase("orgs")]
     public async Task Test_MediumThumbnilSize(string category)
     {
-        var mdThumbnail = await OpenFileAsBitmap(Path.Combine(uploadPath, category, "0_thumbnail_128.jpeg"));
+        SKBitmap mdThumbnail = await OpenFileAsBitmap(Path.Combine(uploadPath, category, "0_thumbnail_128.jpeg"));
         Assert.That(mdThumbnail.Width, Is.EqualTo((int)ImageService.ImageSize.MEDIUM));
         Assert.That(mdThumbnail.Height, Is.EqualTo((int)ImageService.ImageSize.MEDIUM));
         mdThumbnail.Dispose();
@@ -142,7 +140,7 @@ public class ImageServiceTest
     [TestCase("orgs")]
     public async Task Test_LargeTumbnailSize(string category)
     {
-        var lgThumbnail = await OpenFileAsBitmap(Path.Combine(uploadPath, category, "0_thumbnail_256.jpeg"));
+        SKBitmap lgThumbnail = await OpenFileAsBitmap(Path.Combine(uploadPath, category, "0_thumbnail_256.jpeg"));
         Assert.That(lgThumbnail.Width, Is.EqualTo((int)ImageService.ImageSize.LARGE));
         Assert.That(lgThumbnail.Height, Is.EqualTo((int)ImageService.ImageSize.LARGE));
         lgThumbnail.Dispose();
@@ -191,5 +189,4 @@ public class ImageServiceTest
         Assert.That(imageService.HasUploadedOrgImage(uniqueUserId), Is.False);
         Assert.That(imageService.HasUploadedOrgImage("1234"), Is.False);
     }
-
 }

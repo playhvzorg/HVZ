@@ -1,4 +1,3 @@
-
 @inject ImageService ImageService
 @inject IUserRepo UserRepo
 @inject IOrgRepo OrgRepo
@@ -42,13 +41,12 @@
         if (OrgId is not null)
         {
             await SetOrgImage(OrgId);
-            return;
         }
     }
 
     async Task SetUserImage(string userId)
     {
-        if(ImageService.HasUploadedUserImage(userId))
+        if (ImageService.HasUploadedUserImage(userId))
         {
             imgSrc = ImageService.GetUserThumbnailResourceLink(userId, Size);
             return;
@@ -56,9 +54,9 @@
 
         User user = await UserRepo.GetUserById(userId);
 
-        // Free API to generate user thumbnails
-        // https://ui-avatars.com
-        imgSrc = $"https://ui-avatars.com/api/?name={user.FullName.Replace(" ", "+")}&size={(int)(Size)}";
+    // Free API to generate user thumbnails
+    // https://ui-avatars.com
+        imgSrc = $"https://ui-avatars.com/api/?name={user.FullName.Replace(" ", "+")}&size={(int)Size}";
     }
 
     async Task SetOrgImage(string orgId)
@@ -71,8 +69,8 @@
 
         Organization org = await OrgRepo.GetOrgById(orgId);
 
-        // Free API to generate user thumbnails
-        // https://ui-avatars.com
-        imgSrc = $"https://ui-avatars.com/api/?name={org.Name.Replace(" ", "+")}&size={(int)(Size)}";
+    // Free API to generate user thumbnails
+    // https://ui-avatars.com
+        imgSrc = $"https://ui-avatars.com/api/?name={org.Name.Replace(" ", "+")}&size={(int)Size}";
     }
 }

@@ -1,12 +1,11 @@
-@using HVZ.Web.Shared.Org_Authorization
-@using System.Security.Claims
 @using NodaTime
+@using System.Security.Claims
 @inherits Bunit.TestContext
 
 @code
 {
     Mock<IOrgRepo> mockOrgRepo = null!;
-    
+
     private string orgId = "1";
     private string adminId = "2";
     private string ownerId = "2";
@@ -29,7 +28,7 @@
             activeGameId: null,
             createdAt: Instant.MinValue,
             url: "testorg"
-        );
+            );
     }
 
     [OneTimeSetUp]
@@ -38,10 +37,10 @@
         org = BuildOrg(
             new string[] { modId },
             new string[] { adminId }
-        );
+            );
 
         mockOrgRepo = new Mock<IOrgRepo>();
-        
+
         mockOrgRepo.Setup(repo => repo.IsModOfOrg(orgId, adminId)).ReturnsAsync(false);
         mockOrgRepo.Setup(repo => repo.IsAdminOfOrg(orgId, adminId)).ReturnsAsync(true);
 
@@ -57,7 +56,7 @@
             var modOrg = BuildOrg(
                 new string[] { modId, unauthorizedId },
                 new string[] { adminId }
-            );
+                );
             mockOrgRepo.Setup(repo => repo.AddModerator(orgId, unauthorizedId))
                 .ReturnsAsync(modOrg)
                 .Raises(repo => repo.ModsUpdated += null, new OrgUpdatedEventArgs(modOrg));
@@ -66,8 +65,8 @@
         {
             var modOrg = BuildOrg(
                 new string[] { modId, adminId },
-                new string[] {  }
-            );
+                new string[] { }
+                );
             mockOrgRepo.Setup(repo => repo.AddModerator(orgId, adminId))
                 .ReturnsAsync(modOrg)
                 .Raises(repo => repo.ModsUpdated += null, new OrgUpdatedEventArgs(modOrg));
@@ -77,17 +76,17 @@
             var modOrg = BuildOrg(
                 new string[] { modId },
                 new string[] { adminId, unauthorizedId }
-            );
+                );
             mockOrgRepo.Setup(repo => repo.AddAdmin(orgId, unauthorizedId))
                 .ReturnsAsync(modOrg)
                 .Raises(repo => repo.AdminsUpdated += null, new OrgUpdatedEventArgs(modOrg));
         }
-        
+
         {
             var modOrg = BuildOrg(
-                new string[] {  },
+                new string[] { },
                 new string[] { adminId }
-            );
+                );
             mockOrgRepo.Setup(repo => repo.RemoveModerator(orgId, modId))
                 .ReturnsAsync(modOrg)
                 .Raises(repo => repo.ModsUpdated += null, new OrgUpdatedEventArgs(modOrg));
@@ -95,9 +94,9 @@
 
         {
             var modOrg = BuildOrg(
-                new string[] {  },
-                new string [] { adminId, modId }
-            );
+                new string[] { },
+                new string[] { adminId, modId }
+                );
             mockOrgRepo.Setup(repo => repo.AddAdmin(orgId, modId))
                 .ReturnsAsync(modOrg)
                 .Raises(repo => repo.AdminsUpdated += null, new OrgUpdatedEventArgs(modOrg));
@@ -106,8 +105,8 @@
         {
             var modOrg = BuildOrg(
                 new string[] { modId },
-                new string[] {  }
-            );
+                new string[] { }
+                );
             mockOrgRepo.Setup(repo => repo.RemoveAdmin(orgId, adminId))
                 .ReturnsAsync(modOrg)
                 .Raises(repo => repo.AdminsUpdated += null, new OrgUpdatedEventArgs(modOrg));
@@ -115,7 +114,7 @@
 
         Services.AddSingleton<IOrgRepo>(mockOrgRepo.Object);
         authContext = this.AddTestAuthorization();
-        
+
     }
 
     IRenderedFragment RenderAdminContent()
@@ -125,7 +124,7 @@
                     <p class="admin-content">admin</p>
                 </OrgAuthorizedAdmin>
             </OrgAuth>
-        );
+            );
 
     IRenderedFragment RenderModContent()
         => Render(
@@ -134,8 +133,8 @@
                     <p class="mod-content">mod</p>
                 </OrgAuthorizedModerator>
             </OrgAuth>
-        );
-    
+            );
+
     IRenderedFragment RenderNestedContent()
         => Render(
             @<OrgAuth OrgId="@orgId">
@@ -145,17 +144,17 @@
                     </OrgAuthorizedAdmin>
                 </OrgAuthorizedModerator>
             </OrgAuth>
-        );
+            );
 
-#region Permissions
+    #region Permissions
 
     [Test]
     public void Test_AdminHasAdminPermissions()
     {
         authContext?.SetClaims(
             new Claim("DatabaseId", adminId)
-        );
-        
+            );
+
         IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(parameter => parameter
             .Add(p => p.OrgId, orgId));
         OrgAuth auth = cut.Instance;
@@ -168,7 +167,7 @@
     {
         authContext?.SetClaims(
             new Claim("DatabaseId", adminId)
-        );
+            );
 
         IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(parameter => parameter
             .Add(p => p.OrgId, orgId));
@@ -182,7 +181,7 @@
     {
         authContext?.SetClaims(
             new Claim("DatabaseId", modId)
-        );
+            );
 
         IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(parameter => parameter
             .Add(p => p.OrgId, orgId));
@@ -196,7 +195,7 @@
     {
         authContext?.SetClaims(
             new Claim("DatabaseId", modId)
-        );
+            );
 
         IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(parameter => parameter
             .Add(p => p.OrgId, orgId));
@@ -210,7 +209,7 @@
     {
         authContext?.SetClaims(
             new Claim("DatabaseId", unauthorizedId)
-        );
+            );
 
         IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(parameter => parameter
             .Add(p => p.OrgId, orgId));
@@ -224,11 +223,11 @@
     {
         authContext?.SetClaims(
             new Claim("DatabaseId", unauthorizedId)
-        );
+            );
 
         IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(
             parameter => parameter
-            .Add(p => p.OrgId, orgId));
+                .Add(p => p.OrgId, orgId));
         OrgAuth auth = cut.Instance;
 
         Assert.That(auth.IsMod, Is.False);
@@ -239,7 +238,7 @@
     {
         IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(
             parameter => parameter
-            .Add(p => p.OrgId, orgId));
+                .Add(p => p.OrgId, orgId));
         OrgAuth auth = cut.Instance;
 
         Assert.That(auth.OwnerId == ownerId, Is.True);
@@ -250,21 +249,22 @@
     {
         IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(
             parameter => parameter
-            .Add(p => p.OrgId, orgId));
+                .Add(p => p.OrgId, orgId));
         OrgAuth auth = cut.Instance;
 
         Assert.That(auth.Org == org, Is.True);
     }
-#endregion
 
-#region Semantic HTML
+    #endregion
+
+    #region Semantic HTML
 
     [Test]
     public void Test_AdminSeesAdminConent()
     {
         authContext?.SetClaims(
             new Claim("DatabaseId", adminId)
-        );
+            );
 
         var cut = RenderAdminContent();
 
@@ -277,7 +277,7 @@
     {
         authContext?.SetClaims(
             new Claim("DatabaseId", adminId)
-        );
+            );
 
         var cut = RenderModContent();
 
@@ -290,13 +290,13 @@
     {
         authContext?.SetClaims(
             new Claim("DatabaseId", adminId)
-        );
+            );
 
         var cut = Render(
             @<OrgAuth OrgId="@orgId">
                 <p class="public-content">public</p>
             </OrgAuth>
-        );
+            );
 
         var publicContent = cut.Find(".public-content");
         publicContent.MarkupMatches(@<p diff:ignore>public</p>);
@@ -307,7 +307,7 @@
     {
         authContext?.SetClaims(
             new Claim("DatabaseId", adminId)
-        );
+            );
 
         var cut = RenderNestedContent();
 
@@ -320,11 +320,11 @@
     {
         authContext?.SetClaims(
             new Claim("DatabaseId", modId)
-        );
+            );
 
         var cut = RenderAdminContent();
 
-        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find(".admin-content"));
+        Assert.Throws<ElementNotFoundException>(() => cut.Find(".admin-content"));
     }
 
     [Test]
@@ -332,7 +332,7 @@
     {
         authContext?.SetClaims(
             new Claim("DatabaseId", modId)
-        );
+            );
 
         var cut = RenderModContent();
 
@@ -346,13 +346,13 @@
     {
         authContext?.SetClaims(
             new Claim("DatabaseId", modId)
-        );
+            );
 
         var cut = Render(
             @<OrgAuth OrgId="@orgId">
                 <p class="public-content">public</p>
             </OrgAuth>
-        );
+            );
 
         var publicContent = cut.Find(".public-content");
         publicContent.MarkupMatches(@<p diff:ignore>public</p>);
@@ -363,11 +363,11 @@
     {
         authContext?.SetClaims(
             new Claim("DatabaseId", modId)
-        );
+            );
 
         var cut = RenderNestedContent();
 
-        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find(".admin-content"));
+        Assert.Throws<ElementNotFoundException>(() => cut.Find(".admin-content"));
     }
 
     [Test]
@@ -375,11 +375,11 @@
     {
         authContext?.SetClaims(
             new Claim("DatabaseId", unauthorizedId)
-        );
+            );
 
         var cut = RenderAdminContent();
 
-        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find(".admin-content"));
+        Assert.Throws<ElementNotFoundException>(() => cut.Find(".admin-content"));
     }
 
     [Test]
@@ -387,11 +387,11 @@
     {
         authContext?.SetClaims(
             new Claim("DatabaseId", unauthorizedId)
-        );
-        
+            );
+
         var cut = RenderModContent();
 
-        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find(".mod-content"));
+        Assert.Throws<ElementNotFoundException>(() => cut.Find(".mod-content"));
     }
 
     [Test]
@@ -399,31 +399,31 @@
     {
         authContext?.SetClaims(
             new Claim("DatabaseId", unauthorizedId)
-        );
+            );
 
         var cut = Render(
             @<OrgAuth OrgId="@orgId">
                 <p class="public-content">public</p>
             </OrgAuth>
-        );
+            );
 
         var publicContent = cut.Find(".public-content");
         publicContent.MarkupMatches(@<p diff:ignore>public</p>);
     }
 
-#endregion
+    #endregion
 
-#region Events
+    #region Events
 
     [Test]
     public async Task Test_UnauthorizedToMod()
     {
         authContext?.SetClaims(
             new Claim("DatabaseId", unauthorizedId)
-        );
+            );
 
         var cut = RenderModContent();
-        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find(".mod-content"));
+        Assert.Throws<ElementNotFoundException>(() => cut.Find(".mod-content"));
 
         await mockOrgRepo.Object.AddModerator(orgId, unauthorizedId);
 
@@ -431,7 +431,7 @@
             new OrgUpdatedEventArgs(BuildOrg(
                 new string[] { modId, unauthorizedId },
                 new string[] { adminId }
-            )));
+                )));
 
         var modContent = cut.Find(".mod-content");
         modContent.MarkupMatches(@<p diff:ignore>mod</p>);
@@ -442,10 +442,10 @@
     {
         authContext?.SetClaims(
             new Claim("DatabaseId", unauthorizedId)
-        );
+            );
 
         var cut = RenderAdminContent();
-        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find(".admin-content"));
+        Assert.Throws<ElementNotFoundException>(() => cut.Find(".admin-content"));
 
         await mockOrgRepo.Object.AddAdmin(orgId, unauthorizedId);
 
@@ -458,7 +458,7 @@
     {
         authContext?.SetClaims(
             new Claim("DatabaseId", modId)
-        );
+            );
 
         var cut = RenderModContent();
         var modContent = cut.Find(".mod-content");
@@ -466,7 +466,7 @@
 
         await mockOrgRepo.Object.RemoveModerator(orgId, modId);
 
-        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find(".mod-content"));
+        Assert.Throws<ElementNotFoundException>(() => cut.Find(".mod-content"));
     }
 
     [Test]
@@ -474,10 +474,10 @@
     {
         authContext?.SetClaims(
             new Claim("DatabaseId", modId)
-        );
+            );
 
         var cut = RenderAdminContent();
-        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find(".admin-content"));
+        Assert.Throws<ElementNotFoundException>(() => cut.Find(".admin-content"));
 
         await mockOrgRepo.Object.AddAdmin(orgId, modId);
 
@@ -490,7 +490,7 @@
     {
         authContext?.SetClaims(
             new Claim("DatabaseId", adminId)
-        );
+            );
 
         var cut = RenderAdminContent();
         var adminContent = cut.Find(".admin-content");
@@ -498,7 +498,7 @@
 
         await mockOrgRepo.Object.AddModerator(orgId, adminId);
 
-        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find(".admin-content"));
+        Assert.Throws<ElementNotFoundException>(() => cut.Find(".admin-content"));
     }
 
     [Test]
@@ -506,7 +506,7 @@
     {
         authContext?.SetClaims(
             new Claim("DatabaseId", adminId)
-        );
+            );
 
         var cut = RenderAdminContent();
         var adminContent = cut.Find(".admin-content");
@@ -514,8 +514,8 @@
 
         await mockOrgRepo.Object.RemoveAdmin(orgId, adminId);
 
-        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find(".admin-content"));
+        Assert.Throws<ElementNotFoundException>(() => cut.Find(".admin-content"));
     }
 
-#endregion
+    #endregion
 }

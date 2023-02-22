@@ -1,27 +1,25 @@
+namespace HVZ.Web;
+
+using Data;
+using Discord.WebSocket;
+using DiscordIntegration;
+using Identity;
+using Identity.Models;
 using Microsoft.AspNetCore.Identity;
-using HVZ.Web.Data;
-using HVZ.DiscordIntegration;
-using HVZ.Persistence;
-using HVZ.Persistence.MongoDB.Repos;
-using HVZ.Web.Identity;
-using HVZ.Web.Identity.Models;
-using HVZ.Web.Settings;
-using HVZ.Web.Services;
 using MongoDB.Driver;
 using NodaTime;
-using Discord.WebSocket;
-using Microsoft.AspNetCore.Authentication;
-using System.Security.Claims;
+using Persistence;
+using Persistence.MongoDB.Repos;
+using Services;
+using Settings;
 
-namespace HVZ.Web;
-internal static class Program
-{
+internal static class Program {
     public static void Main(string[] args)
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder(
-            new WebApplicationOptions()
+            new WebApplicationOptions
             {
-                ApplicationName = "HVZ.Web",
+                ApplicationName = "HVZ.Web"
             }
         );
 
@@ -33,14 +31,13 @@ internal static class Program
 
         #region Generic options
 
-        var webConfig = builder.Configuration.GetSection(nameof(WebConfig));
+        IConfigurationSection webConfig = builder.Configuration.GetSection(nameof(WebConfig));
         builder.Services.Configure<WebConfig>(webConfig);
-        builder.Services.AddSingleton<WebConfig>(webConfig.Get<WebConfig>()!);
+        builder.Services.AddSingleton(webConfig.Get<WebConfig>()!);
 
         #endregion
 
-        ILogger logger = LoggerFactory.Create(config =>
-            {
+        ILogger logger = LoggerFactory.Create(config => {
                 config.ClearProviders();
                 config.AddConsole();
             }
@@ -54,17 +51,17 @@ internal static class Program
             mongoConfig?.ConnectionString
         );
 
-        var mongoDatabase = mongoClient.GetDatabase(
+        IMongoDatabase? mongoDatabase = mongoClient.GetDatabase(
             mongoConfig?.Name
         );
 
-        IGameRepo gameRepo = new GameRepo(mongoDatabase, NodaTime.SystemClock.Instance, logger);
-        IUserRepo userRepo = new UserRepo(mongoDatabase, NodaTime.SystemClock.Instance, logger);
-        IOrgRepo orgRepo = new OrgRepo(mongoDatabase, NodaTime.SystemClock.Instance, userRepo, gameRepo, logger);
+        IGameRepo gameRepo = new GameRepo(mongoDatabase, SystemClock.Instance, logger);
+        IUserRepo userRepo = new UserRepo(mongoDatabase, SystemClock.Instance, logger);
+        IOrgRepo orgRepo = new OrgRepo(mongoDatabase, SystemClock.Instance, userRepo, gameRepo, logger);
 
-        builder.Services.AddSingleton<IGameRepo>(gameRepo);
-        builder.Services.AddSingleton<IUserRepo>(userRepo);
-        builder.Services.AddSingleton<IOrgRepo>(orgRepo);
+        builder.Services.AddSingleton(gameRepo);
+        builder.Services.AddSingleton(userRepo);
+        builder.Services.AddSingleton(orgRepo);
 
         #endregion
 
@@ -102,9 +99,10 @@ internal static class Program
         {
             var discordBot = DiscordBot.Instance;
             builder.Services.AddSingleton<DiscordSocketClient>();
-            builder.Services.AddSingleton<DiscordBot>(discordBot);
-            builder.Services.AddSingleton<DiscordIntegrationSettings>(discordIntegrationSettings!);
+            builder.Services.AddSingleton(discordBot);
+            builder.Services.AddSingleton(discordIntegrationSettings!);
         }
+
         #endregion
 
         #region Email
@@ -124,7 +122,7 @@ internal static class Program
 
         if (discordIntegrationEnabled)
         {
-            DiscordBot? discordBot = (DiscordBot?)app.Services.GetService(typeof(DiscordBot));
+            var discordBot = (DiscordBot?)app.Services.GetService(typeof(DiscordBot));
             if (discordBot is null)
                 throw new InvalidOperationException("Discord integration is enabled but the service is not configured");
             if (discordIntegrationSettings?.Token is null)
@@ -156,5 +154,4 @@ internal static class Program
 
         app.Run();
     }
-
 }

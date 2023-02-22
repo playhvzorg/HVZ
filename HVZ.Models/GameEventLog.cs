@@ -1,15 +1,16 @@
-using NodaTime;
 namespace HVZ.Models;
 
-public record GameEventLog
-{
+using NodaTime;
+
+public record GameEventLog {
+    public IDictionary<string, object> AdditionalInfo;
     public GameEvent GameEvent;
     public Instant Timestamp;
     /// <summary>
-    /// The user that caused this event to happen
+    ///     The user that caused this event to happen
     /// </summary>
     public string UserId;
-    public IDictionary<string, object> AdditionalInfo;
+
     public GameEventLog(GameEvent gameEvent, Instant timestamp, string userid, IDictionary<string, object> additionalinfo = null!)
     {
         GameEvent = gameEvent;
@@ -17,26 +18,27 @@ public record GameEventLog
         UserId = userid;
         AdditionalInfo = additionalinfo;
     }
+
     public override string ToString()
     {
-        return this.GameEvent switch
+        return GameEvent switch
         {
-            GameEvent.GameCreated => $"{this.Timestamp.ToString()} Game {this.AdditionalInfo["name"]} created by {this.UserId}",
-            GameEvent.PlayerJoined => $"{this.Timestamp.ToString()} User {this.UserId} joined the game",
-            GameEvent.PlayerLeft => $"{this.Timestamp.ToString()} User {this.UserId} left the game",
-            GameEvent.Tag => $"{this.Timestamp.ToString()} User {this.UserId} tagged user {this.AdditionalInfo["tagreciever"]}",
-            GameEvent.PlayerRoleChangedByMod => $"{this.Timestamp.ToString()} User {this.UserId} was set to {(Player.GameRole)this.AdditionalInfo["role"]} by {this.AdditionalInfo["modid"]}",
-            GameEvent.ActiveStatusChanged => $"{this.Timestamp.ToString()} Game set to {((bool)this.AdditionalInfo["state"] ? "active" : "inactive")} by {this.UserId}",
-            _ => $"{this.Timestamp.ToString()} Unrecognized event: {this.GameEvent.ToString()} user: {this.UserId} {this.AdditionalInfo.ToString()}"
+            GameEvent.GameCreated => $"{Timestamp.ToString()} Game {AdditionalInfo["name"]} created by {UserId}",
+            GameEvent.PlayerJoined => $"{Timestamp.ToString()} User {UserId} joined the game",
+            GameEvent.PlayerLeft => $"{Timestamp.ToString()} User {UserId} left the game",
+            GameEvent.Tag => $"{Timestamp.ToString()} User {UserId} tagged user {AdditionalInfo["tagreciever"]}",
+            GameEvent.PlayerRoleChangedByMod => $"{Timestamp.ToString()} User {UserId} was set to {(Player.GameRole)AdditionalInfo["role"]} by {AdditionalInfo["modid"]}",
+            GameEvent.ActiveStatusChanged => $"{Timestamp.ToString()} Game set to {((bool)AdditionalInfo["state"] ? "active" : "inactive")} by {UserId}",
+            _ => $"{Timestamp.ToString()} Unrecognized event: {GameEvent.ToString()} user: {UserId} {AdditionalInfo}"
         };
     }
 }
-public enum GameEvent
-{
+
+public enum GameEvent {
     GameCreated,
     PlayerJoined,
     PlayerLeft,
     Tag,
     PlayerRoleChangedByMod,
-    ActiveStatusChanged,
+    ActiveStatusChanged
 }

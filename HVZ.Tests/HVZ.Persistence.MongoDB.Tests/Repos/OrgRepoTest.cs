@@ -1,16 +1,16 @@
-using NodaTime;
-using Moq;
-using HVZ.Models;
-using HVZ.Persistence.MongoDB.Repos;
-using MongoDB.Driver;
-using Microsoft.Extensions.Logging;
-
 namespace HVZ.Persistence.MongoDB.Tests;
 
+using global::MongoDB.Driver;
+using Microsoft.Extensions.Logging;
+using Models;
+using Moq;
+using NodaTime;
+using Repos;
+
 public class OrgRepotest : MongoTestBase {
+    private Mock<IGameRepo> gameRepoMock = null!;
     private OrgRepo orgRepo = null!;
     private Mock<IUserRepo> userRepoMock = null!;
-    private Mock<IGameRepo> gameRepoMock = null!;
     //public OrgRepo CreateOrgRepo() =>
     //        new OrgRepo(CreateTemporaryDatabase(), Mock.Of<IClock>(), Mock.Of<IUserRepo>(), Mock.Of<IGameRepo>());
 
@@ -139,7 +139,7 @@ public class OrgRepotest : MongoTestBase {
         string userid = "0";
         string gameid = "1";
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
-        Game newGame = new("test", gameid, userid, org.Id, Instant.MinValue, true, Player.GameRole.Human, new HashSet<Player>(), new());
+        Game newGame = new("test", gameid, userid, org.Id, Instant.MinValue, true, Player.GameRole.Human, new HashSet<Player>(), new List<GameEventLog>());
         gameRepoMock.Setup(repo => repo.GetGameById("1")).ReturnsAsync(newGame);
         await orgRepo.SetActiveGameOfOrg(org.Id, gameid);
 
@@ -257,16 +257,16 @@ public class OrgRepotest : MongoTestBase {
 
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
 
-        Game game = new Game(
-            name: "gamename",
-            gameId: "1",
-            creatorId: userid,
-            orgId: org.Id,
-            createdAt: Instant.MinValue,
-            isActive: true,
-            defaultRole: Player.GameRole.Human,
-            players: new HashSet<Player>(),
-            eventLog: new List<GameEventLog>()
+        var game = new Game(
+            "gamename",
+            "1",
+            userid,
+            org.Id,
+            Instant.MinValue,
+            true,
+            Player.GameRole.Human,
+            new HashSet<Player>(),
+            new List<GameEventLog>()
         );
 
         gameRepoMock.Setup(repo => repo.CreateGame(gameName, userid, org.Id)).ReturnsAsync(game);
@@ -286,16 +286,16 @@ public class OrgRepotest : MongoTestBase {
         string otherUserId = "2";
         string gameName = "testgame";
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
-        Game game = new Game(
-            name: "gamename",
-            gameId: "1",
-            creatorId: userid,
-            orgId: org.Id,
-            createdAt: Instant.MinValue,
-            isActive: true,
-            defaultRole: Player.GameRole.Human,
-            players: new HashSet<Player>(),
-            eventLog: new List<GameEventLog>()
+        var game = new Game(
+            "gamename",
+            "1",
+            userid,
+            org.Id,
+            Instant.MinValue,
+            true,
+            Player.GameRole.Human,
+            new HashSet<Player>(),
+            new List<GameEventLog>()
         );
 
         gameRepoMock.Setup(repo => repo.CreateGame(gameName, userid, org.Id)).ReturnsAsync(game);

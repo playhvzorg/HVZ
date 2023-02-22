@@ -1,4 +1,3 @@
-@using Microsoft.AspNetCore.Components.Authorization
 @inject NavigationManager Navigation
 @attribute [Authorize]
 
@@ -19,12 +18,12 @@
             <table class="table">
 
                 <thead>
-                    <tr>
-                        <td scope="col">Type</td>
-                        <td scope="col">Value</td>
-                    </tr>
+                <tr>
+                    <td scope="col">Type</td>
+                    <td scope="col">Value</td>
+                </tr>
                 </thead>
-                @foreach (var claim in context.User.Claims)
+                @foreach (Claim? claim in context.User.Claims)
                 {
                     <tr>
                         <td>@claim.Type</td>

@@ -5,9 +5,12 @@
   replication:
     replSetName: rs0
   ```
-  The config file is usually located at `/etc/mongod.conf` (linux) or `%PROGRAMFILES%/MongoDB/Server/<version>/bin/mongod.cfg` (windows)
-- Restart MongoDB, and then run `rs.initiate()` from a mongo shell to initialize the replication set. You enter a mongo shell using `mongo` (linux) or `%PROGRAMFILES%/MongoDB/Server/<version>/bin/mongo.exe` (windows).
+  The config file is usually located at `/etc/mongod.conf` (linux)
+  or `%PROGRAMFILES%/MongoDB/Server/<version>/bin/mongod.cfg` (windows)
+- Restart MongoDB, and then run `rs.initiate()` from a mongo shell to initialize the replication set. You enter a mongo
+  shell using `mongo` (linux) or `%PROGRAMFILES%/MongoDB/Server/<version>/bin/mongo.exe` (windows).
 - The recommended replica set name is `rs0`, as that's a sensible default
   and you will then be able to execute the mongodb integration tests,
   if the server is running on localhost with the default port `27017`.
-  If you already chose a different name, you can rename the replica set [like this](https://stackoverflow.com/a/33400608/3688648).
+  If you already chose a different name, you can rename the replica
+  set [like this](https://stackoverflow.com/a/33400608/3688648).

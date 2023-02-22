@@ -1,31 +1,29 @@
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Serializers;
+namespace HVZ.Persistence.MongoDB.Serializers;
+
+using global::MongoDB.Bson;
+using global::MongoDB.Bson.Serialization;
+using global::MongoDB.Bson.Serialization.Serializers;
 using NodaTime;
 
-namespace HVZ.Persistence.MongoDB.Serializers
-{
-    public class InstantSerializer : SerializerBase<Instant>
+public class InstantSerializer : SerializerBase<Instant> {
+    public static readonly InstantSerializer Instance = new();
+
+    private InstantSerializer()
     {
-        public static readonly InstantSerializer Instance = new InstantSerializer();
+    }
 
-        private InstantSerializer()
+    public override Instant Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
+    {
+        BsonType type = context.Reader.GetCurrentBsonType();
+        return type switch
         {
-        }
+            BsonType.DateTime => Instant.FromUnixTimeMilliseconds(context.Reader.ReadDateTime()),
+            _ => throw CreateCannotBeDeserializedException()
+        };
+    }
 
-        public override Instant Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
-        {
-            BsonType type = context.Reader.GetCurrentBsonType();
-            return type switch
-            {
-                BsonType.DateTime => Instant.FromUnixTimeMilliseconds(context.Reader.ReadDateTime()),
-                _ => throw CreateCannotBeDeserializedException()
-            };
-        }
-
-        public override void Serialize(BsonSerializationContext context, BsonSerializationArgs args, Instant value)
-        {
-            context.Writer.WriteDateTime(value.ToUnixTimeMilliseconds());
-        }
+    public override void Serialize(BsonSerializationContext context, BsonSerializationArgs args, Instant value)
+    {
+        context.Writer.WriteDateTime(value.ToUnixTimeMilliseconds());
     }
 }

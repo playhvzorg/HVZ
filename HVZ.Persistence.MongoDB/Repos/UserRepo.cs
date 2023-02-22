@@ -1,24 +1,23 @@
-using MongoDB.Driver;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.IdGenerators;
-using HVZ.Models;
-using HVZ.Persistence.MongoDB.Serializers;
-using NodaTime;
-using Microsoft.Extensions.Logging;
 namespace HVZ.Persistence.MongoDB.Repos;
 
-public class UserRepo : IUserRepo
-{
+using global::MongoDB.Bson;
+using global::MongoDB.Bson.Serialization;
+using global::MongoDB.Bson.Serialization.IdGenerators;
+using global::MongoDB.Driver;
+using Microsoft.Extensions.Logging;
+using Models;
+using NodaTime;
+using Serializers;
+
+public class UserRepo : IUserRepo {
     private const string CollectionName = "Users";
-    public readonly IMongoCollection<User> Collection;
     private readonly IClock clock;
+    public readonly IMongoCollection<User> Collection;
     private readonly ILogger logger;
 
     static UserRepo()
     {
-        BsonClassMap.RegisterClassMap<User>(cm =>
-        {
+        BsonClassMap.RegisterClassMap<User>(cm => {
             cm.MapIdProperty(u => u.Id)
                 .SetIdGenerator(StringObjectIdGenerator.Instance)
                 .SetSerializer(ObjectIdAsStringSerializer.Instance);
@@ -32,23 +31,13 @@ public class UserRepo : IUserRepo
     public UserRepo(IMongoDatabase database, IClock clock, ILogger logger)
     {
         var filter = new BsonDocument("name", CollectionName);
-        var collections = database.ListCollections(new ListCollectionsOptions { Filter = filter });
+        IAsyncCursor<BsonDocument>? collections = database.ListCollections(new ListCollectionsOptions { Filter = filter });
         if (!collections.Any())
             database.CreateCollection(CollectionName);
         Collection = database.GetCollection<User>(CollectionName);
         this.clock = clock;
         this.logger = logger;
         InitIndexes();
-    }
-
-    public void InitIndexes()
-    {
-        Collection.Indexes.CreateMany(new[]
-        {
-            new CreateIndexModel<User>(Builders<User>.IndexKeys.Ascending(u => u.Id)),
-            new CreateIndexModel<User>(Builders<User>.IndexKeys.Ascending(u => u.FullName)),
-            new CreateIndexModel<User>(Builders<User>.IndexKeys.Ascending(u => u.Email))
-        });
     }
 
     public async Task<User> CreateUser(string name, string email)
@@ -61,9 +50,9 @@ public class UserRepo : IUserRepo
         name = name.Trim();
 
         User user = new(
-            id: string.Empty,
-            fullName: name,
-            email: email
+            string.Empty,
+            name,
+            email
         );
         logger.LogTrace($"Creating new user: name: {name} | email: {email}");
         await Collection.InsertOneAsync(user);
@@ -71,14 +60,16 @@ public class UserRepo : IUserRepo
     }
 
     public async Task<User?> FindUserById(string userId)
-        => userId == string.Empty ? null : await Collection.Find(u => u.Id == userId).FirstOrDefaultAsync();
+    {
+        return userId == string.Empty ? null : await Collection.Find(u => u.Id == userId).FirstOrDefaultAsync();
+    }
 
     public async Task<User[]> FindUserByName(string name)
     {
         if (name == string.Empty)
             throw new ArgumentException("Name must not be empty");
 
-        var users = await Collection.Find(u => u.FullName.ToLower().Contains(name.ToLower())).ToListAsync();
+        List<User>? users = await Collection.Find(u => u.FullName.ToLower().Contains(name.ToLower())).ToListAsync();
         return users.ToArray();
     }
 
@@ -87,23 +78,35 @@ public class UserRepo : IUserRepo
         User? user = await FindUserById(userId);
         if (user == null)
             throw new ArgumentException($"User with ID {userId} not found!");
-        return (User)user;
+        return user;
     }
 
     public async Task<User?> FindUserByEmail(string email)
-        => email == string.Empty ? null : await Collection.Find(u => u.Email.ToLowerInvariant() == email.ToLowerInvariant()).FirstOrDefaultAsync();
+    {
+        return email == string.Empty ? null : await Collection.Find(u => u.Email.ToLowerInvariant() == email.ToLowerInvariant()).FirstOrDefaultAsync();
+    }
 
     public async Task<User> GetUserByEmail(string email)
     {
         User? user = await FindUserByEmail(email);
         if (user == null)
             throw new ArgumentException($"User with email {email} not found!");
-        return (User)user;
+        return user;
     }
+
     public async Task DeleteUser(string userId)
     {
         logger.LogTrace($"Deleting user {userId}");
         await Collection.FindOneAndDeleteAsync(u => u.Id == userId);
     }
 
+    public void InitIndexes()
+    {
+        Collection.Indexes.CreateMany(new[]
+        {
+            new CreateIndexModel<User>(Builders<User>.IndexKeys.Ascending(u => u.Id)),
+            new CreateIndexModel<User>(Builders<User>.IndexKeys.Ascending(u => u.FullName)),
+            new CreateIndexModel<User>(Builders<User>.IndexKeys.Ascending(u => u.Email))
+        });
+    }
 }

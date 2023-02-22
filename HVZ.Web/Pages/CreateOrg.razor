@@ -1,11 +1,10 @@
-@using Microsoft.AspNetCore.Identity
-@using Microsoft.AspNetCore.Components.Authorization
-@using HVZ.Web.Identity.Models
 @inject IOrgRepo OrgRepo
 @inject UserManager<ApplicationUser> UserManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Navigation
 @page "/createorg"
+@using HVZ.Web.Identity.Models
+@using Microsoft.AspNetCore.Identity
 @inject ILogger<CreateOrg> Logger
 @attribute [Authorize]
 
@@ -26,60 +25,62 @@
             </div>
         </div>
     </div>
-    
+
 </div>
 
 @code {
-    
+
     private string orgName = "";
     private string orgUrl = "";
 
-    public string OrgName {
-        get
-        {
-            return orgName; 
-        }
+    public string OrgName
+    {
+        get => orgName;
         set
         {
             orgName = value.Replace("/", string.Empty);
             orgUrl = FormatOrgUrl(value);
-        } 
+        }
     }
 
-    @* Remove special characters from org url *@
-    private string FormatOrgUrl(string value) => value
-        .ToLower()
-        .Replace("&", "and")
-        .Replace(" ", string.Empty)
-        .Replace("/", string.Empty)
-        .Replace("%", string.Empty)
-        .Replace("?", string.Empty)
-        .Replace("<", string.Empty)
-        .Replace(">", string.Empty)
-        .Replace("'", string.Empty)
-        .Replace(".", string.Empty)
-        .Replace(";", string.Empty)
-        .Replace(":", string.Empty)
-        .Replace(",", string.Empty)
-        .Replace("`", string.Empty)
-        .Replace("~", string.Empty)
-        .Replace("!", string.Empty)
-        .Replace("@", string.Empty)
-        .Replace("#", string.Empty)
-        .Replace("$", string.Empty)
-        .Replace("^", string.Empty)
-        .Replace("*", string.Empty)
-        .Replace("(", string.Empty)
-        .Replace(")", string.Empty)
-        .Replace("[", string.Empty)
-        .Replace("]", string.Empty)
-        .Replace("{", string.Empty)
-        .Replace("}", string.Empty)
-        .Replace("=", string.Empty)
-        .Replace("+", string.Empty)
-        .Replace("|", string.Empty)
-        .Replace("\"", string.Empty)
-        .Replace("\\", string.Empty);
+        @* Remove special characters from org url *@
+
+    private string FormatOrgUrl(string value)
+    {
+        return value
+            .ToLower()
+            .Replace("&", "and")
+            .Replace(" ", string.Empty)
+            .Replace("/", string.Empty)
+            .Replace("%", string.Empty)
+            .Replace("?", string.Empty)
+            .Replace("<", string.Empty)
+            .Replace(">", string.Empty)
+            .Replace("'", string.Empty)
+            .Replace(".", string.Empty)
+            .Replace(";", string.Empty)
+            .Replace(":", string.Empty)
+            .Replace(",", string.Empty)
+            .Replace("`", string.Empty)
+            .Replace("~", string.Empty)
+            .Replace("!", string.Empty)
+            .Replace("@", string.Empty)
+            .Replace("#", string.Empty)
+            .Replace("$", string.Empty)
+            .Replace("^", string.Empty)
+            .Replace("*", string.Empty)
+            .Replace("(", string.Empty)
+            .Replace(")", string.Empty)
+            .Replace("[", string.Empty)
+            .Replace("]", string.Empty)
+            .Replace("{", string.Empty)
+            .Replace("}", string.Empty)
+            .Replace("=", string.Empty)
+            .Replace("+", string.Empty)
+            .Replace("|", string.Empty)
+            .Replace("\"", string.Empty)
+            .Replace("\\", string.Empty);
+    }
 
     private void UpdateOrgUrl()
     {
@@ -89,23 +90,23 @@
     [Authorize]
     async Task CreateNewOrg()
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var email = authState.User.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value;
-        // Email cannot be null, but dotnet does not know that
-        var authUser = await UserManager.FindByEmailAsync(email ?? "");
+        AuthenticationState authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        string? email = authState.User.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value;
+    // Email cannot be null, but dotnet does not know that
+        ApplicationUser? authUser = await UserManager.FindByEmailAsync(email ?? "");
 
-        if(authUser == null)
-            // Something has gone seriously wrong
+        if (authUser == null)
+    // Something has gone seriously wrong
             return;
 
-        if(orgName == string.Empty || orgName == null)
+        if (orgName == string.Empty || orgName == null)
             return;
-        
+
         @* TODO check that org with name or URL does not exist already and update validation *@
 
         Logger.LogInformation($"{authUser.FullName}:{authUser.DatabaseId} has created a new org: {orgName}");
 
-        var org = await OrgRepo.CreateOrg(orgName, orgUrl, authUser.DatabaseId);
+        Models.Organization org = await OrgRepo.CreateOrg(orgName, orgUrl, authUser.DatabaseId);
         Navigation.NavigateTo($"/org/{orgUrl}", true);
     }
 

@@ -1,8 +1,5 @@
+namespace HVZ.Web.Settings; 
 
-namespace HVZ.Web.Settings
-{
-    public class WebConfig
-    {
-        public string? DomainName { get; set; }
-    }
+public class WebConfig {
+    public string? DomainName { get; set; }
 }

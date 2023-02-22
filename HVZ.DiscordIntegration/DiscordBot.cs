@@ -1,15 +1,17 @@
 ﻿namespace HVZ.DiscordIntegration;
-using Discord.WebSocket;
-using Discord.Interactions;
+
 using Discord;
-public class DiscordBot
-{
-    private string token = null!;
+using Discord.Interactions;
+using Discord.WebSocket;
+
+public class DiscordBot {
     private DiscordSocketClient client = null!;
-    private InteractionService interactionService = null!;
     private bool initialized;
-    public static DiscordBot Instance => new DiscordBot();
+    private InteractionService interactionService = null!;
+    private string token = null!;
     private DiscordBot() { }
+    public static DiscordBot Instance => new();
+
     private Task Log(LogMessage msg)
     {
         Console.WriteLine($"{msg.Severity} {msg.Message}");
@@ -20,9 +22,9 @@ public class DiscordBot
     {
         if (initialized)
             throw new InvalidOperationException("DiscordBot is already initialized");
-        this.token = discordToken;
-        client = new();
-        interactionService = new(client);
+        token = discordToken;
+        client = new DiscordSocketClient();
+        interactionService = new InteractionService(client);
         client.Log += Log;
         interactionService.AddModulesAsync(typeof(DiscordBot).Assembly, serviceProvider);
         initialized = true;

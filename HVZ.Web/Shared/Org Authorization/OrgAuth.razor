@@ -7,7 +7,7 @@
 <CascadingValue Value="@IsAdmin" Name="IsAdmin">
     <CascadingValue Value="@IsMod" Name="IsMod">
         <CascadingValue Value="@OwnerId" Name="OwnerId">
-            <CascadingValue Value="@this" Name="OrgAuth">
+            <CascadingValue Value="@(this)" Name="OrgAuth">
                 <CascadingValue Value="@Org" Name="Org">
                     @ChildContent
                 </CascadingValue>
@@ -32,15 +32,18 @@
     public Organization Org { get; set; } = null!;
     private bool shouldRender;
 
-    protected override bool ShouldRender() => shouldRender;
+    protected override bool ShouldRender()
+    {
+        return shouldRender;
+    }
 
     protected override async Task OnParametersSetAsync()
     {
-        var authState = AuthenticationStateProvider.GetAuthenticationStateAsync().Result;
+        AuthenticationState authState = AuthenticationStateProvider.GetAuthenticationStateAsync().Result;
 
         userId = authState.User.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value;
-        
-        if(OrgId != null && userId != null)
+
+        if (OrgId != null && userId != null)
         {
             if (Org == null)
                 Org = await OrgRepo.GetOrgById(OrgId);
@@ -82,11 +85,11 @@
 
     bool UserPermissionsChanged(Organization targetOrg, string targetUserId)
     {
-        HashSet<string> modifiedMods = new HashSet<string>(Org.Moderators);
+        var modifiedMods = new HashSet<string>(Org.Moderators);
         modifiedMods.SymmetricExceptWith(targetOrg.Moderators);
         if (modifiedMods.Contains(targetUserId)) return true;
 
-        HashSet<string> modifiedAdmins = new HashSet<string>(Org.Administrators);
+        var modifiedAdmins = new HashSet<string>(Org.Administrators);
         modifiedAdmins.SymmetricExceptWith(targetOrg.Administrators);
         if (modifiedAdmins.Contains(targetUserId)) return true;
 

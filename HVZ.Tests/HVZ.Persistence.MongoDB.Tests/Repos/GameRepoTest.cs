@@ -1,17 +1,20 @@
-using NodaTime;
-using Moq;
-using HVZ.Models;
-using HVZ.Persistence.MongoDB.Repos;
-using MongoDB.Driver;
-using Microsoft.Extensions.Logging;
 namespace HVZ.Persistence.MongoDB.Tests;
 
+using global::MongoDB.Driver;
+using Microsoft.Extensions.Logging;
+using Models;
+using Moq;
+using NodaTime;
+using Repos;
+
 [Parallelizable(ParallelScope.All)]
-public class GameRepoTest : MongoTestBase
-{
-    private GameRepo CreateGameRepo() =>
-            new GameRepo(CreateTemporaryDatabase(), Mock.Of<IClock>(), Mock.Of<ILogger>());
+public class GameRepoTest : MongoTestBase {
     private const string DefaultTimeString = "1970-01-01T00:00:00Z";
+
+    private GameRepo CreateGameRepo()
+    {
+        return new GameRepo(CreateTemporaryDatabase(), Mock.Of<IClock>(), Mock.Of<ILogger>());
+    }
 
     [Test]
     public async Task create_then_read_are_equal()
@@ -221,6 +224,7 @@ public class GameRepoTest : MongoTestBase
         game = await gameRepo.LogTag(game.Id, userid1, user2GameId);
         Assert.That(game.Players.First(p => p.UserId == userid2).Role, Is.EqualTo(Player.GameRole.Zombie));
     }
+
     [Test]
     public async Task test_logtag_updates_tag_count()
     {
@@ -395,7 +399,7 @@ public class GameRepoTest : MongoTestBase
         string userid = "0";
         string orgid = "123";
 
-        gameRepo.GameActiveStatusChanged += (_ , args) => {
+        gameRepo.GameActiveStatusChanged += (_, args) => {
             eventGame = args.Game;
             eventUpdatorId = args.UpdaterId;
         };

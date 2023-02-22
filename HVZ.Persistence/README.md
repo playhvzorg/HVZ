@@ -3,7 +3,7 @@ without imposing how the persistence may be implemented.
 This realizes the [Data Access Object pattern](https://en.wikipedia.org/wiki/Data_access_object).
 
 Application code is advised to only depend on classes from this project
- and not any concrete implementation.
+and not any concrete implementation.
 
 Functions in this space are defined under the following name convention:
 FindX may return null if X is not found.

@@ -1,29 +1,25 @@
-using MongoDB.Driver;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.IdGenerators;
-using HVZ.Models;
-using HVZ.Persistence.MongoDB.Serializers;
-using NodaTime;
-using Microsoft.Extensions.Logging;
-
 namespace HVZ.Persistence.MongoDB.Repos;
-public class OrgRepo : IOrgRepo
-{
-    private const string CollectionName = "Orgs";
-    public readonly IMongoCollection<Organization> Collection;
-    public readonly IUserRepo UserRepo;
-    public readonly IGameRepo GameRepo;
-    private readonly IClock clock;
-    private readonly ILogger logger;
 
-    public event EventHandler<OrgUpdatedEventArgs>? AdminsUpdated;
-    public event EventHandler<OrgUpdatedEventArgs>? ModsUpdated;
+using global::MongoDB.Bson;
+using global::MongoDB.Bson.Serialization;
+using global::MongoDB.Bson.Serialization.IdGenerators;
+using global::MongoDB.Driver;
+using Microsoft.Extensions.Logging;
+using Models;
+using NodaTime;
+using Serializers;
+
+public class OrgRepo : IOrgRepo {
+    private const string CollectionName = "Orgs";
+    private readonly IClock clock;
+    public readonly IMongoCollection<Organization> Collection;
+    public readonly IGameRepo GameRepo;
+    private readonly ILogger logger;
+    public readonly IUserRepo UserRepo;
 
     static OrgRepo()
     {
-        BsonClassMap.RegisterClassMap<Organization>(cm =>
-        {
+        BsonClassMap.RegisterClassMap<Organization>(cm => {
             cm.MapIdProperty(o => o.Id)
                 .SetIdGenerator(StringObjectIdGenerator.Instance)
                 .SetSerializer(ObjectIdAsStringSerializer.Instance);
@@ -53,16 +49,8 @@ public class OrgRepo : IOrgRepo
         InitIndexes();
     }
 
-    public void InitIndexes()
-    {
-        Collection.Indexes.CreateMany(new[]
-        {
-            new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.Id)),
-            new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.OwnerId)),
-            new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.Name)),
-            new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.Url)),
-        });
-    }
+    public event EventHandler<OrgUpdatedEventArgs>? AdminsUpdated;
+    public event EventHandler<OrgUpdatedEventArgs>? ModsUpdated;
 
     public async Task<Organization> CreateOrg(string name, string url, string creatorUserId)
     {
@@ -132,8 +120,8 @@ public class OrgRepo : IOrgRepo
             return org;
         else
             return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
-            Builders<Organization>.Update.Set(o => o.ActiveGameId, gameId),
-            new() { ReturnDocument = ReturnDocument.After });
+                Builders<Organization>.Update.Set(o => o.ActiveGameId, gameId),
+                new() { ReturnDocument = ReturnDocument.After });
     }
 
     public async Task<Game?> FindActiveGameOfOrg(string orgId)
@@ -151,7 +139,7 @@ public class OrgRepo : IOrgRepo
     public async Task<Organization> AddAdmin(string orgId, string userId)
     {
         Organization org = await GetOrgById(orgId);
-        await UserRepo.GetUserById(userId); //sanity check that the user exists
+        await UserRepo.GetUserById(userId);//sanity check that the user exists
 
         org.Administrators.Add(userId);
         logger.LogTrace($"User {userId} added to admin group of org {orgId}");
@@ -160,7 +148,7 @@ public class OrgRepo : IOrgRepo
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Administrators, org.Administrators),
             new() { ReturnDocument = ReturnDocument.After }
-            );
+        );
     }
 
     public async Task<Organization> RemoveAdmin(string orgId, string userId)
@@ -176,7 +164,7 @@ public class OrgRepo : IOrgRepo
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Administrators, org.Administrators),
             new() { ReturnDocument = ReturnDocument.After }
-            );
+        );
     }
 
     public async Task<HashSet<string>> GetModsOfOrg(string orgId)
@@ -193,13 +181,13 @@ public class OrgRepo : IOrgRepo
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.OwnerId, newOwnerId),
             new() { ReturnDocument = ReturnDocument.After }
-            );
+        );
     }
 
     public async Task<Organization> AddModerator(string orgId, string userId)
     {
         Organization org = await GetOrgById(orgId);
-        await UserRepo.GetUserById(userId); //sanity check that the user exists
+        await UserRepo.GetUserById(userId);//sanity check that the user exists
 
         org.Moderators.Add(userId);
         logger.LogTrace($"User {userId} added to moderator group of org {orgId}");
@@ -208,7 +196,7 @@ public class OrgRepo : IOrgRepo
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Moderators, org.Moderators),
             new() { ReturnDocument = ReturnDocument.After }
-            );
+        );
     }
 
     public async Task<Organization> RemoveModerator(string orgId, string userId)
@@ -222,7 +210,7 @@ public class OrgRepo : IOrgRepo
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Moderators, org.Moderators),
             new() { ReturnDocument = ReturnDocument.After }
-            );
+        );
     }
 
     public async Task<bool> IsAdminOfOrg(string orgId, string userId)
@@ -235,6 +223,17 @@ public class OrgRepo : IOrgRepo
     {
         HashSet<string> mods = await GetModsOfOrg(orgId);
         return mods.Contains(userId);
+    }
+
+    public void InitIndexes()
+    {
+        Collection.Indexes.CreateMany(new[]
+        {
+            new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.Id)),
+            new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.OwnerId)),
+            new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.Name)),
+            new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.Url))
+        });
     }
 
     protected virtual void OnAdminsUpdated(OrgUpdatedEventArgs o)

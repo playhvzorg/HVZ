@@ -1,16 +1,18 @@
-using NodaTime;
-using Moq;
-using HVZ.Models;
-using HVZ.Persistence.MongoDB.Repos;
-using MongoDB.Driver;
-using Microsoft.Extensions.Logging;
 namespace HVZ.Persistence.MongoDB.Tests;
 
+using global::MongoDB.Driver;
+using Microsoft.Extensions.Logging;
+using Models;
+using Moq;
+using NodaTime;
+using Repos;
+
 [Parallelizable(ParallelScope.All)]
-public class UserRepoTest : MongoTestBase
-{
-    private UserRepo CreateUserRepo() =>
-        new UserRepo(CreateTemporaryDatabase(), Mock.Of<IClock>(), Mock.Of<ILogger>());
+public class UserRepoTest : MongoTestBase {
+    private UserRepo CreateUserRepo()
+    {
+        return new UserRepo(CreateTemporaryDatabase(), Mock.Of<IClock>(), Mock.Of<ILogger>());
+    }
 
     [Test]
     public async Task create_then_read_are_equal()
