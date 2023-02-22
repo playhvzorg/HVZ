@@ -36,7 +36,6 @@
         // Get the first URL path after the domain name
         // https://www.playhvz.org/pathToGet
         currentLocation = NavigationManager.Uri.Split("/")[3];
-        System.Console.WriteLine(currentLocation);
 
         NavigationManager.LocationChanged += (_, eventArgs) => {
             currentLocation = eventArgs.Location.Split("/")[3];
