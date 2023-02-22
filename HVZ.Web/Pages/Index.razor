@@ -3,109 +3,21 @@
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject EmailService Email
-@* @inject ImageService Image *@
 @page "/"
 
-<PageTitle>PlayHVZ</PageTitle>
+<PageTitle>PlayHVZ Home</PageTitle>
 
 <div class="container">
-    <h1>Welcome to PlayHVZ.org</h1>
+    @*Home*@
+    <h1>Home</h1>
     @*This lives here for now until we create a settings page*@
     <HVZ.Web.Shared.Ui_Helpers.ThemeToggle />
-    <p class="mb-3">PlayHVZ is a tool for managing games of Humans vs Zombies.</p>
     <CascadingAuthenticationState>
-
         <AuthorizeView>
-
-            <Authorized>
-                <p>Welcome back</p>
-            </Authorized>
             <NotAuthorized>
-                <div class="row d-flex justify-content-center">
-                    <div class="col-auto text-center mb-3">
-                        <h4>New to PlayHVZ?</h4>
-                        <a href="Account/Register" class="btn btn-primary btn-lg">Register</a>
-                    </div>
-                    <div class="col-auto text-center mb-3">
-                        <h4>Returning user?</h4>
-                        <a href="Account/Login" class="btn btn-primary btn-lg">Login</a>
-                    </div>
-                </div>
+                <RedirectToAbout />
             </NotAuthorized>
-
         </AuthorizeView>
-
     </CascadingAuthenticationState>
 
-
-    <h1>Features</h1>
-    <ul>
-        <li>
-            Organization management
-        </li>
-        <li>
-            OZs
-        </li>
-        <li>
-            Discord integration
-        </li>
-    </ul>
-
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
 </div>

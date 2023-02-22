@@ -1,17 +1,20 @@
 @inject NavigationManager NavigationManager
 <nav class="navbar navbar-expand-lg bg-body-tertiary">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">PlayHVZ</a>
+        <a class="navbar-brand" href="">PlayHVZ</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link @HomeActive()" aria-current="page" href="/@homeLink"><i class="fa-solid fa-house"></i> Home</a>
+                    <a class="nav-link @HomeActive" aria-current="page" href="/@homeLink"><i class="fa-solid fa-house"></i> Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link @ExploreActive()" aria-current="page" href="/@exploreLink"><i class="fa-solid fa-magnifying-glass"></i> Explore</a>
+                    <a class="nav-link @ExploreActive" aria-current="page" href="/@exploreLink"><i class="fa-solid fa-magnifying-glass"></i> Explore</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @AboutActive" aria-current="page" href="/@aboutLink"><i class="fa-solid fa-circle-question"></i> About</a>
                 </li>
             </ul>
             <div class="d-flex">
@@ -25,11 +28,13 @@
 {
     string currentLocation = "";
 
-    string homeLink = "home"; // TODO: Page does not exist yet
+    string homeLink = "";
     string exploreLink = "explore"; // TODO: Page does not exist yet
+    string aboutLink = "about";
 
-    string HomeActive() => currentLocation == homeLink ? "active" : null!;
-    string ExploreActive() => currentLocation == exploreLink ? "active" : null!;
+    string HomeActive => currentLocation == homeLink ? "active" : null!;
+    string ExploreActive => currentLocation == exploreLink ? "active" : null!;
+    string AboutActive => currentLocation == aboutLink ? "active" : null!;
 
     protected override void OnInitialized()
     {
