@@ -29,6 +29,7 @@ public class OrgRepo : IOrgRepo
                 .SetSerializer(ObjectIdAsStringSerializer.Instance);
             cm.MapProperty(o => o.Name);
             cm.MapProperty(o => o.Url);
+            cm.MapProperty(o => o.Description);
             cm.MapProperty(o => o.OwnerId);
             cm.MapProperty(o => o.Moderators);
             cm.MapProperty(o => o.Administrators);
@@ -61,6 +62,7 @@ public class OrgRepo : IOrgRepo
             new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.OwnerId)),
             new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.Name)),
             new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.Url)),
+            new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.Description))
         });
     }
 
