@@ -1,5 +1,4 @@
 using NodaTime;
-using System.Collections;
 namespace HVZ.Persistence.Models;
 public class Organization : IdEquatable<Organization>
 {
@@ -49,7 +48,12 @@ public class Organization : IdEquatable<Organization>
     /// </summary>
     public Instant CreatedAt { get; init; }
 
-    public Organization(string id, string name, string ownerid, HashSet<string> moderators, HashSet<string> administrators, HashSet<Game> games, string? activegameid, Instant createdat, string url)
+    /// <summary>
+    ///  Additional information about an org.
+    /// </summary>
+    public string Description { get; set; }
+
+    public Organization(string id, string name, string ownerid, HashSet<string> moderators, HashSet<string> administrators, HashSet<Game> games, string? activegameid, Instant createdat, string url, string description = "")
     {
         Id = id;
         Name = name;
@@ -60,5 +64,6 @@ public class Organization : IdEquatable<Organization>
         ActiveGameId = activegameid;
         CreatedAt = createdat;
         Url = url;
+        Description = description;
     }
 }

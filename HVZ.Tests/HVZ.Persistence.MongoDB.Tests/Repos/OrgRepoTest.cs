@@ -1,9 +1,9 @@
-using NodaTime;
-using Moq;
 using HVZ.Persistence.Models;
 using HVZ.Persistence.MongoDB.Repos;
-using MongoDB.Driver;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
+using Moq;
+using NodaTime;
 
 namespace HVZ.Persistence.MongoDB.Tests;
 
@@ -352,5 +352,22 @@ public class OrgRepotest : MongoTestBase
 
         await orgRepo.RemoveModerator(org.Id, newuserid);
         Assert.That(eventOrg, Is.Not.Null);
+    }
+
+    [Test]
+    public async Task test_orgdescription()
+    {
+        string orgname = "test";
+        string orgurl = "testurl";
+        string orgdesc = "description";
+        string userid = "0";
+
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
+
+        Assert.That(org.Description, Is.EqualTo(""));
+
+        org = await orgRepo.SetOrgDescription(org.Id, orgdesc);
+
+        Assert.That(org.Description, Is.EqualTo(orgdesc));
     }
 }

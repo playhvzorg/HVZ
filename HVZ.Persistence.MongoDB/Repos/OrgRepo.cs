@@ -1,11 +1,11 @@
-using MongoDB.Driver;
+using HVZ.Persistence.Models;
+using HVZ.Persistence.MongoDB.Serializers;
+using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.IdGenerators;
-using HVZ.Persistence.Models;
-using HVZ.Persistence.MongoDB.Serializers;
+using MongoDB.Driver;
 using NodaTime;
-using Microsoft.Extensions.Logging;
 
 namespace HVZ.Persistence.MongoDB.Repos;
 public class OrgRepo : IOrgRepo
@@ -235,6 +235,16 @@ public class OrgRepo : IOrgRepo
     {
         var mods = await GetModsOfOrg(orgId);
         return mods.Contains(userId);
+    }
+
+    public async Task<Organization> SetOrgDescription(string orgId, string description)
+    {
+        _logger.LogTrace($"Description for org {orgId} has been changed to {description}");
+
+        return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
+            Builders<Organization>.Update.Set(o => o.Description, description),
+            new() { ReturnDocument = ReturnDocument.After }
+            );
     }
 
     protected virtual void OnAdminsUpdated(OrgUpdatedEventArgs o)

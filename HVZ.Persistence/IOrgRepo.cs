@@ -103,6 +103,14 @@ public interface IOrgRepo
     public Task<bool> IsModOfOrg(string orgId, string userId);
 
     /// <summary>
+    /// Save the description property for the given org.
+    /// </summary>
+    /// <param name="orgId"></param>
+    /// <param name="description"></param>
+    /// <returns></returns>
+    public Task<Organization> SetOrgDescription(string orgId, string description);
+
+    /// <summary>
     /// Event that fires whenever someone is added to or removed from an org's Administrators
     /// </summary>
     public event EventHandler<OrgUpdatedEventArgs> AdminsUpdated;
