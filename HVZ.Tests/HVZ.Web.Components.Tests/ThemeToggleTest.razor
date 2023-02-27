@@ -1,0 +1,70 @@
+﻿@using HVZ.Web.Shared.Ui_Helpers
+
+@inherits Bunit.TestContext
+
+@code {
+
+    [OneTimeSetUp]
+    public void Setup()
+    {
+
+    }
+
+    [Test]
+    public void Test_LightMode()
+    {
+        JSInterop.Setup<string>("getThemePreference", _ => true).SetResult("light");
+
+        var cut = RenderComponent<ThemeToggle>();
+
+        cut.Render();
+
+        var icon = cut.Find("i");
+        var toggle = cut.Find("button");
+        icon.MarkupMatches(@<i class="fa-solid fa-sun"></i>);
+        toggle.MarkupMatches(@<button diff:ignoreChildren class="btn btn-outline-dark"></button>);
+    }
+
+    [Test]
+    public void Test_DarkMode()
+    {
+        JSInterop.Setup<string>("getThemePreference", _ => true).SetResult("dark");
+        
+        var cut = RenderComponent<ThemeToggle>();
+
+        cut.Render();
+
+        var icon = cut.Find("i");
+        var toggle = cut.Find("button");
+        icon.MarkupMatches(@<i class="fa-solid fa-moon"></i>);
+        toggle.MarkupMatches(@<button diff:ignoreChildren class="btn btn-outline-light"></button>);
+    }
+
+    [Test]
+    public void Test_ToggleTheme()
+    {
+        JSInterop.Setup<String>("getThemePreference", _ => true).SetResult("light");
+        var savePref = JSInterop.SetupVoid("saveThemePreference", _ => true);
+        var applyTheme = JSInterop.SetupVoid("applyTheme", _ => true);
+
+        var cut = RenderComponent<ThemeToggle>();
+
+        cut.Render();
+
+        var toggle = cut.Find("button");
+        toggle.MarkupMatches(
+            @<button class="btn btn-outline-dark">
+                <i class="fa-solid fa-sun"></i>
+        </button>);
+
+        toggle.Click();
+        savePref.SetVoidResult();
+        applyTheme.SetVoidResult();
+
+        toggle.MarkupMatches(
+            @<button class="btn btn-outline-light">
+                <i class="fa-solid fa-moon"></i>
+            </button>);
+    }
+
+}

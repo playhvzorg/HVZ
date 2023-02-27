@@ -2,17 +2,21 @@
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
-<CascadingAuthenticationState>
-    <AuthorizeView>
-        <Authorized>
-            <a href="Account/Logout" class="btn btn-primary">Logout</a>
-        </Authorized>
-        <NotAuthorized>
-            <a href="Account/Login" class="btn btn-primary">Login</a>
-        </NotAuthorized>
-    </AuthorizeView>
-</CascadingAuthenticationState>
-
+<div class="d-none d-lg-block">
+    <CascadingAuthenticationState>
+        <AuthorizeView>
+            <Authorized>
+                <a href="Account/Logout" class="nav-link text-muted d-inline"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a>
+                <div class="d-inline">
+                    <HVZ.Web.Shared.Ui_Helpers.Thumbnail UserId="@id" Size=ImageService.ImageSize.SMALL style="height:34px;width:34px;" />
+                </div>
+            </Authorized>
+            <NotAuthorized>
+                <a href="Account/Login" class="nav-link text-muted d-inline"><i class="fa-solid fa-arrow-right-to-bracket"></i> Login</a>
+            </NotAuthorized>
+        </AuthorizeView>
+    </CascadingAuthenticationState>
+</div>
 
 @code {
     private string? id = "1234";
