@@ -1,12 +1,8 @@
-
 @using HVZ.Web.Shared.Ui_Helpers
+@implements IDisposable
 @inject IOrgRepo OrgRepo
-
-@* Org Picture *@
-@* Org name *@
-@* Picture and name are inline until md then stacked vertically *@
-@* Require verified email for players *@
-@* Require profile picture for players *@
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
 
 <div class="row">
     @* Cursed but necessary *@
@@ -26,14 +22,6 @@
         <label for="description" class="form-label mt-3">About</label>
         <textarea name="description" id="description" cols="30" rows="5" class="form-control" @bind="orgDesc"></textarea>
 
-        <label for="org-location" class="form-label mt-3">Location</label>
-        <input class="form-control" @bind="location" id="org-location">
-
-        <div class="ml-4 mt-3">
-            <input type="checkbox" @bind="publicOrg" class="form-check-input" id="public-check">
-            <label for="public-check">Public</label>
-        </div>
-
         <div class="ml-4 mt-1">
             <input type="checkbox" @bind="requireVerifiedEmail" class="form-check-input" id="emailCheck">
             <label for="emailCheck">Require players to have verified email</label>
@@ -46,11 +34,30 @@
         
     </div>
 </div>
-<div class="sticky-bottom my-3">
-    <button class="btn btn-success">Save</button>
+
+<div class="modal" tabindex="-1" id="saveChangesModal">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Unsaved Changes</h5>
+            </div>
+            <div class="modal-body">
+                <p>You have unsaved changes, you must save or discard them before continuing</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" data-bs-dismiss="modal" @onclick="DiscardAndContinue">Discard and continue</button>
+                <button class="btn btn-primary" data-bs-dismiss="modal" @onclick="SaveAndContinue">Save and continue</button>
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+        
+    </div>
 </div>
 
-
+<div class="sticky-bottom my-3 @SaveFooterVisibility">
+    <button class="btn btn-success" @onclick="Save">Save</button>
+    <button class="btn btn-danger" @onclick="Discard">Discard</button>
+</div>
 
 @code
 {
@@ -59,23 +66,96 @@
 
     Organization? org;
     ImageUploader? uploader;
+    IDisposable navigationHandler = null!;
 
     string orgName = "";
-    string orgUrl = "";
-    string location = "";
     string orgDesc = "";
-    bool publicOrg = false;
     bool requireVerifiedEmail = false;
     bool requireProfilePicture = false;
 
+    string targetLocation = "";
+
+    bool UnsavedChanges => 
+        (orgName != org?.Name) || 
+        // Org Description
+        // Verified email
+        // Require profile picture
+        UploaderHasStagedFile();
+
+    string SaveFooterVisibility => UnsavedChanges ? "d-block" : "d-none";
+
     protected override bool ShouldRender() => OrgId != null;
+
+    protected override void OnInitialized()
+    {
+        navigationHandler = NavigationManager.RegisterLocationChangingHandler(LocationChangeHandler);
+        base.OnInitialized();
+    }
+
+    private ValueTask LocationChangeHandler(LocationChangingContext context)
+    {
+
+        if (UnsavedChanges)
+        {
+            targetLocation = context.TargetLocation;
+            context.PreventNavigation();
+            JS.InvokeVoidAsync("showModalById", "saveChangesModal");
+        }
+
+        return ValueTask.CompletedTask;
+    }
 
     protected override async Task OnParametersSetAsync()
     {
         if (OrgId is null) return;
-        
+
         org = await OrgRepo.FindOrgById(OrgId);
         orgName = org?.Name ?? "";
-        orgUrl = org?.Url ?? "";
+    }
+
+    async Task SaveAndContinue()
+    {
+        await Save();
+        NavigationManager.NavigateTo(targetLocation, true);
+    }
+
+    void DiscardAndContinue()
+    {
+        Discard();
+        NavigationManager.NavigateTo(targetLocation, true);
+    }
+
+    async Task Save()
+    {
+        if (uploader is not null)
+        {
+            await uploader.SaveFile();
+        }
+    }
+
+    void Discard()
+    {
+        if (uploader is not null)
+            uploader.ClearFile();
+
+        if (org is not null)
+        {
+            orgName = org.Name;
+            // Description
+            // Require verified email
+            // Require profile picture
+        }
+    }
+
+    private bool UploaderHasStagedFile()
+    {
+        if (uploader is not null) return uploader.HasStagedFile;
+
+        return false;
+    }
+
+    public void Dispose()
+    {
+        navigationHandler.Dispose();
     }
 }

@@ -52,6 +52,8 @@
 
     RenderFragment editIcon = @<span class="position-absolute badge bg-secondary text-centered" style="top:-.25rem;right:-.25rem;height:1.25rem;width:1.25rem;border-radius:50%"><i class="fa-solid fa-pencil"></i></span>;
 
+    public bool HasStagedFile => file is not null;
+
     protected override void OnParametersSet()
     {
         sizeInt = (int)Size;
@@ -75,6 +77,11 @@
         {
             throw new ArgumentNullException("UserId and OrgId are both null");
         }
+    }
+
+    public void ClearFile()
+    {
+        file = null;
     }
 
     private async Task StageFile(InputFileChangeEventArgs e)
