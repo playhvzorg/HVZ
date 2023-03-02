@@ -1,20 +1,19 @@
-﻿@inherits LayoutComponentBase
+﻿@using HVZ.Web.Shared.Navigation
+@inherits LayoutComponentBase
 
 <PageTitle>HVZ.Web</PageTitle>
 
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
 
     <main>
-        <div class="top-row px-4">
-            <LoginDisplay />
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-        </div>
+
+        <NavBar />
 
         <article class="content px-4">
             @Body
         </article>
+        
+        <Footer />
+        
     </main>
 </div>
