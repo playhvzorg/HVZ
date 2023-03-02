@@ -51,9 +51,9 @@ public class Organization : IdEquatable<Organization>
     /// <summary>
     ///  Additional information about an org.
     /// </summary>
-    public string Description { get; set; }
+    public string? Description { get; set; }
 
-    public Organization(string id, string name, string ownerid, HashSet<string> moderators, HashSet<string> administrators, HashSet<Game> games, string? activegameid, Instant createdat, string url, string description = "")
+    public Organization(string id, string name, string ownerid, HashSet<string> moderators, HashSet<string> administrators, HashSet<Game> games, string? activegameid, Instant createdat, string url)
     {
         Id = id;
         Name = name;
@@ -64,6 +64,5 @@ public class Organization : IdEquatable<Organization>
         ActiveGameId = activegameid;
         CreatedAt = createdat;
         Url = url;
-        Description = description;
     }
 }
