@@ -1,0 +1,207 @@
+﻿
+@inherits Bunit.TestContext
+@using HVZ.Web.Shared.Ui_Helpers
+
+@code {
+    Mock<IOrgRepo> mockOrgRepo = new Mock<IOrgRepo>();
+    Mock<IUserRepo> mockUserRepo = new Mock<IUserRepo>();
+    Mock<IGameRepo> mockGameRepo = new Mock<IGameRepo>();
+    Mock<ImageService> mockImageService = new Mock<ImageService>();
+
+    readonly string gameId = "1";
+    readonly string gameName = "Test Game";
+    readonly string orgId = "2";
+    readonly string orgName = "Test Org";
+    readonly string orgUrl = "testorg";
+    readonly string userId = "3";
+    readonly string userFullName = "Test User";
+    readonly string userEmail = "test@email.com";
+    readonly string playerId = "4";
+
+    Player testPlayer = null!;
+    Game testGame = null!;
+    Game? nullGame;
+    Organization testOrg = null!;
+    User testUser = null!;
+
+    [OneTimeSetUp]
+    public void Setup()
+    {
+        NodaTime.Instant time = NodaTime.Instant.FromDateTimeOffset(new DateTimeOffset(
+            year:2023,
+            month: 1,
+            day: 1,
+            hour: 0,
+            minute: 0,
+            second: 0,
+            offset: TimeSpan.Zero
+        ));
+
+        testPlayer = new Player(
+            userid: userId,
+            gameId: playerId,
+            role: Player.gameRole.Human,
+            tags: 0,
+            joinedGameAt: time
+        );
+
+        testGame = new Game(
+            name: gameName,
+            gameid: gameId,
+            creatorid: userId,
+            orgid: orgId,
+            createdat: time,
+            isActive: true,
+            defaultrole: Player.gameRole.Human,
+            players: new HashSet<Player>() { testPlayer },
+            eventLog: new List<GameEventLog>()
+        );
+
+        testOrg = new Organization(
+            id: orgId,
+            name: orgName,
+            ownerid: userId,
+            moderators: new HashSet<string>(),
+            administrators: new HashSet<string>(),
+            games: new HashSet<Game>() { testGame },
+            activegameid: gameId,
+            createdat: time,
+            url: orgUrl
+        );
+
+        testUser = new User(
+            id: userId,
+            fullName: userFullName,
+            email: userEmail
+        );
+
+        // Get test user
+        mockUserRepo.Setup(repo => repo.GetUserById(userId))
+            .ReturnsAsync(testUser);
+
+        // Get test org
+        mockOrgRepo.Setup(repo => repo.FindOrgById(orgId))
+            .ReturnsAsync(testOrg);
+
+        mockOrgRepo.Setup(repo => repo.GetOrgById(orgId))
+            .ReturnsAsync(testOrg);
+
+        Services.AddSingleton<IOrgRepo>(mockOrgRepo.Object);
+        Services.AddSingleton<IUserRepo>(mockUserRepo.Object);
+        Services.AddSingleton<IGameRepo>(mockGameRepo.Object);
+        Services.AddSingleton<ImageService>(mockImageService.Object);
+
+    }
+
+    [Test]
+    public void Test_NullActiveGame()
+    {
+        var cut = Render(@<ActiveGameLink ActiveGame="@nullGame" UserId="@userId" />);
+
+        Assert.Throws<Bunit.ElementNotFoundException>(
+            () => cut.Find("a")
+        );
+    }
+
+    [Test]
+    public void Test_UrlLeadsToOrg()
+    {
+        var cut = Render(@<ActiveGameLink ActiveGame="@testGame"  UserId="@userId" />);
+
+        var anchor = cut.Find("a");
+
+        anchor.MarkupMatches(
+            @<a href="/org/@orgUrl" style:ignore class:ignore diff:ignoreChildren></a>
+        );
+    }
+
+    [Test]
+    public void Test_DisplayOrgName()
+    {
+        var cut = Render(@<ActiveGameLink ActiveGame="@testGame" UserId="@userId" />);
+
+        var orgNameElement = cut.Find("#org-name");
+
+        orgNameElement.MarkupMatches(
+            @<h5 class:ignore id="org-name" style="text-overflow:ellipsis;overflow:hidden;white-space:nowrap;font-size:medium">@orgName</h5>
+        );
+    }
+
+    [Test]
+    public void Test_DisplayStartDate()
+    {
+        var cut = Render(@<ActiveGameLink ActiveGame="@testGame" UserId="@userId" />);
+
+        var dateElement = cut.Find("#start-date");
+
+        dateElement.MarkupMatches(
+            @<p class:ignore id="start-date">1/1/23</p>
+        );
+    }
+
+    [Test]
+    public void Test_DisplayGameName()
+    {
+        var cut = Render(@<ActiveGameLink ActiveGame="@testGame" UserId="@userId" />);
+
+        var nameElement = cut.Find("#game-name");
+
+        nameElement.MarkupMatches(
+            @<p id="game-name" class:ignore style="text-overflow:ellipsis;overflow:hidden;white-space:nowrap;">@gameName</p>
+        );
+
+    }
+
+    [Test]
+    public void Test_DisplayGameId()
+    {
+        var cut = Render(@<ActiveGameLink ActiveGame="@testGame" UserId="@userId" />);
+
+        var idElement = cut.Find("#game-id");
+
+        idElement.MarkupMatches(
+            @<span diff:ignoreAttributes><i diff:ignore></i> @testPlayer.GameId</span>
+        );
+    }
+
+    [Test]
+    public void Test_DisplayGameRole()
+    {
+        var cut = Render(@<ActiveGameLink ActiveGame="@testGame" UserId="@userId" />);
+
+        var roleElement = cut.Find("#game-role");
+
+        roleElement.MarkupMatches(
+            @<span diff:ignoreAttributes><i diff:ignore></i> @testPlayer.Role.ToString()</span>
+        );
+    }
+
+    [Test]
+    public void Test_DisplayTags()
+    {
+        var cut = Render(@<ActiveGameLink ActiveGame="@testGame" UserId="@userId" />);
+
+        var tagsElement = cut.Find("#game-tags");
+
+        tagsElement.MarkupMatches(
+            @<span diff:ignoreAttributes><i diff:ignore></i> @testPlayer.Tags</span>
+        );
+    }
+
+    [Test]
+    public void Test_ContainsOrgImage()
+    {
+        var cut = Render(@<ActiveGameLink ActiveGame="@testGame" UserId="@userId" />);
+
+        cut.FindComponent<Thumbnail>();
+    }
+
+    [Test]
+    public void Test_ContainsRatioBar()
+    {
+        var cut = Render(@<ActiveGameLink ActiveGame="@testGame" UserId="@userId" />);
+
+        cut.FindComponent<HumanZombieRatioBar>();
+    }
+
+}

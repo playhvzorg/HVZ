@@ -1,11 +1,11 @@
-using MongoDB.Driver;
+using HVZ.Persistence.Models;
+using HVZ.Persistence.MongoDB.Serializers;
+using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.IdGenerators;
-using HVZ.Persistence.Models;
-using HVZ.Persistence.MongoDB.Serializers;
+using MongoDB.Driver;
 using NodaTime;
-using Microsoft.Extensions.Logging;
 
 namespace HVZ.Persistence.MongoDB.Repos;
 public class GameRepo : IGameRepo
@@ -45,7 +45,8 @@ public class GameRepo : IGameRepo
             cm.MapProperty(p => p.GameId);
             cm.MapProperty(p => p.Role);
             cm.MapProperty(p => p.Tags);
-            cm.MapProperty(p => p.JoinedGameAt);
+            cm.MapProperty(p => p.JoinedGameAt)
+                .SetSerializer(InstantSerializer.Instance);
             cm.MapProperty(p => p.GameId);
         });
     }
