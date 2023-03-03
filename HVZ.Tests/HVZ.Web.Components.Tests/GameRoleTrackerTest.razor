@@ -1,0 +1,81 @@
+﻿@inherits Bunit.TestContext
+@using HVZ.Web.Shared.Ui_Helpers
+
+@code {
+    Mock<IGameRepo> mockGameRepo = new Mock<IGameRepo>();
+
+    readonly string userId = "0";
+    readonly string playerId = "1";
+    readonly string gameId = "2";
+    readonly string gameName = "Test Game";
+    readonly string orgId = "123";
+
+    [OneTimeSetUp]
+    public void Setup()
+    {
+        Services.AddSingleton<IGameRepo>(mockGameRepo.Object);
+    }
+
+    [Test]
+    public void Test_NullGameId()
+    {
+
+    }
+
+    [Test]
+    public void Test_NullPlayer()
+    {
+
+    }
+
+    [TestCase(Player.gameRole.Human, "Human")]
+    [TestCase(Player.gameRole.Zombie, "Zombie")]
+    [TestCase(Player.gameRole.Oz, "OZ")]
+    public void Test_ExpectedRoleFormatting(Player.gameRole inputRole, string expectedRoleText)
+    {
+        var testPlayer = new Player(
+            userid: userId,
+            gameId: gameId,
+            role: inputRole,
+            tags: 0,
+            joinedGameAt: NodaTime.Instant.MinValue
+        );
+
+        var cut = Render(@<GameRoleTracker Player="@testPlayer" GameId="@gameId"/>);
+
+        var role = cut.Find("span");
+
+        role.MarkupMatches(
+            @<span>@expectedRoleText</span>
+        );
+    }
+
+    [Test]
+    public void Test_UpdateRole()
+    {
+        var testPlayer = new Player(
+            userid: userId,
+            gameId: gameId,
+            role: Player.gameRole.Human,
+            tags: 0,
+            joinedGameAt: NodaTime.Instant.MinValue
+        );
+
+        var cut = Render(@<GameRoleTracker Player="@testPlayer" GameId="@gameId" />);
+
+        var role = cut.Find("span");
+
+        role.MarkupMatches(
+            @<span>Human</span>
+        );
+
+        mockGameRepo.Raise(repo => repo.PlayerRoleChanged += null,
+            new PlayerRoleChangedEventArgs(
+                Mock.Of<Game>(x => x.Id == gameId), Mock.Of<Player>(x => x.Role == Player.gameRole.Zombie), string.Empty, Player.gameRole.Zombie
+            ));
+
+        role.MarkupMatches(
+            @<span>Zombie</span>
+        );
+    }
+}

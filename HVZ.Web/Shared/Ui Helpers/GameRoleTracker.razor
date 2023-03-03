@@ -1,0 +1,57 @@
+﻿@implements IDisposable
+@inject IGameRepo GameRepo
+@inject ILogger<GameRoleTracker> Logger
+
+@if (Player is not null && GameId is not null)
+{
+    <span>@FormatPlayerRole(playerRole)</span>
+}
+
+@code {
+
+    [Parameter]
+    public string? GameId { get; set; }
+
+    [Parameter]
+    public Player? Player { get; set; }
+
+    Player.gameRole playerRole;
+
+    protected override void OnParametersSet()
+    {
+        if (GameId is null)
+        {
+            Logger.LogError("GameId cannot be null");
+            return;
+        }
+
+        if (Player is null)
+        {
+            Logger.LogError("Player cannot be null");
+            return;
+        }
+
+        playerRole = Player.Role;
+
+        GameRepo.PlayerRoleChanged += UpdateRole;
+    }
+
+    void UpdateRole(object? sender, PlayerRoleChangedEventArgs eventArgs)
+    {
+        if (eventArgs.game.Id == GameId && eventArgs.player.GameId == Player?.GameId)
+        {
+            playerRole = eventArgs.Role;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    string FormatPlayerRole(Player.gameRole role)
+    {
+        return role == Player.gameRole.Oz ? "OZ" : role.ToString();
+    }
+
+    public void Dispose()
+    {
+        GameRepo.PlayerRoleChanged -= UpdateRole;
+    }
+}
