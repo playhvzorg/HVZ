@@ -1,11 +1,11 @@
-using MongoDB.Driver;
+using HVZ.Persistence.Models;
+using HVZ.Persistence.MongoDB.Serializers;
+using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.IdGenerators;
-using HVZ.Persistence.Models;
-using HVZ.Persistence.MongoDB.Serializers;
+using MongoDB.Driver;
 using NodaTime;
-using Microsoft.Extensions.Logging;
 
 namespace HVZ.Persistence.MongoDB.Repos;
 public class GameRepo : IGameRepo
@@ -17,9 +17,10 @@ public class GameRepo : IGameRepo
 
     public event EventHandler<GameUpdatedEventArgs>? GameCreated;
     public event EventHandler<PlayerUpdatedEventArgs>? PlayerJoinedGame;
-    public event EventHandler<PlayerRoleChangedEventArgs>? PlayerRoleChanged;
+    public event EventHandler<PlayerRoleSetByModEventArgs>? PlayerRoleSetByMod;
     public event EventHandler<TagEventArgs>? TagLogged;
     public event EventHandler<GameActiveStatusChangedEventArgs>? GameActiveStatusChanged;
+    public event EventHandler<PlayerRoleChangedEventArgs>? PlayerRoleChanged;
 
     static GameRepo()
     {
@@ -181,7 +182,7 @@ public class GameRepo : IGameRepo
             new FindOneAndUpdateOptions<Game, Game>() { ReturnDocument = ReturnDocument.After }
         );
         _logger.LogTrace($"User {userId} updated to role {role} in game {game} by user {instigatorId}");
-        await OnPlayerRoleChanged(new(game, player, instigatorId, role));
+        await OnPlayerRoleSetByMod(new(game, player, instigatorId, role));
         return newGame;
     }
 
@@ -270,14 +271,15 @@ public class GameRepo : IGameRepo
         }
         await LogGameEvent(args.game.Id, new(GameEvent.PlayerJoined, _clock.GetCurrentInstant(), args.player.UserId));
     }
-    protected virtual async Task OnPlayerRoleChanged(PlayerRoleChangedEventArgs args)
+    protected virtual async Task OnPlayerRoleSetByMod(PlayerRoleSetByModEventArgs args)
     {
-        EventHandler<PlayerRoleChangedEventArgs>? handler = PlayerRoleChanged;
+        EventHandler<PlayerRoleSetByModEventArgs>? handler = PlayerRoleSetByMod;
         if (handler != null)
         {
             handler(this, args);
         }
-        await LogGameEvent(args.game.Id, new(GameEvent.PlayerRoleChangedByMod, _clock.GetCurrentInstant(), args.player.UserId, new Dictionary<string, object> { { "modid", args.instigatorId }, { "role", args.Role } }));
+        OnPlayerRoleChanged(new(args.game, args.player, Player.gameRole.Zombie));
+        await LogGameEvent(args.game.Id, new(GameEvent.PlayerRoleChangedByMod, _clock.GetCurrentInstant(), args.player.UserId, new Dictionary<string, object> { { "modid", args.InstigatorId }, { "role", args.Role } }));
     }
     protected virtual async Task OnGameActiveStatusChanged(GameActiveStatusChangedEventArgs args)
     {
@@ -295,6 +297,16 @@ public class GameRepo : IGameRepo
         {
             handler(this, args);
         }
+        OnPlayerRoleChanged(new(args.game, args.TagReciever, Player.gameRole.Zombie));
         await LogGameEvent(args.game.Id, new(GameEvent.Tag, _clock.GetCurrentInstant(), args.Tagger.UserId, new Dictionary<string, object> { { "tagreciever", args.TagReciever.UserId } }));
+    }
+
+    protected virtual void OnPlayerRoleChanged(PlayerRoleChangedEventArgs args)
+    {
+        EventHandler<PlayerRoleChangedEventArgs>? handler = PlayerRoleChanged;
+        if (handler != null)
+        {
+            handler(this, args);
+        }
     }
 }

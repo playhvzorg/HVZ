@@ -1,11 +1,9 @@
-using System.Threading.Tasks;
-using NUnit.Framework;
-using NodaTime;
-using Moq;
 using HVZ.Persistence.Models;
 using HVZ.Persistence.MongoDB.Repos;
-using MongoDB.Driver;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
+using Moq;
+using NodaTime;
 namespace HVZ.Persistence.MongoDB.Tests;
 
 [Parallelizable(ParallelScope.All)]
@@ -328,7 +326,7 @@ public class GameRepoTest : MongoTestBase
     }
 
     [Test]
-    public async Task test_playerrolechanged_event()
+    public async Task test_playerrolesetbymod_event()
     {
         GameRepo gameRepo = CreateGameRepo();
         Game? eventGame = null;
@@ -338,11 +336,11 @@ public class GameRepoTest : MongoTestBase
         string userid = "0";
         string orgid = "123";
 
-        gameRepo.PlayerRoleChanged += delegate (object? sender, PlayerRoleChangedEventArgs args)
+        gameRepo.PlayerRoleSetByMod += delegate (object? sender, PlayerRoleSetByModEventArgs args)
         {
             eventGame = args.game;
             eventPlayer = args.player;
-            eventInstigator = args.instigatorId;
+            eventInstigator = args.InstigatorId;
         };
 
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
@@ -353,6 +351,34 @@ public class GameRepoTest : MongoTestBase
         Assert.That(eventPlayer, Is.Not.Null);
         Assert.That(eventInstigator, Is.Not.Null);
         Assert.That(game, Is.EqualTo(eventGame));
+    }
+
+    [Test]
+    public async Task test_playerrolechanged_event_onrolesetbymod()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        Game? eventGame = null;
+        Player? eventPlayer = null;
+        Player.gameRole? eventRole = null;
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        gameRepo.PlayerRoleChanged += delegate (object? sender, PlayerRoleChangedEventArgs args)
+        {
+            eventGame = args.game;
+            eventPlayer = args.player;
+            eventRole = args.Role;
+        };
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        await gameRepo.AddPlayer(game.Id, userid);
+        game = await gameRepo.SetPlayerToRole(game.Id, userid, Player.gameRole.Oz, string.Empty);
+
+        Assert.That(eventGame, Is.Not.Null);
+        Assert.That(eventPlayer, Is.Not.Null);
+        Assert.That(eventRole, Is.Not.Null);
+        Assert.That(eventRole, Is.EqualTo(Player.gameRole.Oz));
     }
 
     [Test]
@@ -390,6 +416,43 @@ public class GameRepoTest : MongoTestBase
         Assert.That(eventTagReciever, Is.Not.Null);
         Assert.That(eventTagReciever!.Role, Is.EqualTo(Player.gameRole.Zombie));
         Assert.That(game, Is.EqualTo(eventGame));
+    }
+
+    [Test]
+    public async Task test_playerrolechanged_event_ontag()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        Game? eventGame = null;
+        Player? eventPlayer = null;
+        Player.gameRole? eventRole = null;
+        string gameName = "test";
+        string userid1 = "1";
+        string userid2 = "2";
+        string orgid = "123";
+
+        gameRepo.PlayerRoleChanged += delegate (object? sender, PlayerRoleChangedEventArgs args)
+        {
+            eventGame = args.game;
+            eventPlayer = args.player;
+            eventRole = args.Role;
+        };
+
+        Game game = await gameRepo.CreateGame(gameName, userid1, orgid);
+        await gameRepo.AddPlayer(game.Id, userid1);
+        await gameRepo.AddPlayer(game.Id, userid2);
+        await gameRepo.SetPlayerToRole(game.Id, userid2, Player.gameRole.Human, string.Empty);
+        await gameRepo.SetPlayerToRole(game.Id, userid1, Player.gameRole.Zombie, string.Empty);
+        game = await gameRepo.SetActive(game.Id, true, string.Empty);
+
+        string gameid2 = game.Players.Where(p => p.UserId == userid2).First().GameId;
+
+        game = await gameRepo.LogTag(game.Id, userid1, gameid2);
+
+        Assert.That(eventGame, Is.Not.Null);
+        Assert.That(eventPlayer, Is.Not.Null);
+        Assert.That(eventPlayer.UserId, Is.EqualTo(userid2));
+        Assert.That(eventRole, Is.Not.Null);
+        Assert.That(eventRole, Is.EqualTo(Player.gameRole.Zombie));
     }
 
     [Test]

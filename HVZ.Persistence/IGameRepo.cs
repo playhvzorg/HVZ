@@ -91,7 +91,11 @@ public interface IGameRepo
     /// </summary>
     public event EventHandler<PlayerUpdatedEventArgs> PlayerJoinedGame;
     /// <summary>
-    /// Event that fires when a player's role is changed for a game
+    /// Event that fires only when a player's role is changed by a mod for a game
+    /// </summary>
+    public event EventHandler<PlayerRoleSetByModEventArgs> PlayerRoleSetByMod;
+    /// <summary>
+    /// Event that fires whenever a player's role is changed for a game, including when a role is changed by a mod
     /// </summary>
     public event EventHandler<PlayerRoleChangedEventArgs> PlayerRoleChanged;
     /// <summary>
@@ -126,19 +130,27 @@ public class PlayerUpdatedEventArgs : EventArgs
     }
 }
 
+public class PlayerRoleSetByModEventArgs : PlayerRoleChangedEventArgs
+{
+    public string InstigatorId { get; init; }
+    public PlayerRoleSetByModEventArgs(Game g, Player p, string instigatorid, Player.gameRole role) : base(g, p, role)
+    {
+        InstigatorId = instigatorid;
+    }
+}
+
 public class PlayerRoleChangedEventArgs : EventArgs
 {
     public Game game { get; init; }
     public Player player { get; init; }
-    public string instigatorId { get; init; }
     public Player.gameRole Role { get; init; }
-    public PlayerRoleChangedEventArgs(Game g, Player p, string instigatorid, Player.gameRole role)
+    public PlayerRoleChangedEventArgs(Game g, Player p, Player.gameRole role)
     {
         game = g;
         player = p;
-        instigatorId = instigatorid;
         Role = role;
     }
+
 }
 
 public class TagEventArgs : EventArgs
