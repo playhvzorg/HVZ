@@ -1,0 +1,108 @@
+﻿
+@inherits Bunit.TestContext
+
+@code {
+    protected static readonly string testGameName = "Test Game";
+    protected static readonly string testGameId = "01";
+    protected static readonly string testPlayerGameId = "11";
+    protected static readonly string testUserFullName = "Test User";
+    protected static readonly string testUserEmail = "test@email.com";
+    protected static readonly string testUserId = "21";
+    protected static readonly string testOrgName = "Test Org";
+    protected static readonly string testOrgId = "31";
+    protected static readonly string testOrgUrl = "testorg";
+    protected static readonly NodaTime.Instant time = NodaTime.Instant.FromDateTimeOffset(
+            new DateTimeOffset(month: 12, day: 12, year: 2023, hour: 0, minute: 0, second: 0, offset: TimeSpan.Zero));
+
+    protected Mock<IGameRepo> mockGameRepo = new();
+    protected Mock<IOrgRepo> mockOrgRepo = new();
+    protected Mock<IUserRepo> mockUserRepo = new();
+    protected Mock<ImageService> mockImageService = new();
+    protected TestAuthorizationContext? authContext;
+
+    //[OneTimeSetUp]
+    //public virtual void OneTimeSetup()
+    //{
+    //    Services.AddSingleton<IGameRepo>(mockGameRepo.Object);
+    //    Services.AddSingleton<IOrgRepo>(mockOrgRepo.Object);
+    //    Services.AddSingleton<IUserRepo>(mockUserRepo.Object);
+    //    Services.AddSingleton<ImageService>(mockImageService.Object);
+    //    authContext = this.AddTestAuthorization();
+    //}
+
+    protected void RegisterServices()
+    {
+        Services.AddSingleton<IGameRepo>(mockGameRepo.Object);
+        Services.AddSingleton<IOrgRepo>(mockOrgRepo.Object);
+        Services.AddSingleton<IUserRepo>(mockUserRepo.Object);
+        Services.AddSingleton<ImageService>(mockImageService.Object);
+    }
+
+    protected void ConfigureTestAuthorization()
+    {
+        authContext = this.AddTestAuthorization();
+    }
+
+    public class TestGame : Game
+    {
+        public TestGame() :
+            base(
+                name: testGameName,
+                gameid: testGameId,
+                creatorid: testUserId,
+                orgid: testOrgId,
+                createdat: time,
+                isActive: false,
+                defaultrole: Player.gameRole.Human,
+                players: new HashSet<Player>(),
+                eventLog: new List<GameEventLog>())
+        {
+
+        }
+    }
+
+    public class TestPlayer : Player
+    {
+        public TestPlayer() :
+            base(
+                userid: testUserId,
+                gameId: testPlayerGameId,
+                role: gameRole.Human,
+                tags: 0,
+                joinedGameAt: time)
+        {
+
+        }
+    }
+
+    public class TestUser : User
+    {
+        public TestUser() :
+            base(
+                id: testUserId,
+                fullName: testUserFullName,
+                email: testUserEmail)
+        {
+
+        }
+    }
+
+    public class TestOrg : Organization
+    {
+        public TestOrg() :
+            base(
+                id: testOrgId,
+                name: testOrgName,
+                ownerid: testUserId,
+                moderators: new HashSet<string>(),
+                administrators: new HashSet<string>(),
+                games: new HashSet<Game>(),
+                activegameid: testGameId,
+                createdat: time,
+                url: testOrgUrl)
+        {
+
+        }
+    }
+}
+}
