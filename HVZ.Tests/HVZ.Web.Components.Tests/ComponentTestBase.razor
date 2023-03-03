@@ -20,16 +20,6 @@
     protected Mock<ImageService> mockImageService = new();
     protected TestAuthorizationContext? authContext;
 
-    //[OneTimeSetUp]
-    //public virtual void OneTimeSetup()
-    //{
-    //    Services.AddSingleton<IGameRepo>(mockGameRepo.Object);
-    //    Services.AddSingleton<IOrgRepo>(mockOrgRepo.Object);
-    //    Services.AddSingleton<IUserRepo>(mockUserRepo.Object);
-    //    Services.AddSingleton<ImageService>(mockImageService.Object);
-    //    authContext = this.AddTestAuthorization();
-    //}
-
     protected void RegisterServices()
     {
         Services.AddSingleton<IGameRepo>(mockGameRepo.Object);
