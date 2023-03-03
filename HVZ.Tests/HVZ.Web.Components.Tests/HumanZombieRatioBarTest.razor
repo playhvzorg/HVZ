@@ -349,10 +349,8 @@
         zombieBar.MarkupMatches(
             @<div class:ignore id="zombie-bar" style="width:50%;">
                 1 Z
-        </div>
-    );
-
-        //mockGameRepo.Object.SetPlayerToRole(game_baseId, receiverId, Player.gameRole.Zombie, "0");
+            </div>
+        );
 
         mockGameRepo.Raise(repo => repo.PlayerRoleChanged += null, 
             new PlayerRoleChangedEventArgs(
