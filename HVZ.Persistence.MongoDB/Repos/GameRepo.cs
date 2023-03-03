@@ -278,7 +278,7 @@ public class GameRepo : IGameRepo
         {
             handler(this, args);
         }
-        OnPlayerRoleChanged(new(args.game, args.player, Player.gameRole.Zombie));
+        OnPlayerRoleChanged(new(args.game, args.player, args.Role));
         await LogGameEvent(args.game.Id, new(GameEvent.PlayerRoleChangedByMod, _clock.GetCurrentInstant(), args.player.UserId, new Dictionary<string, object> { { "modid", args.InstigatorId }, { "role", args.Role } }));
     }
     protected virtual async Task OnGameActiveStatusChanged(GameActiveStatusChangedEventArgs args)
