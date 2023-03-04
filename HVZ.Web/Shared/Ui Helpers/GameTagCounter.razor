@@ -4,7 +4,7 @@
 
 @if (Player is not null && GameId is not null)
 {
-    <span>@tags</span>
+    <span @attributes="@Attributes">@tags</span>
 }
 
 
@@ -15,6 +15,9 @@
 
     [Parameter]
     public Player? Player { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? Attributes { get; set; }
 
     int? tags;
 

@@ -96,6 +96,18 @@
     }
 
     [Test]
+    public void Test_CustomAttributeSplatting()
+    {
+        var cut = Render(@<GameTagCounter class="text-muted" Player="@taggerBeforeTag" GameId="@gameId" />);
+
+        var count = cut.Find("span");
+
+        count.MarkupMatches(
+            @<span diff:ignoreChildren class="text-muted"></span>
+        );
+    }
+
+    [Test]
     public void Test_UpdateTagCount()
     {
         var cut = Render(@<GameTagCounter Player="@taggerBeforeTag" GameId="@gameId" />);
