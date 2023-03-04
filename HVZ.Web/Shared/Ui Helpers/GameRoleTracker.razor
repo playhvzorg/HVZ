@@ -4,7 +4,7 @@
 
 @if (Player is not null && GameId is not null)
 {
-    <span>@FormatPlayerRole(playerRole)</span>
+    <span @attributes="@Attributes">@FormatPlayerRole(playerRole)</span>
 }
 
 @code {
@@ -14,6 +14,9 @@
 
     [Parameter]
     public Player? Player { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? Attributes { get; set; }
 
     Player.gameRole playerRole;
 
