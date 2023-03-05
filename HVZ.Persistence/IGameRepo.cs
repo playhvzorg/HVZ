@@ -34,34 +34,34 @@ public interface IGameRepo
     /// Find a player in a game by their global UserId
     /// </summary>
     /// <returns>The player with the given userId, or Null if no player is found</returns>
-    public Task<Player?> FindPlayerByUserId(string gameName, string userId);
+    public Task<Player?> FindPlayerByUserId(string gameId, string userId);
 
     /// <summary>
     /// Find a player in a game by their game-specific ID
     /// </summary>
     /// <returns>The player with the given userId, or Null if no player is found</returns>
-    public Task<Player?> FindPlayerByGameId(string gameName, string gameId);
+    public Task<Player?> FindPlayerByGameId(string gameId, string userGameId);
 
     /// <summary>
     /// Add a new player to an existing game
     /// </summary>
-    public Task<Game> AddPlayer(string gameName, string userId);
+    public Task<Game> AddPlayer(string gameId, string userId);
 
     /// <summary>
     /// Sets isActive for a game
     /// </summary>
-    public Task<Game> SetActive(string gameName, bool active, string instigatorId);
+    public Task<Game> SetActive(string gameId, bool active, string instigatorId);
 
     /// <summary>
     /// Set the <see cref="HVZ.Persistence.Models.Player.gameRole"/> of a player
     /// </summary>
     /// <param name="instigatorId">User who is causing the player to change role</param>
-    public Task<Game> SetPlayerToRole(string gameName, string userId, Player.gameRole role, string instigatorId);
+    public Task<Game> SetPlayerToRole(string gameId, string userId, Player.gameRole role, string instigatorId);
 
     /// <summary>
     /// Log a tag in the specified game
     /// </summary>
-    public Task<Game> LogTag(string gameName, string taggerUserId, string tagRecieverGameId);
+    public Task<Game> LogTag(string gameId, string taggerUserId, string tagRecieverGameId);
 
     /// <summary>
     /// Get an IEnumerable of games which contain the given user.

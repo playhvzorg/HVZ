@@ -1,0 +1,10 @@
+﻿@inject NavigationManager Navigation
+
+@code {
+    // Navigation has to be done in OnAfterRender, cannot be called in OnInitialized
+    // Keep in mind when using in in home
+    protected override void OnAfterRender(bool firstTime)
+    {
+        Navigation.NavigateTo("/about");
+    }
+}
