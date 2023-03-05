@@ -1,17 +1,10 @@
 
 @using HVZ.Web.Shared.Ui_Helpers
 
-@inherits Bunit.TestContext
+@inherits ComponentTestBase
 
 @code
 {
-    Mock<ImageService> mockImageService = new Mock<ImageService>();
-    Mock<IUserRepo> mockUserRepo = new Mock<IUserRepo>();
-    Mock<IOrgRepo> mockOrgRepo = new Mock<IOrgRepo>();
-
-    string orgId = "0";
-    string userId = "1";
-
     byte[] imageData = null!;
     string imageDataBase64 = null!;
 
@@ -29,19 +22,16 @@
 
         imageDataBase64 = Convert.ToBase64String(imageData);
 
-        @* Services *@
-        mockImageService.Setup(service => service.HasUploadedOrgImage(orgId)).Returns(true);
-        mockImageService.Setup(service => service.HasUploadedUserImage(userId)).Returns(true);
-    
-        Services.AddSingleton<ImageService>(mockImageService.Object);
-        Services.AddSingleton<IUserRepo>(mockUserRepo.Object);
-        Services.AddSingleton<IOrgRepo>(mockOrgRepo.Object);
+        mockImageService.Setup(service => service.HasUploadedOrgImage(testOrgId)).Returns(true);
+        mockImageService.Setup(service => service.HasUploadedUserImage(testUserId)).Returns(true);
+
+        RegisterServices();
     }
 
     [Test]
     public void Test_CurrentThumnailPreviewForUser()
     {
-        var cut = Render(@<ImageUploader UserId="@userId" />);
+        var cut = Render(@<ImageUploader UserId="@testUserId" />);
         
         Assert.DoesNotThrow(
             () => cut.FindComponent<Thumbnail>()
@@ -51,7 +41,7 @@
     [Test]
     public void Test_CurrentThumbnailPreviewForOrg()
     {
-        var cut = Render(@<ImageUploader OrgId="@orgId" />);
+        var cut = Render(@<ImageUploader OrgId="@testOrgId" />);
 
         Assert.DoesNotThrow(
             () => cut.FindComponent<Thumbnail>()
@@ -67,7 +57,7 @@
         var testFile = InputFileContent.CreateFromBinary(imageData, "0.png", null, "image/png");
 
         var cut = Render(
-            @<ImageUploader UserId="@userId" Size=size />
+            @<ImageUploader UserId="@testUserId" Size=size />
         );
 
         string srcString = $"data:image/png;base64,{imageDataBase64}";
@@ -98,7 +88,7 @@
         var testFile = InputFileContent.CreateFromBinary(imageData, "0.png", null, "image/png");
 
         var cut = Render(
-            @<ImageUploader OrgId="@orgId" Size=size />
+            @<ImageUploader OrgId="@testOrgId" Size=size />
         );
 
         string srcString = $"data:image/png;base64,{imageDataBase64}";
@@ -126,7 +116,7 @@
         var testFile = InputFileContent.CreateFromText("Not an image", "text.txt", null, "text/txt");
 
         var cut = Render(
-            @<ImageUploader UserId="@userId" />
+            @<ImageUploader UserId="@testUserId" />
         );
 
         var input = cut.FindComponent<InputFile>();
@@ -150,7 +140,7 @@
         var testFile = InputFileContent.CreateFromBinary(imageData, "0.png", null, "image/png");
 
         var cut = Render(
-            @<ImageUploader UserId="@userId" MaxImageSizeBytes=10 /> // Intentionally lower number of bytes to make testing easier
+            @<ImageUploader UserId="@testUserId" MaxImageSizeBytes=10 /> // Intentionally lower number of bytes to make testing easier
         );
 
         var input = cut.FindComponent<InputFile>();
