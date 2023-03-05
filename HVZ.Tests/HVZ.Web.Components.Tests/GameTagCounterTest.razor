@@ -1,104 +1,54 @@
 ﻿@using HVZ.Web.Shared.Ui_Helpers
 @using Microsoft.Extensions.Logging
-@inherits Bunit.TestContext
+@inherits ComponentTestBase
 
 @code {
-    Mock<IGameRepo> mockGameRepo = new Mock<IGameRepo>();
-    Mock<ILogger<GameTagCounter>> mockLogger = new Mock<ILogger<GameTagCounter>>();
-
-    readonly string taggerId = "0";
-    readonly string taggerUserId = "00";
-    readonly string receiverId = "1";
-    readonly string receiverUserId = "01";
-    readonly string gameName = "Test Game";
-    readonly string gameId = "2";
-    readonly string orgId = "1234";
-
-    Player taggerBeforeTag = null!;
-    Player taggerAfterTag = null!;
-    Player tagReceiver = null!;
-    Game testGame = null!;
 
     [OneTimeSetUp]
     public void Setup()
     {
-        taggerBeforeTag = new Player(
-            userid: taggerUserId,
-            gameId: taggerId,
-            role: Player.gameRole.Zombie,
-            tags: 0,
-            joinedGameAt: NodaTime.Instant.MinValue
-        );
-
-        taggerAfterTag = new Player(
-            userid: taggerUserId,
-            gameId: taggerId,
-            role: Player.gameRole.Zombie,
-            tags: 1,
-            joinedGameAt: NodaTime.Instant.MinValue
-        );
-
-        tagReceiver = new Player(
-            userid: receiverUserId,
-            gameId: receiverId,
-            role: Player.gameRole.Human,
-            tags: 0,
-            joinedGameAt: NodaTime.Instant.MinValue
-        );
-
-        testGame = new Game(
-            name: gameName,
-            gameid: gameId,
-            creatorid: taggerUserId,
-            orgid: orgId,
-            createdat: NodaTime.Instant.MinValue,
-            isActive: true,
-            defaultrole: Player.gameRole.Human,
-            players: new HashSet<Player>() { taggerBeforeTag, taggerAfterTag },
-            eventLog: new List<GameEventLog>()
-        );
-
-        mockGameRepo.Setup(repo => repo.FindPlayerByGameId(gameId, taggerId))
-            .ReturnsAsync(taggerBeforeTag);
-        Services.AddSingleton<IGameRepo>(mockGameRepo.Object);
+        RegisterServices();
     }
 
     [Test]
     public void Test_NullGameId()
     {
-        var cut = Render(@<GameTagCounter Player="@taggerBeforeTag" />);
+        var player = Mock.Of<TestPlayer>();
+        var cut = Render(@<GameTagCounter Player="@player" />);
 
-        Assert.Throws<Bunit.ElementNotFoundException>(
-            () => cut.Find("span")
-        );
+        var error = cut.Find("span");
+        error.MarkupMatches(@<span>ERROR</span>);
     }
 
     [Test]
     public void Test_NullPlayer()
     {
-        var cut = Render(@<GameTagCounter GameId="@gameId" />);
+        var cut = Render(@<GameTagCounter GameId="@testGameId" />);
 
-        Assert.Throws<Bunit.ElementNotFoundException>(
-            () => cut.Find("span")
-        );
+        var error = cut.Find("span");
+        error.MarkupMatches(@<span>ERROR</span>);
     }
 
-    [Test]
-    public void Test_InitializeCorrectTagCount()
+    [TestCase(0)]
+    [TestCase(1)]
+    [TestCase(10)]
+    public void Test_InitializeCorrectTagCount(int tags)
     {
-        var cut = Render(@<GameTagCounter Player="@taggerBeforeTag" GameId="@gameId" />);
+        var player = Mock.Of<TestPlayer>(x => x.Tags == tags);
+        var cut = Render(@<GameTagCounter Player="@player" GameId="@testGameId" />);
 
         var count = cut.Find("span");
 
         count.MarkupMatches(
-            @<span>@taggerBeforeTag.Tags</span>
+            @<span>@player.Tags</span>
         );
     }
 
     [Test]
     public void Test_CustomAttributeSplatting()
     {
-        var cut = Render(@<GameTagCounter class="text-muted" Player="@taggerBeforeTag" GameId="@gameId" />);
+        var player = Mock.Of<TestPlayer>();
+        var cut = Render(@<GameTagCounter class="text-muted" Player="@player" GameId="@testGameId" />);
 
         var count = cut.Find("span");
 
@@ -110,18 +60,21 @@
     [Test]
     public void Test_UpdateTagCount()
     {
-        var cut = Render(@<GameTagCounter Player="@taggerBeforeTag" GameId="@gameId" />);
+        var player = Mock.Of<TestPlayer>();
+        var cut = Render(@<GameTagCounter Player="@player" GameId="@testGameId" />);
 
         var count = cut.Find("span");
 
         count.MarkupMatches(
-            @<span>@taggerBeforeTag.Tags</span>
+            @<span>@player.Tags</span>
         );
 
-        mockGameRepo.Raise(repo => repo.TagLogged += null, new TagEventArgs(testGame, taggerAfterTag, tagReceiver));
+        player.Tags += 1;
+
+        mockGameRepo.Raise(repo => repo.TagLogged += null, new TagEventArgs(Mock.Of<TestGame>(), player, Mock.Of<TestPlayer>()));
 
         count.MarkupMatches(
-            @<span>@taggerAfterTag.Tags</span>
+            @<span>@player.Tags</span>
         );
     }
 

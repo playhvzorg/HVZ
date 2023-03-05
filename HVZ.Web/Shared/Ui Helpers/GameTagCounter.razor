@@ -2,10 +2,7 @@
 @inject IGameRepo GameRepo
 @inject ILogger<GameTagCounter> Logger
 
-@if (Player is not null && GameId is not null)
-{
-    <span @attributes="@Attributes">@tags</span>
-}
+<span @attributes="@Attributes">@DisplayTags</span>
 
 
 @code {
@@ -20,6 +17,7 @@
     public Dictionary<string, object>? Attributes { get; set; }
 
     int? tags;
+    string errorMessage = "ERROR";
 
     protected override void OnParametersSet()
     {
@@ -53,4 +51,7 @@
     {
         GameRepo.TagLogged -= UpdatePlayerTags;
     }
+
+    string DisplayTags
+        => tags is not null ? ((int)tags).ToString() : errorMessage;
 }
