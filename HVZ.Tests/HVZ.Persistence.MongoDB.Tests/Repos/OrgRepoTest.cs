@@ -370,4 +370,21 @@ public class OrgRepotest : MongoTestBase
 
         Assert.That(org.Description, Is.EqualTo(orgdesc));
     }
+
+    [Test]
+    public async Task test_getorgdescription()
+    {
+        string orgname = "test";
+        string orgurl = "testurl";
+        string orgdesc = "description";
+        string userid = "0";
+
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
+
+        Assert.That(await orgRepo.GetOrgDescription(org.Id), Is.EqualTo(string.Empty));
+
+        org = await orgRepo.SetOrgDescription(org.Id, orgdesc);
+
+        Assert.That(await orgRepo.GetOrgDescription(org.Id), Is.EqualTo(orgdesc));
+    }
 }

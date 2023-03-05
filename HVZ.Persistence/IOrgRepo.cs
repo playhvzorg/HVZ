@@ -110,6 +110,13 @@ public interface IOrgRepo
     public Task<Organization> SetOrgDescription(string orgId, string description);
 
     /// <summary>
+    /// Get the Organization description property as a non nullable string.
+    /// </summary>
+    /// <param name="orgId"></param>
+    /// <returns>The Organization description or an empty string</returns>
+    public Task<string> GetOrgDescription(string orgId);
+
+    /// <summary>
     /// Event that fires whenever someone is added to or removed from an org's Administrators
     /// </summary>
     public event EventHandler<OrgUpdatedEventArgs> AdminsUpdated;

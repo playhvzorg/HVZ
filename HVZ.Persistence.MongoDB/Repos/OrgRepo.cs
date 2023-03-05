@@ -249,6 +249,12 @@ public class OrgRepo : IOrgRepo
             );
     }
 
+    public async Task<string> GetOrgDescription(string orgId)
+    {
+        var org = await GetOrgById(orgId);
+        return org?.Description ?? string.Empty;
+    }
+
     protected virtual void OnAdminsUpdated(OrgUpdatedEventArgs o)
     {
         EventHandler<OrgUpdatedEventArgs>? handler = AdminsUpdated;
