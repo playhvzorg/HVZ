@@ -49,7 +49,7 @@ public class Organization : IdEquatable<Organization>
     public Instant CreatedAt { get; init; }
 
     /// <summary>
-    ///  Additional information about an org.
+    /// Description of the Organization defined by the owner.
     /// </summary>
     public string? Description { get; set; }
 

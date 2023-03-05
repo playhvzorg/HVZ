@@ -107,7 +107,6 @@ public interface IOrgRepo
     /// </summary>
     /// <param name="orgId"></param>
     /// <param name="description"></param>
-    /// <returns></returns>
     public Task<Organization> SetOrgDescription(string orgId, string description);
 
     /// <summary>
