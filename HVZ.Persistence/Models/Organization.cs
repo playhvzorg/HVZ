@@ -51,7 +51,7 @@ public class Organization : IdEquatable<Organization>
     /// <summary>
     /// Description of the Organization defined by the owner.
     /// </summary>
-    public string? Description { get; set; }
+    public string Description { get; set; } = string.Empty;
 
     public Organization(string id, string name, string ownerid, HashSet<string> moderators, HashSet<string> administrators, HashSet<Game> games, string? activegameid, Instant createdat, string url)
     {
