@@ -552,7 +552,6 @@ public class OrgRepotest : MongoTestBase
         string orgname = "test";
         string orgurl = "testurl";
         string userid = "0";
-        string newname = "cooler org";
         Organization? eventOrg = null;
 
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
