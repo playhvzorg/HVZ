@@ -364,7 +364,7 @@ public class OrgRepotest : MongoTestBase
 
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
 
-        Assert.That(org.Description, Is.EqualTo(null));
+        Assert.That(org.Description, Is.EqualTo(string.Empty));
 
         org = await orgRepo.SetOrgDescription(org.Id, orgdesc);
 
