@@ -1,11 +1,8 @@
 @using HVZ.Web.Shared.Ui_Helpers
-@inherits Bunit.TestContext
+@inherits ComponentTestBase
 
 @code
 {
-    Mock<IOrgRepo> mockOrgRepo = new Mock<IOrgRepo>();
-    Mock<IUserRepo> mockUserRepo = new Mock<IUserRepo>();
-    Mock<ImageService> mockImageService = new Mock<ImageService>();
 
     private string orgWithoutImageId = "0";
     private string orgName = "Test Org";
@@ -17,36 +14,17 @@
     [OneTimeSetUp]
     public void Setup()
     {
-        mockOrgRepo.Setup(repo => repo.GetOrgById(orgWithoutImageId)).ReturnsAsync(
-            new Organization(
-                id: orgWithoutImageId,
-                name: orgName,
-                ownerid: "1",
-                moderators: new HashSet<string>(),
-                administrators: new HashSet<string>(),
-                games: new HashSet<Game>(),
-                activegameid: null,
-                createdat: NodaTime.Instant.MinValue,
-                url: "testorg"
-            )
-        );
+        mockOrgRepo.Setup(repo => repo.GetOrgById(orgWithoutImageId))
+            .ReturnsAsync(Mock.Of<TestOrg>(x => x.Id == orgWithoutImageId && x.Name == orgName));
 
-        mockUserRepo.Setup(repo => repo.GetUserById(userWithoutImageId)).ReturnsAsync(
-            new User(
-                userWithoutImageId,
-                userName,
-                "e@mail.net"
-            )
-        );
+        mockUserRepo.Setup(repo => repo.GetUserById(userWithoutImageId))
+            .ReturnsAsync(Mock.Of<TestUser>(x => x.Id == userWithoutImageId && x.FullName == userName));
 
         mockImageService.Setup(service => service.HasUploadedUserImage(userWithImageId)).Returns(true);
         mockImageService.Setup(service => service.HasUploadedOrgImage(orgWithImageId)).Returns(true);
-        @* Return false for everything else *@
         mockImageService.SetReturnsDefault<bool>(false);
-    
-        Services.AddSingleton<ImageService>(mockImageService.Object);
-        Services.AddSingleton<IUserRepo>(mockUserRepo.Object);
-        Services.AddSingleton<IOrgRepo>(mockOrgRepo.Object);
+
+        RegisterServices();
     }
 
     [Test]
