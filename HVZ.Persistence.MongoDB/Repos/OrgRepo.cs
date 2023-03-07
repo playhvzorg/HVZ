@@ -19,6 +19,7 @@ public class OrgRepo : IOrgRepo
 
     public event EventHandler<OrgUpdatedEventArgs>? AdminsUpdated;
     public event EventHandler<OrgUpdatedEventArgs>? ModsUpdated;
+    public event EventHandler<OrgUpdatedEventArgs>? SettingsUpdated;
 
     static OrgRepo()
     {
@@ -37,6 +38,8 @@ public class OrgRepo : IOrgRepo
             cm.MapProperty(o => o.ActiveGameId);
             cm.MapProperty(o => o.CreatedAt)
                 .SetSerializer(InstantSerializer.Instance);
+            cm.MapProperty(o => o.RequireProfilePictureForPlayer);
+            cm.MapProperty(o => o.RequireVerifiedEmailForPlayer);
         });
     }
 
@@ -62,7 +65,9 @@ public class OrgRepo : IOrgRepo
             new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.OwnerId)),
             new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.Name)),
             new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.Url)),
-            new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.Description))
+            new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.Description)),
+            new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.RequireProfilePictureForPlayer)),
+            new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.RequireVerifiedEmailForPlayer))
         });
     }
 
@@ -239,9 +244,33 @@ public class OrgRepo : IOrgRepo
         return mods.Contains(userId);
     }
 
+    public async Task<Organization> SetOrgName(string orgId, string name)
+    {
+        var org = await GetOrgById(orgId);
+
+        _logger.LogTrace($"Name for org {orgId} has been changed to {name}");
+
+        OnSettingsUpdated(new(org));
+
+        return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
+            Builders<Organization>.Update.Set(o => o.Name, name),
+            new() { ReturnDocument = ReturnDocument.After }
+            );
+    }
+
+    public async Task<string> GetOrgName(string orgId)
+    {
+        var org = await GetOrgById(orgId);
+        return org.Name;
+    }
+
     public async Task<Organization> SetOrgDescription(string orgId, string description)
     {
+        var org = await GetOrgById(orgId);
+
         _logger.LogTrace($"Description for org {orgId} has been changed to {description}");
+
+        OnSettingsUpdated(new(org));
 
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Description, description),
@@ -252,7 +281,48 @@ public class OrgRepo : IOrgRepo
     public async Task<string> GetOrgDescription(string orgId)
     {
         var org = await GetOrgById(orgId);
-        return org?.Description ?? string.Empty;
+        return org.Description;
+    }
+
+    public async Task<Organization> SetRequireVerifiedEmail(string orgId, bool requireVerifiedEmail)
+    {
+        var org = await GetOrgById(orgId);
+
+        _logger.LogTrace($"Require Verified Email for org {orgId} has been changed to {requireVerifiedEmail}");
+
+        OnSettingsUpdated(new(org));
+
+
+        return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
+            Builders<Organization>.Update.Set(o => o.RequireVerifiedEmailForPlayer, requireVerifiedEmail),
+            new() { ReturnDocument = ReturnDocument.After }
+            );
+    }
+
+    public async Task<bool> GetRequireVerifiedEmail(string orgId)
+    {
+        var org = await GetOrgById(orgId);
+        return org.RequireVerifiedEmailForPlayer;
+    }
+
+    public async Task<Organization> SetRequireProfilePicture(string orgId, bool requireProfilePicture)
+    {
+        var org = await GetOrgById(orgId);
+
+        _logger.LogTrace($"Require Profile Picture for org {orgId} has been changed to {requireProfilePicture}");
+
+        OnSettingsUpdated(new(org));
+
+        return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
+            Builders<Organization>.Update.Set(o => o.RequireProfilePictureForPlayer, requireProfilePicture),
+            new() { ReturnDocument = ReturnDocument.After }
+            );
+    }
+
+    public async Task<bool> GetRequireProfilePicture(string orgId)
+    {
+        var org = await GetOrgById(orgId);
+        return org.RequireProfilePictureForPlayer;
     }
 
     protected virtual void OnAdminsUpdated(OrgUpdatedEventArgs o)
@@ -267,6 +337,15 @@ public class OrgRepo : IOrgRepo
     protected virtual void OnModsUpdated(OrgUpdatedEventArgs o)
     {
         EventHandler<OrgUpdatedEventArgs>? handler = ModsUpdated;
+        if (handler != null)
+        {
+            handler(this, o);
+        }
+    }
+
+    protected virtual void OnSettingsUpdated(OrgUpdatedEventArgs o)
+    {
+        EventHandler<OrgUpdatedEventArgs>? handler = SettingsUpdated;
         if (handler != null)
         {
             handler(this, o);
