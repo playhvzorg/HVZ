@@ -1,16 +1,27 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using HVZ.Web.Shared.Org_Authorization
+@using System.Text.RegularExpressions
 @inject IOrgRepo OrgRepo
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @page "/org/{url}"
 @attribute [Authorize]
 
 <OrgAuth OrgId="@organization?.Id">
-    <div class="d-inline">
+    <div class="d-inline mb-3">
         <h1 class="d-inline">@organization?.Name</h1>
         <OrgAuthorizedModerator>
             <a class="d-inline ml-3 nav-item" href="/org/@Url/settings"><i class="fa-solid fa-wrench fa-lg"></i> <div class="d-none d-md-inline"> Settings</div></a>
         </OrgAuthorizedModerator>
+        @*<p style="max-height:4.5em;overflow:hidden">
+            @((MarkupString)OrgDescription())<br />
+            @((MarkupString)OrgDescription())<br />
+            @((MarkupString)OrgDescription())<br />
+            @((MarkupString)OrgDescription())
+        </p>*@
+        <HVZ.Web.Shared.Ui_Helpers.OrgDescriptionDisplay Org="@organization" />
+    </div>
+    <div>
+        Page Content
     </div>
 </OrgAuth>
 
@@ -19,9 +30,45 @@
     [Parameter]
     public string? Url { get; set; } = "";
 
+    string orgDescription = "Check out the university: uncc.edu it is really cool";
+
     private HVZ.Models.Organization? organization;
     protected override async Task OnInitializedAsync()
     {
         organization = await OrgRepo.FindOrgByUrl(Url??"");
+    }
+
+    string OrgDescription()
+    {
+        // Escape & < >
+        string tempString = orgDescription.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
+
+        // Replace links with anchor tags
+        var matches = Regex.Matches(tempString, @"([\w+]+\:\/\/)?([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#.]?[\w-]+)*\/?");
+
+        HashSet<string> matched = new HashSet<string>();
+
+        foreach (Match match in matches)
+        {
+            if (!matched.Contains(match.Value))
+            {
+                string url = match.Value;
+                if (!url.Contains("www."))
+                    url = "www." + url;
+                if (!url.Contains("http"))
+                    url = "https://" + url;
+
+                tempString = tempString.Replace(
+                    match.Value,
+                    $"<a href=\"{url}\" target=\"_blank\">{match.Value}</a>"
+                );
+
+                matched.Add(match.Value);
+            }
+        }
+
+        // Return string
+
+        return tempString;
     }
 }

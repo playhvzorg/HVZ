@@ -1,0 +1,89 @@
+﻿@using System.Text.RegularExpressions
+
+@inject IOrgRepo OrgRepo
+@inject IJSRuntime JS
+
+<div class="description @ExpandClass" id="description">
+    @((MarkupString)orgDescriptionMarkup)
+</div>
+<p class="@ExpandDisplayClass text-muted small" @onclick="ToggleExpand">Show @ExpandText</p>
+
+
+@code {
+    [Parameter]
+    public Organization? Org { get; set; }
+
+    string orgDescription = "";
+    string orgDescriptionMarkup = string.Empty;
+
+    bool expanded = false;
+    bool hasOverflow = false;
+
+    string HeightStyleProperty => expanded ? "auto" : "4.5em";
+    string ExpandClass => expanded ? "maximized" : "minimized";
+
+    string ExpandText => expanded ? "less" : "more";
+    string ExpandDisplayClass => hasOverflow ? "d-block" : "d-none";
+
+    // Requires a protocol (http, https)
+    readonly string linkPattern = @"([\w+]+\:\/\/){1}([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#.]?[\w-]+)*\/?";
+
+    protected override void OnInitialized()
+    {
+        // Read the string
+        // TODO: Set the string to Org.Description
+
+        ProcessDescriptionString();
+        base.OnInitialized();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            hasOverflow = await HasOverflow();
+            StateHasChanged();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    void ToggleExpand() => expanded = !expanded;
+
+    void ProcessDescriptionString()
+    {
+        // Escape the description
+        string escapedDescription = Escape(orgDescription);
+
+        orgDescriptionMarkup = Regex.Replace(escapedDescription, linkPattern, new MatchEvaluator(ConvertToLink));
+
+        //orgDescriptionMarkup = escapedDescription;
+
+    }
+
+    static string ConvertToLink(Match match)
+    {
+        // TODO Open up a modal that can then redirect the user to a new page
+        return string.Format(@"<a href=""{0}"" target=""_blank"">{0}</a>", match.Value);
+    }
+
+    string ReplaceSubstring(string original, int start, int length, string value)
+    {
+        return original.Substring(0, start) + value + original.Substring(start + length);
+    }
+
+    string Escape(string input)
+    {
+        return input
+            .Replace("&", "&amp;")
+            .Replace("<", "&lt;")
+            .Replace(">", "&gt;")
+            .Replace("\n", "<br />");
+    }
+
+    async Task<bool> HasOverflow()
+    {
+        // Do some js and return the value
+        return await JS.InvokeAsync<bool>("hasOverflow", "description");
+    }
+}
