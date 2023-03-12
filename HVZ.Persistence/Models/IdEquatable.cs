@@ -1,4 +1,4 @@
-namespace HVZ.Models;
+namespace HVZ.Persistence.Models;
 
 public abstract class IdEquatable<T> : IEquatable<T> where T : IdEquatable<T>
 {

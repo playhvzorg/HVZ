@@ -1,0 +1,106 @@
+@using HVZ.Web.Services
+@inject ImageService ImageService
+
+<label class="label">
+    @if (file is null)
+    {
+        <Thumbnail UserId="@UserId" OrgId="@OrgId" Size="@Size" />
+        <p class="text-danger" id="error-text">@errorText</p>
+    }
+    else
+    {
+        <img src="@imgSrc" class="rounded" height="@sizeInt" width="@sizeInt" >
+        <p class="text-muted" id="img-name"><em>@file.Name</em></p>
+    }
+    <InputFile class="d-none" name="img-upload" accept="image/*" OnChange="@StageFile" />
+</label>
+
+@code
+{
+    [Parameter]
+    public ImageService.ImageSize Size { get; set; } = ImageService.ImageSize.MEDIUM;
+    
+    [Parameter]
+    public string? UserId { get; set; }
+
+    [Parameter]
+    public int MaxImageSizeBytes { get; set; } = 4194304; // 4MB
+
+    [Parameter]
+    public string? OrgId { get; set; }
+
+    string imgSrc = "";
+
+    string? errorText = null;
+
+    IBrowserFile? file;
+
+    int sizeInt;
+
+    protected override void OnParametersSet()
+    {
+        sizeInt = (int)Size;
+    }
+
+    public async Task SaveFile()
+    {
+        if (file is null) return;
+
+        if (UserId is not null)
+        {
+            await ImageService.SaveUserImage(file, UserId);
+            file = null;
+        }
+        else if (OrgId is not null)
+        {
+            await ImageService.SaveOrgImage(file, OrgId);
+            file = null;
+        }
+        else
+        {
+            throw new ArgumentNullException("UserId and OrgId are both null");
+        }
+    }
+
+    private async Task StageFile(InputFileChangeEventArgs e)
+    {
+        errorText = null;
+        file = e.File;
+        if (file.ContentType.Split("/")[0] != "image")
+        {
+            errorText = "File must be an image";
+            file = null;
+            return;
+        }
+        if (file.Size > MaxImageSizeBytes)
+        {
+            errorText = "Image too large! Max image size is 4MB";
+            file = null;
+            return;
+        }
+        string imgBase64 = await BrowserFileToBase64String(file);
+        imgSrc = String.Format(
+            "data:{0};base64,{1}",
+            file.ContentType,
+            imgBase64
+        );
+    }
+
+    private async Task<string> BrowserFileToBase64String(IBrowserFile file)
+    {
+        byte[] bytes;
+
+        if (file.Size > MaxImageSizeBytes)
+        {
+            throw new ArgumentException("Image too large. Max image size is 4MB (4194304 bytes)");
+        }
+
+        using (var ms = new MemoryStream())
+        {
+            await file.OpenReadStream(MaxImageSizeBytes).CopyToAsync(ms);
+            bytes = ms.ToArray();
+        }
+
+        return System.Convert.ToBase64String(bytes);
+    }
+}

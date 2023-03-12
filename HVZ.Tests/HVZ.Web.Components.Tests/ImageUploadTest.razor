@@ -1,0 +1,160 @@
+
+@using HVZ.Web.Shared.Ui_Helpers
+
+@inherits ComponentTestBase
+
+@code
+{
+    byte[] imageData = null!;
+    string imageDataBase64 = null!;
+
+    [OneTimeSetUp]
+    public void Setup()
+    {
+        using (var fs = new FileStream($"../../../resources/0.png", FileMode.Open))
+        {
+            using (var ms = new MemoryStream())
+            {
+                fs.CopyTo(ms);
+                imageData = ms.ToArray();
+            }
+        }
+
+        imageDataBase64 = Convert.ToBase64String(imageData);
+
+        mockImageService.Setup(service => service.HasUploadedOrgImage(testOrgId)).Returns(true);
+        mockImageService.Setup(service => service.HasUploadedUserImage(testUserId)).Returns(true);
+
+        RegisterServices();
+    }
+
+    [Test]
+    public void Test_CurrentThumnailPreviewForUser()
+    {
+        var cut = Render(@<ImageUploader UserId="@testUserId" />);
+        
+        Assert.DoesNotThrow(
+            () => cut.FindComponent<Thumbnail>()
+        );
+    }
+
+    [Test]
+    public void Test_CurrentThumbnailPreviewForOrg()
+    {
+        var cut = Render(@<ImageUploader OrgId="@testOrgId" />);
+
+        Assert.DoesNotThrow(
+            () => cut.FindComponent<Thumbnail>()
+        );
+    }
+
+    [TestCase(ImageService.ImageSize.SMALL)]
+    [TestCase(ImageService.ImageSize.MEDIUM)]
+    [TestCase(ImageService.ImageSize.LARGE)]
+    public void Test_UploadedImagePreviewForUser(ImageService.ImageSize size)
+    {
+        int sizeInt = (int)size;
+        var testFile = InputFileContent.CreateFromBinary(imageData, "0.png", null, "image/png");
+
+        var cut = Render(
+            @<ImageUploader UserId="@testUserId" Size=size />
+        );
+
+        string srcString = $"data:image/png;base64,{imageDataBase64}";
+
+        var input = cut.FindComponent<InputFile>();
+        
+        input.UploadFiles(testFile);
+
+        var img = cut.Find("img");
+        img.MarkupMatches(
+            @<img src="@srcString" class="rounded" height="@sizeInt" width="@sizeInt">
+        );
+
+        var imgName = cut.Find("#img-name");
+        imgName.MarkupMatches(
+            @<p class="text-muted" id="img-name">
+                <em>0.png</em>
+            </p>
+        );
+    }
+
+    [TestCase(ImageService.ImageSize.SMALL)]
+    [TestCase(ImageService.ImageSize.MEDIUM)]
+    [TestCase(ImageService.ImageSize.LARGE)]
+    public void Test_UploadedImagePreviewForOrg(ImageService.ImageSize size)
+    {
+        int sizeInt = (int)size;
+        var testFile = InputFileContent.CreateFromBinary(imageData, "0.png", null, "image/png");
+
+        var cut = Render(
+            @<ImageUploader OrgId="@testOrgId" Size=size />
+        );
+
+        string srcString = $"data:image/png;base64,{imageDataBase64}";
+
+        var input = cut.FindComponent<InputFile>();
+
+        input.UploadFiles(testFile);
+
+        var img = cut.Find("img");
+        img.MarkupMatches(
+            @<img src="@srcString" class="rounded" height="@sizeInt" width="@sizeInt">
+        );
+
+        var imgName = cut.Find("#img-name");
+        imgName.MarkupMatches(
+            @<p class="text-muted" id="img-name">
+                <em>0.png</em>
+            </p>
+        );
+    }
+
+    [Test]
+    public void Test_ThrowErrorForNonImage()
+    {
+        var testFile = InputFileContent.CreateFromText("Not an image", "text.txt", null, "text/txt");
+
+        var cut = Render(
+            @<ImageUploader UserId="@testUserId" />
+        );
+
+        var input = cut.FindComponent<InputFile>();
+
+        input.UploadFiles(testFile);
+
+        var errorText = cut.Find("#error-text");
+        errorText.MarkupMatches(
+            @<p class="text-danger" id="error-text">File must be an image</p>
+        );
+
+        Assert.DoesNotThrow(
+            () => cut.FindComponent<Thumbnail>()
+        );
+
+    }
+
+    [Test]
+    public void Test_FileUploadSize()
+    {
+        var testFile = InputFileContent.CreateFromBinary(imageData, "0.png", null, "image/png");
+
+        var cut = Render(
+            @<ImageUploader UserId="@testUserId" MaxImageSizeBytes=10 /> // Intentionally lower number of bytes to make testing easier
+        );
+
+        var input = cut.FindComponent<InputFile>();
+
+        input.UploadFiles(testFile);
+
+        var errorText = cut.Find("#error-text");
+        errorText.MarkupMatches(
+            @<p class="text-danger" id="error-text">Image too large! Max image size is 4MB</p>
+        );
+
+        Assert.DoesNotThrow(
+            () => cut.FindComponent<Thumbnail>()
+        );
+        
+    }
+}

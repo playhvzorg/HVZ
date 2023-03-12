@@ -23,6 +23,7 @@ namespace HVZ.Web.Identity
             identity.AddClaim(new Claim("DatabaseId", user.DatabaseId));
             identity.AddClaim(new Claim("FullName", user.FullName));
             identity.AddClaim(new Claim("EmailConfirmed", user.EmailConfirmed.ToString()));
+            identity.AddClaim(new Claim("DiscordId", user.DiscordId));
 
             return identity;
         }

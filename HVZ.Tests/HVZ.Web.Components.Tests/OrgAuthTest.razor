@@ -1,60 +1,40 @@
 @using HVZ.Web.Shared.Org_Authorization
 @using System.Security.Claims
 @using NodaTime
-@inherits Bunit.TestContext
+@inherits ComponentTestBase
 
 @code
 {
-    Mock<IOrgRepo> mockOrgRepo = null!;
-    
-    private string orgId = "1";
     private string adminId = "2";
-    private string ownerId = "2";
     private string modId = "3";
     private string unauthorizedId = "4";
 
     private Organization org = null!;
 
-    TestAuthorizationContext? authContext;
-
-
     [OneTimeSetUp]
     public void Setup()
     {
-        
-        org = new(
-            id: orgId,
-            name: "Test Org",
-            ownerid: ownerId,
-            moderators: new HashSet<string>( new string[] { modId } ),
-            administrators: new HashSet<string>( new string[] { adminId }),
-            games: new HashSet<Game>(),
-            activegameid: null,
-            createdat: Instant.MinValue,
-            url: "testorg"
-        );
+        org = Mock.Of<TestOrg>(x => x.Moderators == new HashSet<string>() { modId } && x.Administrators == new HashSet<string>() { adminId });
 
-        mockOrgRepo = new Mock<IOrgRepo>();
-        
-        mockOrgRepo.Setup(repo => repo.IsModOfOrg(orgId, adminId)).ReturnsAsync(false);
-        mockOrgRepo.Setup(repo => repo.IsAdminOfOrg(orgId, adminId)).ReturnsAsync(true);
+        mockOrgRepo.Setup(repo => repo.IsModOfOrg(testOrgId, adminId)).ReturnsAsync(false);
+        mockOrgRepo.Setup(repo => repo.IsAdminOfOrg(testOrgId, adminId)).ReturnsAsync(true);
 
-        mockOrgRepo.Setup(repo => repo.IsModOfOrg(orgId, modId)).ReturnsAsync(true);
-        mockOrgRepo.Setup(repo => repo.IsAdminOfOrg(orgId, modId)).ReturnsAsync(false);
+        mockOrgRepo.Setup(repo => repo.IsModOfOrg(testOrgId, modId)).ReturnsAsync(true);
+        mockOrgRepo.Setup(repo => repo.IsAdminOfOrg(testOrgId, modId)).ReturnsAsync(false);
 
-        mockOrgRepo.Setup(repo => repo.IsModOfOrg(orgId, unauthorizedId)).ReturnsAsync(false);
-        mockOrgRepo.Setup(repo => repo.IsAdminOfOrg(orgId, unauthorizedId)).ReturnsAsync(false);
+        mockOrgRepo.Setup(repo => repo.IsModOfOrg(testOrgId, unauthorizedId)).ReturnsAsync(false);
+        mockOrgRepo.Setup(repo => repo.IsAdminOfOrg(testOrgId, unauthorizedId)).ReturnsAsync(false);
 
-        mockOrgRepo.Setup(repo => repo.GetOrgById(orgId)).ReturnsAsync(org);
+        mockOrgRepo.Setup(repo => repo.GetOrgById(testOrgId)).ReturnsAsync(org);
 
-        Services.AddSingleton<IOrgRepo>(mockOrgRepo.Object);
-        authContext = this.AddTestAuthorization();
-        
+        RegisterServices();
+        ConfigureTestAuthorization();
+
     }
 
     IRenderedFragment RenderAdminContent()
         => Render(
-            @<OrgAuth OrgId="@orgId">
+            @<OrgAuth OrgId="@testOrgId">
                 <OrgAuthorizedAdmin>
                     <p class="admin-content">admin</p>
                 </OrgAuthorizedAdmin>
@@ -63,7 +43,7 @@
 
     IRenderedFragment RenderModContent()
         => Render(
-            @<OrgAuth OrgId="@orgId">
+            @<OrgAuth OrgId="@testOrgId">
                 <OrgAuthorizedModerator>
                     <p class="mod-content">mod</p>
                 </OrgAuthorizedModerator>
@@ -72,7 +52,7 @@
     
     IRenderedFragment RenderNestedContent()
         => Render(
-            @<OrgAuth OrgId="@orgId">
+            @<OrgAuth OrgId="@testOrgId">
                 <OrgAuthorizedModerator>
                     <OrgAuthorizedAdmin>
                         <p class="admin-content"></p>
@@ -91,7 +71,7 @@
         );
         
         IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(parameter => parameter
-            .Add(p => p.OrgId, orgId));
+            .Add(p => p.OrgId, testOrgId));
         OrgAuth auth = cut.Instance;
 
         Assert.That(auth.IsAdmin, Is.True);
@@ -105,7 +85,7 @@
         );
 
         IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(parameter => parameter
-            .Add(p => p.OrgId, orgId));
+            .Add(p => p.OrgId, testOrgId));
         OrgAuth auth = cut.Instance;
 
         Assert.That(auth.IsMod, Is.True);
@@ -119,7 +99,7 @@
         );
 
         IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(parameter => parameter
-            .Add(p => p.OrgId, orgId));
+            .Add(p => p.OrgId, testOrgId));
         OrgAuth auth = cut.Instance;
 
         Assert.That(auth.IsAdmin, Is.False);
@@ -133,7 +113,7 @@
         );
 
         IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(parameter => parameter
-            .Add(p => p.OrgId, orgId));
+            .Add(p => p.OrgId, testOrgId));
         OrgAuth auth = cut.Instance;
 
         Assert.That(auth.IsMod, Is.True);
@@ -147,7 +127,7 @@
         );
 
         IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(parameter => parameter
-            .Add(p => p.OrgId, orgId));
+            .Add(p => p.OrgId, testOrgId));
         OrgAuth auth = cut.Instance;
 
         Assert.That(auth.IsAdmin, Is.False);
@@ -162,7 +142,7 @@
 
         IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(
             parameter => parameter
-            .Add(p => p.OrgId, orgId));
+            .Add(p => p.OrgId, testOrgId));
         OrgAuth auth = cut.Instance;
 
         Assert.That(auth.IsMod, Is.False);
@@ -173,10 +153,10 @@
     {
         IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(
             parameter => parameter
-            .Add(p => p.OrgId, orgId));
+            .Add(p => p.OrgId, testOrgId));
         OrgAuth auth = cut.Instance;
 
-        Assert.That(auth.OwnerId == ownerId, Is.True);
+        Assert.That(auth.OwnerId == testUserId, Is.True);
     }
 
     [Test]
@@ -184,7 +164,7 @@
     {
         IRenderedComponent<OrgAuth> cut = RenderComponent<OrgAuth>(
             parameter => parameter
-            .Add(p => p.OrgId, orgId));
+            .Add(p => p.OrgId, testOrgId));
         OrgAuth auth = cut.Instance;
 
         Assert.That(auth.Org == org, Is.True);
@@ -227,7 +207,7 @@
         );
 
         var cut = Render(
-            @<OrgAuth OrgId="@orgId">
+            @<OrgAuth OrgId="@testOrgId">
                 <p class="public-content">public</p>
             </OrgAuth>
         );
@@ -270,7 +250,6 @@
 
         var cut = RenderModContent();
 
-        @* Verify that the <p> eleent is visible *@
         var modContent = cut.Find(".mod-content");
         modContent.MarkupMatches(@<p diff:ignore>mod</p>);
     }
@@ -283,7 +262,7 @@
         );
 
         var cut = Render(
-            @<OrgAuth OrgId="@orgId">
+            @<OrgAuth OrgId="@testOrgId">
                 <p class="public-content">public</p>
             </OrgAuth>
         );
@@ -336,13 +315,157 @@
         );
 
         var cut = Render(
-            @<OrgAuth OrgId="@orgId">
+            @<OrgAuth OrgId="@testOrgId">
                 <p class="public-content">public</p>
             </OrgAuth>
         );
 
         var publicContent = cut.Find(".public-content");
         publicContent.MarkupMatches(@<p diff:ignore>public</p>);
+    }
+
+#endregion
+
+#region Events
+
+    [Test]
+    public async Task Test_UnauthorizedToMod()
+    {
+        authContext?.SetClaims(
+            new Claim("DatabaseId", unauthorizedId)
+        );
+
+        var cut = RenderModContent();
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find(".mod-content"));
+
+        await mockOrgRepo.Object.AddModerator(testOrgId, unauthorizedId);
+
+        mockOrgRepo.Raise(repo => repo.ModsUpdated += null,
+            new OrgUpdatedEventArgs(
+                Mock.Of<TestOrg>(
+                    x => x.Moderators == new HashSet<string>() { modId, unauthorizedId } &&
+                    x.Administrators == new HashSet<string>() { adminId }
+                )
+            )
+        );
+
+        var modContent = cut.Find(".mod-content");
+        modContent.MarkupMatches(@<p diff:ignore>mod</p>);
+    }
+
+    [Test]
+    public void Test_UnauthorizedToAdmin()
+    {
+        authContext?.SetClaims(
+            new Claim("DatabaseId", unauthorizedId)
+        );
+
+        var cut = RenderAdminContent();
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find(".admin-content"));
+
+        mockOrgRepo.Raise(repo => repo.AdminsUpdated += null,
+            new OrgUpdatedEventArgs(
+                Mock.Of<TestOrg>(x =>
+                    x.Moderators == new HashSet<string>() { modId } &&
+                    x.Administrators == new HashSet<string>() { adminId, unauthorizedId }
+                )
+            )
+        );
+
+        var adminContent = cut.Find(".admin-content");
+        adminContent.MarkupMatches(@<p diff:ignore>admin</p>);
+    }
+
+    [Test]
+    public void Test_ModToUnauthorized()
+    {
+        authContext?.SetClaims(
+            new Claim("DatabaseId", modId)
+        );
+
+        var cut = RenderModContent();
+        var modContent = cut.Find(".mod-content");
+        modContent.MarkupMatches(@<p diff:ignore>mod</p>);
+
+        mockOrgRepo.Raise(repo => repo.ModsUpdated += null,
+            new OrgUpdatedEventArgs(
+                Mock.Of<TestOrg>(x => 
+                    x.Moderators == new HashSet<string>() &&
+                    x.Administrators == new HashSet<string>() { adminId }
+                )
+            )
+        );
+
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find(".mod-content"));
+    }
+
+    [Test]
+    public void Test_ModToAdmin()
+    {
+        authContext?.SetClaims(
+            new Claim("DatabaseId", modId)
+        );
+
+        var cut = RenderAdminContent();
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find(".admin-content"));
+
+        mockOrgRepo.Raise(repo => repo.AdminsUpdated += null,
+            new OrgUpdatedEventArgs(
+                Mock.Of<TestOrg>(x =>
+                    x.Moderators == new HashSet<string>() &&
+                    x.Administrators == new HashSet<string>() { adminId, modId }
+                )
+            )
+        );
+
+        var adminContent = cut.Find(".admin-content");
+        adminContent.MarkupMatches(@<p diff:ignore>admin</p>);
+    }
+
+    [Test]
+    public void Test_AdminToMod()
+    {
+        authContext?.SetClaims(
+            new Claim("DatabaseId", adminId)
+        );
+
+        var cut = RenderAdminContent();
+        var adminContent = cut.Find(".admin-content");
+        adminContent.MarkupMatches(@<p diff:ignore>admin</p>);
+
+        mockOrgRepo.Raise(repo => repo.ModsUpdated += null,
+            new OrgUpdatedEventArgs(
+                Mock.Of<TestOrg>(x =>
+                    x.Moderators == new HashSet<string>() { modId, adminId } &&
+                    x.Administrators == new HashSet<string>()
+                )
+            )
+        );
+
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find(".admin-content"));
+    }
+
+    [Test]
+    public void Test_AdminToUnauthorized()
+    {
+        authContext?.SetClaims(
+            new Claim("DatabaseId", adminId)
+        );
+
+        var cut = RenderAdminContent();
+        var adminContent = cut.Find(".admin-content");
+        adminContent.MarkupMatches(@<p diff:ignore>admin</p>);
+
+        mockOrgRepo.Raise( repo => repo.AdminsUpdated += null,
+            new OrgUpdatedEventArgs(
+                Mock.Of<TestOrg>(x =>
+                    x.Moderators == new HashSet<string>() { modId } &&
+                    x.Administrators == new HashSet<string>()
+                )
+            )
+        );
+
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find(".admin-content"));
     }
 
 #endregion

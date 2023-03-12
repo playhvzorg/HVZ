@@ -1,5 +1,5 @@
 ﻿namespace HVZ.Persistence;
-using HVZ.Models;
+using HVZ.Persistence.Models;
 public interface IUserRepo
 {
     /// <summary>
