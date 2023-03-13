@@ -300,11 +300,7 @@ public class OrgRepo : IOrgRepo
     }
 
     public async Task<bool> GetRequireVerifiedEmail(string orgId)
-    {
-        var org = await GetOrgById(orgId);
-        return org.RequireVerifiedEmailForPlayer;
-    }
-
+    => return (await GetOrgById(orgId)).RequireVerifiedEmailForPlayer;
     public async Task<Organization> SetRequireProfilePicture(string orgId, bool requireProfilePicture)
     {
         var org = await GetOrgById(orgId);
