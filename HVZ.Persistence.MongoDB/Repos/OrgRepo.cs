@@ -259,10 +259,7 @@ public class OrgRepo : IOrgRepo
     }
 
     public async Task<string> GetOrgName(string orgId)
-    {
-        var org = await GetOrgById(orgId);
-        return org.Name;
-    }
+    => return (await GetOrgById(orgId)).Name;
 
     public async Task<Organization> SetOrgDescription(string orgId, string description)
     {
