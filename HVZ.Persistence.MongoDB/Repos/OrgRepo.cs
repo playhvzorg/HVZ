@@ -320,10 +320,7 @@ public class OrgRepo : IOrgRepo
     }
 
     public async Task<bool> GetRequireProfilePicture(string orgId)
-    {
-        var org = await GetOrgById(orgId);
-        return org.RequireProfilePictureForPlayer;
-    }
+    => return (await GetOrgById(orgId)).RequireProfilePictureForPlayer;
 
     protected virtual void OnAdminsUpdated(OrgUpdatedEventArgs o)
     {
