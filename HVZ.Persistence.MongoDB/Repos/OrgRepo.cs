@@ -279,11 +279,7 @@ public class OrgRepo : IOrgRepo
     }
 
     public async Task<string> GetOrgDescription(string orgId)
-    {
-        var org = await GetOrgById(orgId);
-        return org.Description;
-    }
-
+    => return (await GetOrgById(orgId)).Description;
     public async Task<Organization> SetRequireVerifiedEmail(string orgId, bool requireVerifiedEmail)
     {
         var org = await GetOrgById(orgId);
