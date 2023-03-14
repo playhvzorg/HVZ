@@ -12,12 +12,6 @@
         <OrgAuthorizedModerator>
             <a class="d-inline ml-3 nav-item" href="/org/@Url/settings"><i class="fa-solid fa-wrench fa-lg"></i> <div class="d-none d-md-inline"> Settings</div></a>
         </OrgAuthorizedModerator>
-        @*<p style="max-height:4.5em;overflow:hidden">
-            @((MarkupString)OrgDescription())<br />
-            @((MarkupString)OrgDescription())<br />
-            @((MarkupString)OrgDescription())<br />
-            @((MarkupString)OrgDescription())
-        </p>*@
         <HVZ.Web.Shared.Ui_Helpers.OrgDescriptionDisplay Org="@organization" />
     </div>
     <div>
@@ -32,7 +26,7 @@
 
     string orgDescription = "Check out the university: uncc.edu it is really cool";
 
-    private HVZ.Models.Organization? organization;
+    private Organization? organization;
     protected override async Task OnInitializedAsync()
     {
         organization = await OrgRepo.FindOrgByUrl(Url??"");
