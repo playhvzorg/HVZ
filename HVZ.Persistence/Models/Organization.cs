@@ -51,19 +51,19 @@ public class Organization : IdEquatable<Organization>
     /// <summary>
     /// Description of the Organization defined by the owner.
     /// </summary>
-    public string Description { get; set; } = string.Empty;
+    public string Description { get; set; }
 
     /// <summary>
     /// Whether players must have a verified email address before joining a game
     /// </summary>
-    public bool RequireVerifiedEmailForPlayer { get; set; } = false;
+    public bool RequireVerifiedEmailForPlayer { get; set; }
 
     /// <summary>
     /// Whether players must have uploaded a profile picture before joining a game
     /// </summary>
-    public bool RequireProfilePictureForPlayer { get; set; } = false;
+    public bool RequireProfilePictureForPlayer { get; set; }
 
-    public Organization(string id, string name, string ownerid, HashSet<string> moderators, HashSet<string> administrators, HashSet<Game> games, string? activegameid, Instant createdat, string url)
+    public Organization(string id, string name, string ownerid, HashSet<string> moderators, HashSet<string> administrators, HashSet<Game> games, string? activegameid, Instant createdat, string url, string description = "", bool requireVerifiedEmail = false, bool requireProfilePicture = false)
     {
         Id = id;
         Name = name;
@@ -74,5 +74,8 @@ public class Organization : IdEquatable<Organization>
         ActiveGameId = activegameid;
         CreatedAt = createdat;
         Url = url;
+        Description = description;
+        RequireVerifiedEmailForPlayer = requireVerifiedEmail;
+        RequireProfilePictureForPlayer = requireProfilePicture;
     }
 }

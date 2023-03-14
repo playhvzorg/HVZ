@@ -259,7 +259,7 @@ public class OrgRepo : IOrgRepo
     }
 
     public async Task<string> GetOrgName(string orgId)
-    => return (await GetOrgById(orgId)).Name;
+        => (await GetOrgById(orgId)).Name;
 
     public async Task<Organization> SetOrgDescription(string orgId, string description)
     {
@@ -276,7 +276,7 @@ public class OrgRepo : IOrgRepo
     }
 
     public async Task<string> GetOrgDescription(string orgId)
-    => return (await GetOrgById(orgId)).Description;
+        => (await GetOrgById(orgId)).Description;
     public async Task<Organization> SetRequireVerifiedEmail(string orgId, bool requireVerifiedEmail)
     {
         var org = await GetOrgById(orgId);
@@ -293,7 +293,7 @@ public class OrgRepo : IOrgRepo
     }
 
     public async Task<bool> GetRequireVerifiedEmail(string orgId)
-    => return (await GetOrgById(orgId)).RequireVerifiedEmailForPlayer;
+        => (await GetOrgById(orgId)).RequireVerifiedEmailForPlayer;
     public async Task<Organization> SetRequireProfilePicture(string orgId, bool requireProfilePicture)
     {
         var org = await GetOrgById(orgId);
@@ -309,7 +309,7 @@ public class OrgRepo : IOrgRepo
     }
 
     public async Task<bool> GetRequireProfilePicture(string orgId)
-    => return (await GetOrgById(orgId)).RequireProfilePictureForPlayer;
+        => (await GetOrgById(orgId)).RequireProfilePictureForPlayer;
 
     protected virtual void OnAdminsUpdated(OrgUpdatedEventArgs o)
     {
