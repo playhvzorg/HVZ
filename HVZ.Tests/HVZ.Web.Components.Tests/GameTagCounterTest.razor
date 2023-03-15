@@ -1,0 +1,81 @@
+﻿@using HVZ.Web.Shared.Ui_Helpers
+@using Microsoft.Extensions.Logging
+@inherits ComponentTestBase
+
+@code {
+
+    [OneTimeSetUp]
+    public void Setup()
+    {
+        RegisterServices();
+    }
+
+    [Test]
+    public void Test_NullGameId()
+    {
+        var player = Mock.Of<TestPlayer>();
+        var cut = Render(@<GameTagCounter Player="@player" />);
+
+        var error = cut.Find("span");
+        error.MarkupMatches(@<span>ERROR</span>);
+    }
+
+    [Test]
+    public void Test_NullPlayer()
+    {
+        var cut = Render(@<GameTagCounter GameId="@testGameId" />);
+
+        var error = cut.Find("span");
+        error.MarkupMatches(@<span>ERROR</span>);
+    }
+
+    [TestCase(0)]
+    [TestCase(1)]
+    [TestCase(10)]
+    public void Test_InitializeCorrectTagCount(int tags)
+    {
+        var player = Mock.Of<TestPlayer>(x => x.Tags == tags);
+        var cut = Render(@<GameTagCounter Player="@player" GameId="@testGameId" />);
+
+        var count = cut.Find("span");
+
+        count.MarkupMatches(
+            @<span>@player.Tags</span>
+        );
+    }
+
+    [Test]
+    public void Test_CustomAttributeSplatting()
+    {
+        var player = Mock.Of<TestPlayer>();
+        var cut = Render(@<GameTagCounter class="text-muted" Player="@player" GameId="@testGameId" />);
+
+        var count = cut.Find("span");
+
+        count.MarkupMatches(
+            @<span diff:ignoreChildren class="text-muted"></span>
+        );
+    }
+
+    [Test]
+    public void Test_UpdateTagCount()
+    {
+        var player = Mock.Of<TestPlayer>();
+        var cut = Render(@<GameTagCounter Player="@player" GameId="@testGameId" />);
+
+        var count = cut.Find("span");
+
+        count.MarkupMatches(
+            @<span>@player.Tags</span>
+        );
+
+        player.Tags += 1;
+
+        mockGameRepo.Raise(repo => repo.TagLogged += null, new TagEventArgs(Mock.Of<TestGame>(), player, Mock.Of<TestPlayer>()));
+
+        count.MarkupMatches(
+            @<span>@player.Tags</span>
+        );
+    }
+
+}
