@@ -103,6 +103,48 @@ public interface IOrgRepo
     public Task<bool> IsModOfOrg(string orgId, string userId);
 
     /// <summary>
+    /// Save the description property for the given org.
+    /// </summary>
+    /// <param name="orgId"></param>
+    /// <param name="description"></param>
+    public Task<Organization> SetOrgDescription(string orgId, string description);
+
+    /// <summary>
+    /// Get the Organization description property as a non nullable string.
+    /// </summary>
+    /// <param name="orgId"></param>
+    /// <returns>The Organization description or an empty string</returns>
+    public Task<string> GetOrgDescription(string orgId);
+
+    /// <summary>
+    /// Set the require verified email property for the given org.
+    /// </summary>
+    /// <param name="orgId"></param>
+    /// <param name="requireVerifiedEmail"></param>
+    public Task<Organization> SetRequireVerifiedEmail(string orgId, bool requireVerifiedEmail);
+
+    /// <summary>
+    /// Get the require verified email property for the given org.
+    /// </summary>
+    /// <param name="orgId"></param>
+    /// <returns>Whether players are required to have a verified email to join a game.</returns>
+    public Task<bool> GetRequireVerifiedEmail(string orgId);
+
+    /// <summary>
+    /// Set the require profile picture property for the given org.
+    /// </summary>
+    /// <param name="orgId"></param>
+    /// <param name="requireProfilePicture"></param>
+    public Task<Organization> SetRequireProfilePicture(string orgId, bool requireProfilePicture);
+
+    /// <summary>
+    /// Get the require profile picture property for the given org.
+    /// </summary>
+    /// <param name="orgId"></param>
+    /// <returns>Whether players must have uploaded a profile picture before joining a game.</returns>
+    public Task<bool> GetRequireProfilePicture(string orgId);
+
+    /// <summary>
     /// Event that fires whenever someone is added to or removed from an org's Administrators
     /// </summary>
     public event EventHandler<OrgUpdatedEventArgs> AdminsUpdated;
@@ -111,6 +153,11 @@ public interface IOrgRepo
     /// Event that fires whenever someone is added to or removed from an org's Moderators
     /// </summary>
     public event EventHandler<OrgUpdatedEventArgs> ModsUpdated;
+
+    /// <summary>
+    /// Event that fires whenever org settings are changed
+    /// </summary>
+    public event EventHandler<OrgUpdatedEventArgs> SettingsUpdated;
 }
 
 public class OrgUpdatedEventArgs : EventArgs
