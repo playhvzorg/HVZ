@@ -11,7 +11,6 @@
     [Parameter]
     public string Source { get; set; } = "";
 
-    //string orgDescription = "**Niners vs Zombies**\n:calendar: April 16-22\n [:brands discord: Charlotte Outdoor Gaming](https://discord.gg)\n[:brands instagram: ucccog](https://instagram.com)\n[:brands twitter: uncccog](https://twitter.com)\n\n\n<script>console.log(\"I am hacking this webpage >:)\");</script>";
     string textBodyHtml = string.Empty;
 
     // Icon pattern match https://regex101.com/r/yyoyQa/3
@@ -43,7 +42,6 @@
     {
         return input
             .Replace("&", "&amp;")
-            //.Replace("#", "&#35;")
             .Replace("<", "&lt;")
             .Replace(">", "&gt;");
     }
