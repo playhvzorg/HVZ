@@ -2,10 +2,7 @@
 @inject IGameRepo GameRepo
 @inject ILogger<GameRoleTracker> Logger
 
-@if (Player is not null && GameId is not null)
-{
-    <span @attributes="@Attributes">@FormatPlayerRole(playerRole)</span>
-}
+<span @attributes="@Attributes">@FormatPlayerRole(playerRole)</span>
 
 @code {
 
@@ -18,7 +15,7 @@
     [Parameter(CaptureUnmatchedValues = true)]
     public Dictionary<string, object>? Attributes { get; set; }
 
-    Player.gameRole playerRole;
+    Player.gameRole? playerRole = null;
 
     protected override void OnParametersSet()
     {
@@ -55,9 +52,11 @@
         }
     }
 
-    string FormatPlayerRole(Player.gameRole role)
-    {
-        return role == Player.gameRole.Oz ? "OZ" : role.ToString();
+    // return the formatted role or ERROR if the role is null
+    string? FormatPlayerRole(Player.gameRole? role) {
+        if (role is not null)
+            return role == Player.gameRole.Oz ? "OZ" : role.ToString();
+        return "ERROR";
     }
 
     public void Dispose()

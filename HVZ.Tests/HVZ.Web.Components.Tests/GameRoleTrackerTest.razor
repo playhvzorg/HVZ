@@ -1,33 +1,27 @@
-﻿@inherits Bunit.TestContext
+﻿@inherits ComponentTestBase
 @using HVZ.Web.Shared.Ui_Helpers
 
 @code {
-    Mock<IGameRepo> mockGameRepo = new Mock<IGameRepo>();
-
-    readonly string userId = "0";
-    readonly string playerId = "1";
-    readonly string gameId = "2";
-
     [OneTimeSetUp]
     public void Setup()
     {
-        Services.AddSingleton<IGameRepo>(mockGameRepo.Object);
+        RegisterServices();
     }
 
     [Test]
     public void Test_NullGameId()
     {
         var cut = Render(@<GameRoleTracker />);
-
-        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find("span"));
+        var error = cut.Find("span");
+        error.MarkupMatches(@<span>ERROR</span>);
     }
 
     [Test]
     public void Test_NullPlayer()
     {
-        var cut = Render(@<GameRoleTracker GameId="@gameId" />);
-
-        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find("span"));
+        var cut = Render(@<GameRoleTracker GameId="@testGameId" />);
+        var error = cut.Find("span");
+        error.MarkupMatches(@<span>ERROR</span>);
     }
 
     [TestCase(Player.gameRole.Human, "Human")]
@@ -35,15 +29,8 @@
     [TestCase(Player.gameRole.Oz, "OZ")]
     public void Test_ExpectedRoleFormatting(Player.gameRole inputRole, string expectedRoleText)
     {
-        var testPlayer = new Player(
-            userid: userId,
-            gameId: playerId,
-            role: inputRole,
-            tags: 0,
-            joinedGameAt: NodaTime.Instant.MinValue
-        );
-
-        var cut = Render(@<GameRoleTracker Player="@testPlayer" GameId="@gameId"/>);
+        var testPlayer = Mock.Of<TestPlayer>(p => p.Role == inputRole);
+        var cut = Render(@<GameRoleTracker Player="@testPlayer" GameId="@testGameId"/>);
 
         var role = cut.Find("span");
 
@@ -56,14 +43,14 @@
     public void Test_CustomAttributeSplatting()
     {
         var testPlayer = new Player(
-            userid: userId,
-            gameId: playerId,
+            userid: testUserId,
+            gameId: testPlayerGameId,
             role: Player.gameRole.Human,
             tags: 0,
             joinedGameAt: NodaTime.Instant.MinValue
         );
 
-        var cut = Render(@<GameRoleTracker class="text-muted" GameId="@gameId" Player="@testPlayer" /> );
+        var cut = Render(@<GameRoleTracker class="text-muted" GameId="@testGameId" Player="@testPlayer" /> );
 
         var role = cut.Find("span");
 
@@ -73,7 +60,7 @@
     }
 
     [Test]
-    public void Test_UpdateRole()
+    public void Test_UpdateRoleMod()
     {
         //var testPlayer = new Player(
         //    userid: userId,
@@ -99,5 +86,43 @@
         //role.MarkupMatches(
         //    @<span>Zombie</span>
         //);
+
+        var testPlayer = Mock.Of<TestPlayer>();
+
+        var cut = Render(@<GameRoleTracker Player="@testPlayer" GameId="@testGameId" />);
+        var role = cut.Find("span");
+        role.MarkupMatches(
+            @<span>Human</span>
+        );
+
+        mockGameRepo.Raise(repo => repo.PlayerRoleChanged += null,
+            new PlayerRoleChangedEventArgs(
+                Mock.Of<TestGame>(), Mock.Of<TestPlayer>(p => p.Role == Player.gameRole.Zombie), string.Empty, Player.gameRole.Zombie
+            ));
+
+        role.MarkupMatches(
+            @<span>Zombie</span>
+        );
+    }
+
+    [Test]
+    public void Test_UpdateRoleTag()
+    {
+        var testPlayer = Mock.Of<TestPlayer>();
+
+        var cut = Render(@<GameRoleTracker Player="@testPlayer" GameId="@testGameId" />);
+        var role = cut.Find("span");
+        role.MarkupMatches(
+            @<span>Human</span>
+        );
+
+        mockGameRepo.Raise(repo => repo.TagLogged += null,
+            new TagEventArgs(
+                Mock.Of<TestGame>(), Mock.Of<TestPlayer>(p => p.Role == Player.gameRole.Zombie && p.GameId=="69"), Mock.Of<TestPlayer>(p => p.Role == Player.gameRole.Zombie)
+            ));
+
+        role.MarkupMatches(
+            @<span>Zombie</span>
+        );
     }
 }
