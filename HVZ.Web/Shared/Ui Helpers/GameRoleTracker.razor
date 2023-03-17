@@ -36,14 +36,21 @@
 
         playerRole = Player.Role;
 
-        GameRepo.PlayerRoleChanged += UpdateRole;
+        GameRepo.PlayerRoleChanged += UpdateRoleMod;
+        GameRepo.TagLogged += UpdateRoleTag;
     }
 
-    void UpdateRole(object? sender, PlayerRoleChangedEventArgs eventArgs)
+    void UpdateRoleMod(object? sender, PlayerRoleChangedEventArgs eventArgs)
+        => SetPlayerRole(eventArgs.game, eventArgs.player.GameId, eventArgs.Role);
+
+    void UpdateRoleTag(object? sender, TagEventArgs eventArgs)
+        => SetPlayerRole(eventArgs.game, eventArgs.TagReciever.GameId, Player.gameRole.Zombie);
+
+    void SetPlayerRole(Game game, string playerGameId, Player.gameRole role)
     {
-        if (eventArgs.game.Id == GameId && eventArgs.player.GameId == Player?.GameId)
+        if (game.Id == GameId && playerGameId == Player?.GameId)
         {
-            playerRole = eventArgs.Role;
+            playerRole = role;
             InvokeAsync(StateHasChanged);
         }
     }
@@ -55,6 +62,7 @@
 
     public void Dispose()
     {
-        GameRepo.PlayerRoleChanged -= UpdateRole;
+        GameRepo.PlayerRoleChanged -= UpdateRoleMod;
+        GameRepo.TagLogged -= UpdateRoleTag;
     }
 }
