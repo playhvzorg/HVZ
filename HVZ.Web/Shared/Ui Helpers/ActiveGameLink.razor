@@ -27,7 +27,7 @@
                             <i class="fa-solid fa-user"></i> @player?.Role.ToString()
                         </span>
                         <span class="me-1" id="game-tags">
-                            <i class="fa-solid fa-people-robbery"></i> @player?.Tags
+                            <i class="fa-solid fa-people-robbery"></i> <GameTagCounter Player="@player" GameId="@ActiveGame?.Id" />
                         </span>
                     </div>
                 </div>
@@ -72,7 +72,6 @@
 
     string FormatInstantAsDate(NodaTime.Instant instant)
     {
-        var dateTime = instant.ToDateTimeUtc();
-        return $"{dateTime.Month}/{dateTime.Day}/{dateTime.Year % 100}";
+        return instant.ToString("MMM d yyyy", null);
     }
 }

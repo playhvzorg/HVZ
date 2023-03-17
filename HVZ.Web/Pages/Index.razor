@@ -31,13 +31,13 @@
             <h3 class="my-0" style="font-size:large">@user?.FullName</h3>
             <h5 class="text-muted my-0" style="font-size:small">@user?.Email</h5>
             <h5 class="text-muted my-0" style="font-size:small">Total Tags: 696969</h5>
-            <h5 class="text-muted my-0" style="font-size:small">Member since: </h5>
+            <h5 class="text-muted my-0" style="font-size:small">Joined: @user?.CreatedAt.ToString("MMM d yyyy", null)</h5>
         </div>
     </div>
 
     <hr />
 
-    <h4 class="mb-3">Current Game</h4>
+    @*<h4 class="mb-3">Current Game</h4>*@
     <div class="mt-3" style="max-width:728px;">
         @if (games.Count != 0)
         {
@@ -70,7 +70,7 @@
         if (userId is not null)
         {
             user = await UserRepo.FindUserById(userId);
-            //games = await GameRepo.GetActiveGamesWithUser(userId ?? "");
+            games = await GameRepo.GetActiveGamesWithUser(userId ?? "");
         }
 
 
