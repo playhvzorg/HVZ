@@ -3,24 +3,21 @@
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject EmailService Email
-@* @inject ImageService Image *@
 @page "/"
 
-<PageTitle>Index</PageTitle>
+<PageTitle>PlayHVZ Home</PageTitle>
 
-<CascadingAuthenticationState>
+<div class="container">
+    @*Home*@
+    <h1>Home</h1>
+    @*This lives here for now until we create a settings page*@
+    <HVZ.Web.Shared.Ui_Helpers.ThemeToggle />
+    <CascadingAuthenticationState>
+        <AuthorizeView>
+            <NotAuthorized>
+                <RedirectToAbout />
+            </NotAuthorized>
+        </AuthorizeView>
+    </CascadingAuthenticationState>
 
-    <AuthorizeView>
-
-        <Authorized>
-            <h1>
-                Hello, @context.User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value!
-            </h1>
-        </Authorized>
-        <NotAuthorized>
-            <a href="Account/Login" class="btn btn-primary btn-lg">Login</a>
-        </NotAuthorized>
-
-    </AuthorizeView>
-
-</CascadingAuthenticationState>
+</div>
