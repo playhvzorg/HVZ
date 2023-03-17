@@ -1,9 +1,9 @@
-using NodaTime;
-using Moq;
-using HVZ.Models;
+using HVZ.Persistence.Models;
 using HVZ.Persistence.MongoDB.Repos;
-using MongoDB.Driver;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
+using Moq;
+using NodaTime;
 
 namespace HVZ.Persistence.MongoDB.Tests;
 
@@ -140,7 +140,7 @@ public class OrgRepotest : MongoTestBase
         string userid = "0";
         string gameid = "1";
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
-        Game newGame = new("test", gameid, userid, org.Id, Instant.MinValue, true, Player.gameRole.Human, new HashSet<Player>());
+        Game newGame = new("test", gameid, userid, org.Id, Instant.MinValue, true, Player.gameRole.Human, new HashSet<Player>(), new());
         gameRepoMock.Setup(repo => repo.GetGameById("1")).ReturnsAsync(newGame);
         await orgRepo.SetActiveGameOfOrg(org.Id, gameid);
 
@@ -265,7 +265,8 @@ public class OrgRepotest : MongoTestBase
             createdat: Instant.MinValue,
             isActive: true,
             defaultrole: Player.gameRole.Human,
-            players: new HashSet<Player>()
+            players: new HashSet<Player>(),
+            eventLog: new()
         );
 
         gameRepoMock.Setup(repo => repo.CreateGame(gameName, userid, org.Id)).ReturnsAsync(game);
@@ -293,7 +294,8 @@ public class OrgRepotest : MongoTestBase
             createdat: Instant.MinValue,
             isActive: true,
             defaultrole: Player.gameRole.Human,
-            players: new HashSet<Player>()
+            players: new HashSet<Player>(),
+            new()
         );
 
         gameRepoMock.Setup(repo => repo.CreateGame(gameName, userid, org.Id)).ReturnsAsync(game);
@@ -349,6 +351,217 @@ public class OrgRepotest : MongoTestBase
         eventOrg = null;
 
         await orgRepo.RemoveModerator(org.Id, newuserid);
+        Assert.That(eventOrg, Is.Not.Null);
+    }
+
+    [Test]
+    public async Task test_orgdescription()
+    {
+        string orgname = "test";
+        string orgurl = "testurl";
+        string orgdesc = "description";
+        string userid = "0";
+
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
+
+        Assert.That(org.Description, Is.EqualTo(string.Empty));
+
+        org = await orgRepo.SetOrgDescription(org.Id, orgdesc);
+
+        Assert.That(org.Description, Is.EqualTo(orgdesc));
+    }
+
+    [Test]
+    public async Task test_getorgdescription()
+    {
+        string orgname = "test";
+        string orgurl = "testurl";
+        string orgdesc = "description";
+        string userid = "0";
+
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
+
+        Assert.That(await orgRepo.GetOrgDescription(org.Id), Is.EqualTo(string.Empty));
+
+        org = await orgRepo.SetOrgDescription(org.Id, orgdesc);
+
+        Assert.That(await orgRepo.GetOrgDescription(org.Id), Is.EqualTo(orgdesc));
+    }
+
+    [Test]
+    public async Task test_descriptionsettingsupdatedevent()
+    {
+        string orgname = "test";
+        string orgurl = "testurl";
+        string userid = "0";
+        string newdescription = "org description";
+        Organization? eventOrg = null;
+
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
+
+        orgRepo.SettingsUpdated += delegate (object? sender, OrgUpdatedEventArgs args)
+        {
+            eventOrg = args.Org;
+        };
+
+        await orgRepo.SetOrgDescription(org.Id, newdescription);
+        Assert.That(eventOrg, Is.Not.Null);
+    }
+
+    [Test]
+    public async Task test_setorgname()
+    {
+        string orgname = "test";
+        string neworgname = "cooler test";
+        string orgurl = "testurl";
+        string userid = "0";
+
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
+
+        Assert.That(org.Name, Is.EqualTo(orgname));
+
+        await orgRepo.SetOrgName(org.Id, neworgname);
+
+        org = await orgRepo.GetOrgById(org.Id);
+
+        Assert.That(org.Name, Is.EqualTo(neworgname));
+    }
+
+    [Test]
+    public async Task test_getorgname()
+    {
+        string orgname = "test";
+        string orgurl = "testurl";
+        string userid = "0";
+
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
+
+        Assert.That(await orgRepo.GetOrgName(org.Id), Is.EqualTo(orgname));
+    }
+
+    [Test]
+    public async Task test_setnamesettingsupdatedevent()
+    {
+        string orgname = "test";
+        string orgurl = "testurl";
+        string userid = "0";
+        string newname = "cooler org";
+        Organization? eventOrg = null;
+
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
+
+        orgRepo.SettingsUpdated += delegate (object? sender, OrgUpdatedEventArgs args)
+        {
+            eventOrg = args.Org;
+        };
+
+        await orgRepo.SetOrgName(org.Id, newname);
+        Assert.That(eventOrg, Is.Not.Null);
+    }
+
+    [Test]
+    public async Task test_setorgrequireverifiedemail()
+    {
+        string orgname = "test";
+        string orgurl = "testurl";
+        string userid = "0";
+
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
+
+        Assert.That(org.RequireVerifiedEmailForPlayer, Is.False);
+
+        await orgRepo.SetRequireVerifiedEmail(org.Id, true);
+
+        org = await orgRepo.GetOrgById(org.Id);
+
+        Assert.That(org.RequireVerifiedEmailForPlayer, Is.True);
+    }
+
+    [Test]
+    public async Task test_getrequireverifiedemail()
+    {
+        string orgname = "test";
+        string orgurl = "testurl";
+        string userid = "0";
+
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
+
+        Assert.That(await orgRepo.GetRequireVerifiedEmail(org.Id), Is.False);
+
+        await orgRepo.SetRequireVerifiedEmail(org.Id, true);
+
+        Assert.That(await orgRepo.GetRequireVerifiedEmail(org.Id), Is.True);
+    }
+
+    [Test]
+    public async Task test_requireemailsettingsupdatedevent()
+    {
+        string orgname = "test";
+        string orgurl = "testurl";
+        string userid = "0";
+        Organization? eventOrg = null;
+
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
+
+        orgRepo.SettingsUpdated += delegate (object? sender, OrgUpdatedEventArgs args)
+        {
+            eventOrg = args.Org;
+        };
+
+        await orgRepo.SetRequireVerifiedEmail(org.Id, true);
+        Assert.That(eventOrg, Is.Not.Null);
+    }
+
+    [Test]
+    public async Task test_setrequireprofilepicture()
+    {
+        string orgname = "test";
+        string orgurl = "testurl";
+        string userid = "0";
+
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
+
+        Assert.That(org.RequireProfilePictureForPlayer, Is.False);
+
+        await orgRepo.SetRequireProfilePicture(org.Id, true);
+
+        org = await orgRepo.GetOrgById(org.Id);
+
+        Assert.That(org.RequireProfilePictureForPlayer, Is.True);
+    }
+
+    [Test]
+    public async Task test_getrequiredprofilepicture()
+    {
+        string orgname = "test";
+        string orgurl = "testurl";
+        string userid = "0";
+
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
+
+        Assert.That(await orgRepo.GetRequireProfilePicture(org.Id), Is.False);
+
+        await orgRepo.SetRequireProfilePicture(org.Id, true);
+
+        Assert.That(await orgRepo.GetRequireProfilePicture(org.Id), Is.True);
+    }
+
+    [Test]
+    public async Task test_requireprofilepicturesettingsupdatedevent()
+    {
+        string orgname = "test";
+        string orgurl = "testurl";
+        string userid = "0";
+        Organization? eventOrg = null;
+
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
+
+        orgRepo.SettingsUpdated += delegate (object? sender, OrgUpdatedEventArgs args)
+        {
+            eventOrg = args.Org;
+        };
+
+        await orgRepo.SetRequireProfilePicture(org.Id, true);
         Assert.That(eventOrg, Is.Not.Null);
     }
 }

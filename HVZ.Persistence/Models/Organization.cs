@@ -1,6 +1,5 @@
 using NodaTime;
-using System.Collections;
-namespace HVZ.Models;
+namespace HVZ.Persistence.Models;
 public class Organization : IdEquatable<Organization>
 {
     /// <summary>
@@ -49,7 +48,22 @@ public class Organization : IdEquatable<Organization>
     /// </summary>
     public Instant CreatedAt { get; init; }
 
-    public Organization(string id, string name, string ownerid, HashSet<string> moderators, HashSet<string> administrators, HashSet<Game> games, string? activegameid, Instant createdat, string url)
+    /// <summary>
+    /// Description of the Organization defined by the owner.
+    /// </summary>
+    public string Description { get; set; }
+
+    /// <summary>
+    /// Whether players must have a verified email address before joining a game
+    /// </summary>
+    public bool RequireVerifiedEmailForPlayer { get; set; }
+
+    /// <summary>
+    /// Whether players must have uploaded a profile picture before joining a game
+    /// </summary>
+    public bool RequireProfilePictureForPlayer { get; set; }
+
+    public Organization(string id, string name, string ownerid, HashSet<string> moderators, HashSet<string> administrators, HashSet<Game> games, string? activegameid, Instant createdat, string url, string description = "", bool requireVerifiedEmail = false, bool requireProfilePicture = false)
     {
         Id = id;
         Name = name;
@@ -60,5 +74,8 @@ public class Organization : IdEquatable<Organization>
         ActiveGameId = activegameid;
         CreatedAt = createdat;
         Url = url;
+        Description = description;
+        RequireVerifiedEmailForPlayer = requireVerifiedEmail;
+        RequireProfilePictureForPlayer = requireProfilePicture;
     }
 }

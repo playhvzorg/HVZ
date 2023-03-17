@@ -1,0 +1,57 @@
+﻿@implements IDisposable
+@inject IGameRepo GameRepo
+@inject ILogger<GameTagCounter> Logger
+
+<span @attributes="@Attributes">@DisplayTags</span>
+
+
+@code {
+
+    [Parameter]
+    public string? GameId { get; set; }
+
+    [Parameter]
+    public Player? Player { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? Attributes { get; set; }
+
+    int? tags;
+    string errorMessage = "ERROR";
+
+    protected override void OnParametersSet()
+    {
+        if (GameId is null)
+        {
+            Logger.LogError("GameId cannot be null");
+            return;
+        }
+
+        if (Player is null)
+        {
+            Logger.LogError("Player cannot be null");
+            return;
+        }
+
+        tags = Player.Tags;
+
+        GameRepo.TagLogged += UpdatePlayerTags;
+    }
+
+    void UpdatePlayerTags(object? sender, TagEventArgs eventArgs)
+    {
+        if (eventArgs.game.Id == GameId && eventArgs.Tagger.GameId == Player?.GameId)
+        {
+            tags = eventArgs.Tagger.Tags;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public void Dispose()
+    {
+        GameRepo.TagLogged -= UpdatePlayerTags;
+    }
+
+    string DisplayTags
+        => tags is not null ? ((int)tags).ToString() : errorMessage;
+}

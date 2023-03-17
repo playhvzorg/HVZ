@@ -1,16 +1,16 @@
 
 @using HVZ.Web.Shared
 
-@inherits Bunit.TestContext
+@inherits ComponentTestBase
 
 @code
 {
-    TestAuthorizationContext? authContext;
-
     [OneTimeSetUp]
     public void Setup()
     {
-        authContext = this.AddTestAuthorization();
+        mockUserRepo.Setup(repo => repo.GetUserById(It.IsAny<string>())).ReturnsAsync(Mock.Of<TestUser>());
+        RegisterServices();
+        ConfigureTestAuthorization();
     }
 
     [Test]
@@ -29,7 +29,10 @@
     [Test]
     public void Test_LoggedInSeesLogOutButton()
     {
-        authContext?.SetAuthorized("TEST USER");
+        authContext?.SetAuthorized(testUserFullName);
+        authContext?.SetClaims(
+            new System.Security.Claims.Claim("DatabaseId", testUserId)
+        );
 
         var cut = Render(
             @<LoginDisplay />
