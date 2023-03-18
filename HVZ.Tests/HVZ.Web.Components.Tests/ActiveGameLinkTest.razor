@@ -5,7 +5,7 @@
 @using NodaTime
 
 @code {
-    Game testGame = Mock.Of<TestGame>();
+    Game testGame = Mock.Of<TestGame>(g => g.Players == new HashSet<Player>() { Mock.Of<TestPlayer>() });
 
     [OneTimeSetUp]
     public void Setup()
