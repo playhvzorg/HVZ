@@ -55,7 +55,7 @@ internal static class Program
         );
 
         var mongoDatabase = mongoClient.GetDatabase(
-            mongoConfig?.Name
+            mongoConfig?.DatabaseName
         );
 
         IGameRepo gameRepo = new GameRepo(mongoDatabase, NodaTime.SystemClock.Instance, logger);
@@ -73,7 +73,7 @@ internal static class Program
         builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
             .AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>
             (
-                mongoConfig?.ConnectionString, mongoConfig?.Name
+                mongoConfig?.ConnectionString, mongoConfig?.DatabaseName
             )
             .AddDefaultTokenProviders();
         builder.Services.AddScoped<
