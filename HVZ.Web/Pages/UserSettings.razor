@@ -1,0 +1,85 @@
+﻿@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IUserRepo UserRepo
+@inject UserManager<ApplicationUser> UserManager
+@using HVZ.Web.Identity.Models
+@using HVZ.Web.Shared.Ui_Helpers
+@using Microsoft.AspNetCore.Identity
+@using System.ComponentModel.DataAnnotations
+@using HVZ.Web.Shared.User_Settings
+
+@page "/account/settings"
+@attribute [Authorize]
+
+<PageTitle>Settings</PageTitle>
+<div class="container-md">
+    <h3>Settings</h3>
+    @*Add a chevron*@
+    <a class="nav-link" href="/">Back</a>
+
+    <div class="row">
+        <div class="col-md-auto">
+            @if (User is not null)
+            {
+                <ImageUploader UserId="@userId"/>
+            }
+            
+        </div>
+        <div class="col" style="max-width:500px">
+            <input class="form-control mb-3" @bind="userFullName" />
+            <PasswordChange />
+        </div>
+    </div>
+    @if(!verifiedEmail)
+    {
+        <div class="alert alert-warning">Your email is not verified. Resend email verification</div>
+    }
+    <hr />
+    <h4>Appearance</h4>
+    
+    <ThemeToggle />
+
+    <hr />
+    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#logout-modal"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log out</button>
+
+</div>
+
+<div class="modal fade" id="logout-modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm logout</h5>
+            </div>
+            <div class="modal-footer">
+                <a class="btn btn-danger" href="Account/Logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log out</a>
+                <a class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#logout-modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    string? userId = "";
+    string userFullName = "Sample User Name";
+    User User = null!;
+    ApplicationUser appUser = null!;
+    bool verifiedEmail;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Get the user
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+        appUser = await UserManager.GetUserAsync(authState.User) ?? null!;
+        if (appUser is null)
+        {
+            throw new ArgumentNullException("Authenticated user does not have associated Identity");
+        }
+
+        userId = appUser.DatabaseId;
+        verifiedEmail = appUser.EmailConfirmed;
+
+        User = await UserRepo.GetUserById(userId);
+        userFullName = User.FullName;
+
+    }
+}
