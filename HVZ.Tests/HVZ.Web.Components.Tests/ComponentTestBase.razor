@@ -1,5 +1,4 @@
-﻿
-@inherits Bunit.TestContext
+﻿@inherits Bunit.TestContext
 
 @code {
     protected static readonly string testGameName = "Test Game";
@@ -17,6 +16,7 @@
     protected Mock<IGameRepo> mockGameRepo = new();
     protected Mock<IOrgRepo> mockOrgRepo = new();
     protected Mock<IUserRepo> mockUserRepo = new();
+    protected Mock<UserManager<ApplicationUser>> mockUserManager = new();
     protected Mock<ImageService> mockImageService = new();
     protected TestAuthorizationContext? authContext;
 
@@ -26,6 +26,7 @@
         Services.AddSingleton<IOrgRepo>(mockOrgRepo.Object);
         Services.AddSingleton<IUserRepo>(mockUserRepo.Object);
         Services.AddSingleton<ImageService>(mockImageService.Object);
+        Services.AddSingleton<UserManager<ApplicationUser>>(mockUserManager.Object);
     }
 
     protected void ConfigureTestAuthorization()
