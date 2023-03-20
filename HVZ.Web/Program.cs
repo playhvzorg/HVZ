@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 
 namespace HVZ.Web;
+
 internal static class Program
 {
     public static void Main(string[] args)
@@ -96,7 +97,8 @@ internal static class Program
 
         #region DiscordIntegration
 
-        var discordIntegrationSettings = builder.Configuration.GetSection(nameof(DiscordIntegrationSettings)).Get<DiscordIntegrationSettings>();
+        var discordIntegrationSettings = builder.Configuration.GetSection(nameof(DiscordIntegrationSettings))
+            .Get<DiscordIntegrationSettings>();
         bool discordIntegrationEnabled = discordIntegrationSettings is not null;
         if (discordIntegrationEnabled)
         {
@@ -105,6 +107,7 @@ internal static class Program
             builder.Services.AddSingleton<DiscordBot>(discordBot);
             builder.Services.AddSingleton<DiscordIntegrationSettings>(discordIntegrationSettings!);
         }
+
         #endregion
 
         #region Email
@@ -156,5 +159,4 @@ internal static class Program
 
         app.Run();
     }
-
 }

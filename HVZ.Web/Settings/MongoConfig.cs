@@ -18,7 +18,7 @@ namespace HVZ.Web.Settings
             "mongodb://" +
             (UserName is not null ? $"{UserName}:{Password}@" : "") +
             $"{Host1}:{Port1}" +
-            (Host2 is not null ? $"{Host2}:{Port2}" : "") + 
-            (Host3 is not null ? $"{Host3}:{Port3}" : "");
+            (Host2 is not null ? $",{Host2}:{Port2}" : "") +
+            (Host3 is not null ? $",{Host3}:{Port3}" : "");
     }
 }
