@@ -62,31 +62,6 @@
     [Test]
     public void Test_UpdateRoleMod()
     {
-        //var testPlayer = new Player(
-        //    userid: userId,
-        //    gameId: gameId,
-        //    role: Player.gameRole.Human,
-        //    tags: 0,
-        //    joinedGameAt: NodaTime.Instant.MinValue
-        //);
-
-        //var cut = Render(@<GameRoleTracker Player="@testPlayer" GameId="@gameId" />);
-
-        //var role = cut.Find("span");
-
-        //role.MarkupMatches(
-        //    @<span>Human</span>
-        //);
-
-        //mockGameRepo.Raise(repo => repo.PlayerRoleChanged += null,
-        //    new PlayerRoleChangedEventArgs(
-        //        Mock.Of<Game>(x => x.Id == gameId), Mock.Of<Player>(x => x.Role == Player.gameRole.Zombie), string.Empty, Player.gameRole.Zombie
-        //    ));
-
-        //role.MarkupMatches(
-        //    @<span>Zombie</span>
-        //);
-
         var testPlayer = Mock.Of<TestPlayer>();
 
         var cut = Render(@<GameRoleTracker Player="@testPlayer" GameId="@testGameId" />);
