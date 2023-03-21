@@ -16,7 +16,17 @@
     protected Mock<IGameRepo> mockGameRepo = new();
     protected Mock<IOrgRepo> mockOrgRepo = new();
     protected Mock<IUserRepo> mockUserRepo = new();
-    protected Mock<UserManager<ApplicationUser>> mockUserManager = new();
+    protected Mock<UserManager<ApplicationUser>> mockUserManager = new(
+        new Mock<IUserStore<ApplicationUser>>().Object, 
+        null, 
+        null, 
+        null, 
+        null, 
+        null, 
+        null, 
+        null, 
+        null
+    );
     protected Mock<ImageService> mockImageService = new();
     protected TestAuthorizationContext? authContext;
 
