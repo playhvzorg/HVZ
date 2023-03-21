@@ -24,13 +24,17 @@
         error.MarkupMatches(@<span>ERROR</span>);
     }
 
-    [TestCase(Player.gameRole.Human, "Human")]
-    [TestCase(Player.gameRole.Zombie, "Zombie")]
-    [TestCase(Player.gameRole.Oz, "OZ")]
-    public void Test_ExpectedRoleFormatting(Player.gameRole inputRole, string expectedRoleText)
+    [TestCase(Player.gameRole.Human, "Human", false)]
+    [TestCase(Player.gameRole.Human, "Human", true)]
+    [TestCase(Player.gameRole.Zombie, "Zombie", false)]
+    [TestCase(Player.gameRole.Zombie, "Zombie", true)]
+    [TestCase(Player.gameRole.Oz, "Human", false)]
+    [TestCase(Player.gameRole.Oz, "OZ", true)]
+
+    public void Test_ExpectedRoleFormatting(Player.gameRole inputRole, string expectedRoleText, bool showOz)
     {
         var testPlayer = Mock.Of<TestPlayer>(p => p.Role == inputRole);
-        var cut = Render(@<GameRoleTracker Player="@testPlayer" GameId="@testGameId"/>);
+        var cut = Render(@<GameRoleTracker Player="@testPlayer" GameId="@testGameId" ShowOz="@showOz" />);
 
         var role = cut.Find("span");
 
