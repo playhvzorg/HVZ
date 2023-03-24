@@ -105,9 +105,7 @@
 
         var roleElement = cut.Find("#game-role");
 
-        roleElement.MarkupMatches(
-            @<span diff:ignoreAttributes><i diff:ignore></i> @testPlayer.Role.ToString()</span>
-        );
+        cut.FindComponent<GameRoleTracker>();
     }
 
     [Test]

@@ -24,7 +24,7 @@
                             <i class="fa-solid fa-id-card"></i> @player?.GameId
                         </span>
                         <span class="me-1" id="game-role">
-                            <i class="fa-solid fa-user"></i> <PlayerGameRole ShowOz=true />
+                            <i class="fa-solid fa-user"></i> <GameRoleTracker Player="@player" GameId="@ActiveGame.Id" ShowOz=true />
                         </span>
                         <span class="me-1" id="game-tags">
                             <i class="fa-solid fa-people-robbery"></i> <GameTagCounter Player="@player" GameId="@ActiveGame?.Id" />
