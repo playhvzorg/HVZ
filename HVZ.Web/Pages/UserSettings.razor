@@ -20,7 +20,7 @@
         <div class="col-md-auto">
             @if (User is not null)
             {
-                <ImageUploader UserId="@userId"/>
+                <ImageUploader UserId="@userId" @ref="uploader"/>
             }
             
         </div>
@@ -62,6 +62,7 @@
     string userFullName = "Sample User Name";
     User User = null!;
     ApplicationUser appUser = null!;
+    ImageUploader? uploader;
     bool verifiedEmail;
 
     protected override async Task OnInitializedAsync()
@@ -81,5 +82,13 @@
         User = await UserRepo.GetUserById(userId);
         userFullName = User.FullName;
 
+    }
+
+    async Task SaveChangesAsync()
+    {
+        await UserRepo.SetUserFullName(User.Id, userFullName);
+        // Null suppression is fine here, uploader is only null if user is null
+        // which will throw an error upon initialization
+        await uploader!.SaveFile();
     }
 }
