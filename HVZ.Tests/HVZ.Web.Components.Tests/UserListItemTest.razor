@@ -104,7 +104,7 @@
         var badge = cut.Find("#owner-badge");
 
         badge.MarkupMatches(
-            @<span diff:ignoreAttributes diff:ignoreChildren></span>
+            @<span diff:ignore></span>
         );
     }
 
@@ -116,7 +116,7 @@
         var badge = cut.Find("#owner-badge");
 
         badge.MarkupMatches(
-            @<span diff:ignoreAttributes diff:ignoreChildren></span>
+            @<span diff:ignore></span>
         );
     }
 
@@ -159,7 +159,7 @@
 
         var button = cut.Find($"#set-mod-{adminId}");
         button.MarkupMatches(
-            @<button diff:ignoreAttributes diff:ignoreChildren></button>
+            @<button diff:ignore></button>
         );
     }
 #endregion
@@ -181,7 +181,7 @@
 
         var button = cut.Find($"#remove-{adminId}");
         button.MarkupMatches(
-            @<button diff:ignoreAttributes diff:ignoreChildren></button>
+            @<button diff:ignore></button>
         );
     }
 
@@ -209,7 +209,7 @@
 
         var button = cut.Find($"#set-admin-{modId}");
         button.MarkupMatches(
-            @<button diff:ignoreChildren diff:ignoreAttributes></button>
+            @<button diff:ignore></button>
         );
     }
 
@@ -228,7 +228,7 @@
 
         var button = cut.Find($"#remove-{modId}");
         button.MarkupMatches(
-            @<button diff:ignoreChildren diff:ignoreAttributes></button>
+            @<button diff:ignore></button>
         );
     }
 
