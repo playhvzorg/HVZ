@@ -2,7 +2,7 @@
 @inject ImageService ImageService
 
 <div class="position-relative">
-    <div class="label" style="width:@(sizeInt)px;">
+    <label class="label" style="width:@(sizeInt)px;">
         @if (file is null)
         {
             <div class="position-relative">
@@ -21,7 +21,7 @@
             <p class="text-muted" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="img-name"><em>@file.Name</em></p>
         }
         <InputFile class="d-none" name="img-upload" accept="image/*" OnChange="@StageFile" />
-    </div>
+    </label>
 
 </div>
 
