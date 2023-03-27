@@ -9,14 +9,14 @@
         @if (OrgId != null)
         {
             <div class="ml-3 w-auto position-relative">
-                <ImageUploader OrgId="@OrgId" @ref="uploader" />
+                <ImageUploader OrgId="@OrgId" OnChangeCallback="StagedFile" @ref="uploader" />
             </div>
         }
     </div>
     
     <div class="col-lg-4 mt-3 mt-lg-0">
         <label for="org-name" class="form-label">Name</label>
-        <input class="form-control" @bind="orgName" id="org-name">
+        <input class="form-control" @bind="orgName" @bind:event="oninput" id="org-name">
 
         <label for="description" class="form-label mt-3">About</label>
         <ul class="nav nav-tabs">
@@ -29,10 +29,9 @@
         </ul>
         <div class="tab-content">
             <div class="tab-pane active" id="edit">
-                <textarea name="description" id="description" cols="30" rows="5" class="form-control" @bind="orgDesc"></textarea>
+                <textarea name="description" id="description" cols="30" rows="5" class="form-control" @bind="orgDesc" @bind:event="oninput"></textarea>
             </div>
             <div class="tab-pane" id="preview">
-                @*Markdown Display here when finished*@
                 <MarkdownDisplay Source="@orgDesc" />
             </div>
         </div>
@@ -86,6 +85,7 @@
 
     string orgName = "";
     string orgDesc = "";
+    bool stagedFile;
     bool requireVerifiedEmail = false;
     bool requireProfilePicture = false;
 
@@ -99,7 +99,7 @@
         (requireVerifiedEmail != org?.RequireVerifiedEmailForPlayer) ||
         // Require profile picture
         (requireProfilePicture != org?.RequireProfilePictureForPlayer) ||
-        UploaderHasStagedFile();
+        stagedFile;
 
     string SaveFooterVisibility => UnsavedChanges ? "d-block" : "d-none";
 
@@ -160,6 +160,7 @@
         if (uploader is not null)
         {
             await uploader.SaveFile();
+            uploader.ClearFile();
         }
         if (OrgId is null) throw new ArgumentException("Seriously how the fuck did you even get here what the actual fuck is going on");
         await OrgRepo.SetOrgDescription(OrgId, orgDesc);
@@ -186,6 +187,11 @@
         if (uploader is not null) return uploader.HasStagedFile;
 
         return false;
+    }
+
+    void StagedFile()
+    {
+        stagedFile = uploader?.HasStagedFile ?? false;
     }
 
     public void Dispose()

@@ -40,6 +40,9 @@
     [Parameter]
     public string? OrgId { get; set; }
 
+    [Parameter]
+    public EventCallback OnChangeCallback { get; set; }
+
     string imgSrc = "";
 
     string? errorText = null;
@@ -77,9 +80,10 @@
         }
     }
 
-    public void ClearFile()
+    public async void ClearFile()
     {
         file = null;
+        await OnChangeCallback.InvokeAsync();
     }
 
     private async Task StageFile(InputFileChangeEventArgs e)
@@ -104,6 +108,7 @@
             file.ContentType,
             imgBase64
         );
+        await OnChangeCallback.InvokeAsync();
     }
 
     private async Task<string> BrowserFileToBase64String(IBrowserFile file)
