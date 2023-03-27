@@ -1,0 +1,72 @@
+﻿@implements IDisposable
+@inject IGameRepo GameRepo
+@inject ILogger<GameRoleTracker> Logger
+
+<span @attributes="@Attributes">@FormatPlayerRole(playerRole)</span>
+
+@code {
+
+    [Parameter]
+    public string? GameId { get; set; }
+
+    [Parameter]
+    public Player? Player { get; set; }
+
+    [Parameter]
+    public bool ShowOz { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? Attributes { get; set; }
+
+    Player.gameRole? playerRole = null;
+
+    protected override void OnParametersSet()
+    {
+        if (GameId is null)
+        {
+            Logger.LogError("GameId cannot be null");
+            return;
+        }
+
+        if (Player is null)
+        {
+            Logger.LogError("Player cannot be null");
+            return;
+        }
+
+        playerRole = Player.Role;
+
+        GameRepo.PlayerRoleChanged += UpdateRoleMod;
+        GameRepo.TagLogged += UpdateRoleTag;
+    }
+
+    void UpdateRoleMod(object? sender, PlayerRoleChangedEventArgs eventArgs)
+        => SetPlayerRole(eventArgs.game, eventArgs.player.GameId, eventArgs.Role);
+
+    void UpdateRoleTag(object? sender, TagEventArgs eventArgs)
+        => SetPlayerRole(eventArgs.game, eventArgs.TagReciever.GameId, Player.gameRole.Zombie);
+
+    void SetPlayerRole(Game game, string playerGameId, Player.gameRole role)
+    {
+        if (game.Id == GameId && playerGameId == Player?.GameId)
+        {
+            playerRole = role;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    // return the formatted role or ERROR if the role is null
+    string? FormatPlayerRole(Player.gameRole? role) {
+        if (role is not null)
+            return role == Player.gameRole.Oz ? OzDisplayRole : role.ToString();
+        return "ERROR";
+    }
+
+    string OzDisplayRole => ShowOz ? "OZ" : Player.gameRole.Human.ToString();
+
+    public void Dispose()
+    {
+        GameRepo.PlayerRoleChanged -= UpdateRoleMod;
+        GameRepo.TagLogged -= UpdateRoleTag;
+    }
+}

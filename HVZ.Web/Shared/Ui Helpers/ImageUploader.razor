@@ -9,20 +9,20 @@
                 <Thumbnail UserId="@UserId" OrgId="@OrgId" Size="@Size" />
                 @editIcon
             </div>
-            
+
             <p class="text-danger" style="overflow:hidden;" id="error-text">@errorText</p>
         }
         else
         {
             <div class="position-relative" style="width:@(sizeInt)px">
-                <img src="@imgSrc" height="@sizeInt" width="@sizeInt" >
+                <img src="@imgSrc" class="rounded" height="@sizeInt" width="@sizeInt">
                 @editIcon
             </div>
             <p class="text-muted" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="img-name"><em>@file.Name</em></p>
         }
         <InputFile class="d-none" name="img-upload" accept="image/*" OnChange="@StageFile" />
     </div>
-    
+
 </div>
 
 

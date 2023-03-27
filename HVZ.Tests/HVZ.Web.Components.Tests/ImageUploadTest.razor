@@ -68,7 +68,7 @@
 
         var img = cut.Find("img");
         img.MarkupMatches(
-            @<img src="@srcString" height="@sizeInt" width="@sizeInt">
+            @<img src="@srcString" class:ignore height="@sizeInt" width="@sizeInt">
         );
 
         var imgName = cut.Find("#img-name");
@@ -99,12 +99,12 @@
 
         var img = cut.Find("img");
         img.MarkupMatches(
-            @<img src="@srcString" height="@sizeInt" width="@sizeInt">
+            @<img src="@srcString" class="rounded" height="@sizeInt" width="@sizeInt">
         );
 
         var imgName = cut.Find("#img-name");
         imgName.MarkupMatches(
-            @<p class="text-muted" style:ignore id="img-name">
+            @<p class="text-muted" id="img-name">
                 <em>0.png</em>
             </p>
         );
@@ -125,7 +125,7 @@
 
         var errorText = cut.Find("#error-text");
         errorText.MarkupMatches(
-            @<p class="text-danger" style:ignore id="error-text">File must be an image</p>
+            @<p class="text-danger" id="error-text">File must be an image</p>
         );
 
         Assert.DoesNotThrow(
@@ -149,7 +149,7 @@
 
         var errorText = cut.Find("#error-text");
         errorText.MarkupMatches(
-            @<p class="text-danger" style:ignore id="error-text">Image too large! Max image size is 4MB</p>
+            @<p class="text-danger" id="error-text">Image too large! Max image size is 4MB</p>
         );
 
         Assert.DoesNotThrow(
