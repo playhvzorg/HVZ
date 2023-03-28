@@ -91,7 +91,7 @@ public class OrgRepo : IOrgRepo
         return org;
     }
 
-    public async Task<Game> CreateGame(string name, string creatorId, string orgId)
+    public async Task<Game> CreateGame(string name, string orgId, string creatorId)
     {
         if (await IsAdminOfOrg(orgId, creatorId) is false)
             throw new ArgumentException($"User {creatorId} is not an admin of org {orgId} and cannot create a game in this org.");

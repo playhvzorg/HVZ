@@ -1,0 +1,55 @@
+﻿@inject IGameRepo GameRepo
+@inject IOrgRepo OrgRepo
+@implements IDisposable
+
+@if (ActiveGame is not null)
+{
+    <div class="m-auto mt-3" style="max-width: 550px; overflow-y:scroll;">
+        <Virtualize Items="@ActiveGame?.Players" Context="player">
+            <PlayerListItem Player="@player" ViewerSeesOz="@SeesOz" />
+        </Virtualize>
+    </div>
+    
+}
+
+
+@code {
+    [CascadingParameter]
+    public Game? ActiveGame { get; set; }
+
+    [CascadingParameter(Name = "IsMod")]
+    public bool IsMod { get; set; }
+
+    [CascadingParameter]
+    public Player? UserPlayer { get; set; }
+
+    // On Player Join: Update List
+    // On User Role Change: Update List
+
+    bool SeesOz => IsMod || UserPlayer?.Role == Player.gameRole.Oz;
+
+    protected override void OnInitialized()
+    {
+        GameRepo.PlayerJoinedGame += PlayerJoined;
+
+        base.OnInitialized();
+    }
+
+    void PlayerJoined(object? sender, PlayerUpdatedEventArgs eventArgs)
+    {
+        if (ActiveGame is null) throw new ArgumentNullException("ActiveGame cannot be null: GamePlayersList");
+
+        if (eventArgs.game.Id == ActiveGame?.Id)
+        {
+            if (!ActiveGame!.Players.Contains(eventArgs.player))
+            {
+                
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        GameRepo.PlayerJoinedGame -= PlayerJoined;
+    }
+}

@@ -1,0 +1,28 @@
+﻿
+@if (Player?.Role is not Player.gameRole.Human)
+{
+    <button class="btn btn-primary w-100">Tag</button>
+
+    <div class="modal">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+
+                    </h5>
+                </div>
+                <div class="modal-body">
+
+                </div>
+                <div class="modal-footer">
+
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Player? Player { get; set; }
+}

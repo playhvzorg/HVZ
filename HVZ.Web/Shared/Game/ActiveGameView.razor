@@ -1,0 +1,75 @@
+﻿@using HVZ.Web.Shared.Org_Authorization
+<h3 class="mb-3">@ActiveGame?.Name 
+    @if (ActivePlayer is null)
+    {
+        <JoinGame ModalId="join-game-modal" />
+    }
+</h3>
+
+@*Home/Players/Log/Moderation*@
+<ul class="nav nav-pills nav-fill m-0">
+    <li class="nav-item">
+        <button data-bs-toggle="pill" data-bs-target="#tab-home" class="nav-link active">
+            <i class="fa-solid fa-house-user"></i>
+            <span class="d-none d-md-inline">Home</span>
+        </button>
+    </li>
+    <li class="nav-item">
+        <button data-bs-toggle="pill" data-bs-target="#tab-players" class="nav-link">
+            <i class="fa-solid fa-users"></i>
+            <span class="d-none d-md-inline">Players</span>
+        </button>
+    </li>
+    <li class="nav-item">
+        <button data-bs-toggle="pill" data-bs-target="#tab-log" class="nav-link">
+            <i class="fa-solid fa-list"></i>
+            <span class="d-none d-md-inline">Log</span>
+        </button>
+    </li>
+    <OrgAuthorizedModerator>
+        <li class="nav-item">
+            <button data-bs-toggle="pill" data-bs-target="#tab-mod" class="nav-link">
+                <i class="fa-solid fa-shield"></i> 
+                <span class="d-none d-md-inline">Moderation</span>
+            </button>
+        </li>
+    </OrgAuthorizedModerator>
+    
+</ul>
+
+<CascadingValue Value="@ActiveGame">
+    <CascadingValue Value="@ActivePlayer">
+        <div id="tab-content" class="tab-content">
+            <div id="tab-home" class="tab-pane fade show active" role="tabpanel">
+                <GameHome />
+            </div>
+            <div id="tab-players" class="tab-pane fade" role="tabpanel">
+                <GamePlayersList />
+            </div>
+            <div id="tab-log" class="tab-pane fade" role="tabpanel">
+                <GameLog />
+            </div>
+            <OrgAuthorizedModerator>
+                <div id="tab-mod" class="tab-pane fade" role="tabpanel">
+                    <GameModeration />
+                </div>
+            </OrgAuthorizedModerator>
+        </div>
+    </CascadingValue>
+    @if(ActivePlayer is null)
+    {
+        <JoinGameModal id="join-game-modal" />
+    }
+</CascadingValue>
+
+
+
+@code {
+    [Parameter]
+    public Game? ActiveGame { get; set; }
+
+    [CascadingParameter(Name = "UserId")]
+    public string? UserId { get; set; }
+
+    Player? ActivePlayer => ActiveGame?.Players.FirstOrDefault(p => p.UserId == UserId);
+}

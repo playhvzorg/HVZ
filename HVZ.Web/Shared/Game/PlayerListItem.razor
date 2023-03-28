@@ -1,0 +1,88 @@
+﻿@inject IUserRepo UserRepo
+@inject IOrgRepo OrgRepo
+@inject IGameRepo GameRepo
+
+@using HVZ.Web.Shared.Org_Authorization
+@using HVZ.Web.Shared.Ui_Helpers
+
+<div class="border border-1 rounded p-1 mb-2">
+    <div class="d-flex" data-bs-toggle="collapse" data-bs-target="#collapse-@user?.Id">
+        <div class="flex-grow-0">
+            @if(user is not null)
+            {
+                <HVZ.Web.Shared.Ui_Helpers.Thumbnail UserId="@user?.Id" Size="ImageService.ImageSize.SMALL" />
+            }
+        </div>
+        <div class="flex-grow-1 mx-2">
+            <h6 class="mb-0">@user?.FullName
+                @if (userIsMod)
+                {
+                    <span class="badge rounded-pill text-bg-warning mx-1">Mod</span>
+                }
+            </h6>
+            <p class="m-0 small">
+                <i class="fa-solid fa-user"></i> <GameRoleTracker Player="@Player" GameId="@ActiveGame?.Id" ShowOz="@ViewerSeesOz" />
+                <i class="fa-solid fa-people-robbery"></i> <GameTagCounter Player="@Player" GameId="@ActiveGame?.Id" />
+            </p>
+            <p class="m-0 small">
+                <OrgAuthorizedModerator>
+                    <i class="fa-solid fa-id-card"></i> @Player?.GameId
+                </OrgAuthorizedModerator>
+            </p>
+        </div>
+
+    </div>
+    <OrgAuthorizedModerator>
+        <div class="collapse" id="collapse-@user?.Id">
+            <div class="mt-2">
+                <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+                        Set role
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item">Human</a></li>
+                        <li><a class="dropdown-item">Zombie</a></li>
+                        <li><a class="dropdown-item">OZ</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </OrgAuthorizedModerator>
+    
+</div>
+
+
+@code {
+    [Parameter]
+    public Player? Player { get; set; }
+
+    [Parameter]
+    public bool ViewerSeesOz { get; set; }
+
+    [CascadingParameter(Name = "OrgId")]
+    public string? OrgId { get; set; }
+
+    [CascadingParameter]
+    public Game? ActiveGame { get; set; }
+
+    User? user;
+    bool userIsMod;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Player is null)
+        {
+            throw new ArgumentException("Cannot create player list item with null player");
+        }
+
+        user = await UserRepo.GetUserById(Player.UserId);
+
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        userIsMod = 
+            await OrgRepo.IsModOfOrg(OrgId!, user?.Id!) || 
+            await OrgRepo.IsAdminOfOrg(OrgId!, user?.Id!);
+    }
+}

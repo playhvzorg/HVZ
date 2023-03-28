@@ -1,0 +1,13 @@
+﻿
+<button class="btn btn-primary d-none d-sm-inline" data-bs-toggle="modal" data-bs-target="#@ModalId">
+    Join game
+</button>
+
+<button class="btn btn-primary d-sm-none m-3 fixed-bottom" data-bs-toggle="modal" data-bs-target="#@ModalId">
+    Join game
+</button>
+
+@code {
+    [Parameter]
+    public string? ModalId { get; set; }
+}

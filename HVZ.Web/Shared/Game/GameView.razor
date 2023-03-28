@@ -1,5 +1,53 @@
-﻿<h3>GameView</h3>
+﻿@inject IGameRepo GameRepo
+@implements IDisposable
+
+@if (ActiveGameId is not null)
+{
+    
+    <ActiveGameView ActiveGame="@activeGame" />
+}
+else
+{
+    <StartGame />
+}
 
 @code {
 
+    [Parameter]
+    public string? ActiveGameId { get; set; }
+
+    [CascadingParameter(Name = "OrgId")]
+    public string? OrgId { get; set; }
+
+    Game? activeGame;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ActiveGameId is not null)
+        {
+            activeGame = await GameRepo.FindGameById(ActiveGameId);
+        }
+
+        GameRepo.GameCreated += GameCreated;
+    }
+
+    void GameCreated(object? sender, GameUpdatedEventArgs eventArgs)
+    {
+        var game = eventArgs.game;
+
+        if (activeGame is null)
+        {
+            if (OrgId == game.OrgId)
+            {
+                activeGame = game;
+                ActiveGameId = game.Id;
+                InvokeAsync(StateHasChanged);
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        GameRepo.GameCreated -= GameCreated;
+    }
 }

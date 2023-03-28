@@ -1,11 +1,11 @@
-using MongoDB.Driver;
+using HVZ.Persistence.Models;
+using HVZ.Persistence.MongoDB.Serializers;
+using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.IdGenerators;
-using HVZ.Persistence.Models;
-using HVZ.Persistence.MongoDB.Serializers;
+using MongoDB.Driver;
 using NodaTime;
-using Microsoft.Extensions.Logging;
 
 namespace HVZ.Persistence.MongoDB.Repos;
 public class GameRepo : IGameRepo
@@ -45,8 +45,18 @@ public class GameRepo : IGameRepo
             cm.MapProperty(p => p.GameId);
             cm.MapProperty(p => p.Role);
             cm.MapProperty(p => p.Tags);
-            cm.MapProperty(p => p.JoinedGameAt);
+            cm.MapProperty(p => p.JoinedGameAt)
+                .SetSerializer(InstantSerializer.Instance);
             cm.MapProperty(p => p.GameId);
+        });
+
+        BsonClassMap.RegisterClassMap<GameEventLog>(cm =>
+        {
+            cm.MapProperty(e => e.GameEvent);
+            cm.MapProperty(e => e.Timestamp)
+                .SetSerializer(InstantSerializer.Instance);
+            cm.MapProperty(e => e.UserId);
+            cm.MapProperty(e => e.AdditionalInfo);
         });
     }
     public GameRepo(IMongoDatabase database, IClock clock, ILogger logger)
@@ -133,7 +143,7 @@ public class GameRepo : IGameRepo
     public async Task<Game> AddPlayer(string gameId, string userId)
     {
         Game game = await GetGameById(gameId);
-        if (FindPlayerByUserId(gameId, userId).Result != null)
+        if (await FindPlayerByUserId(gameId, userId) != null)
             throw new ArgumentException($"User {userId} is already in Game {gameId}!");
 
         Player player = new Player(userId, await GeneratePlayerGameId(gameId), game.DefaultRole, 0, _clock.GetCurrentInstant());

@@ -9,7 +9,11 @@
         <CascadingValue Value="@OwnerId" Name="OwnerId">
             <CascadingValue Value="@this" Name="OrgAuth">
                 <CascadingValue Value="@Org" Name="Org">
-                    @ChildContent
+                    <CascadingValue Value="@OrgId" Name="OrgId" >
+                        <CascadingValue Value="@userId" Name="UserId">
+                            @ChildContent
+                        </CascadingValue>
+                    </CascadingValue>
                 </CascadingValue>
             </CascadingValue>
         </CascadingValue>

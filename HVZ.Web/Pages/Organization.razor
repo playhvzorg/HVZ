@@ -3,34 +3,18 @@
 @using HVZ.Persistence.Models
 @using HVZ.Web.Identity.Models
 @using HVZ.Web.Shared.Org_Authorization
+@using HVZ.Web.Shared.Game
 @inject IOrgRepo OrgRepo
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @page "/org/{url}"
+@attribute [Authorize]
 
 <h1>@organization?.Name</h1>
 
-<div class="container">
-    <CascadingAuthenticationState>
-        <AuthorizeView>
-            <Authorized>
-                <OrgAuth OrgId="@organization?.Id">
-                    <OrgAuthorizedAdmin>
-                        <h4>Test Admin Content</h4>
-                    </OrgAuthorizedAdmin>
-                    <OrgAuthorizedModerator>
-                        <h4>Test Mod Content</h4>
-                        <OrgAuthorizedAdmin>
-                            <h5>Nested Admin Content</h5>
-                        </OrgAuthorizedAdmin>
-                    </OrgAuthorizedModerator>
-                </OrgAuth>
-            </Authorized>
-
-            <NotAuthorized>
-                You need to log in to view this content
-            </NotAuthorized>
-        </AuthorizeView>
-    </CascadingAuthenticationState>
+<div class="container-md p-0">
+    <OrgAuth OrgId="@organization?.Id">
+        <GameView ActiveGameId="@organization?.ActiveGameId" />
+    </OrgAuth>
 </div>
 
 
