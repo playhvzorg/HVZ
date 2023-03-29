@@ -104,7 +104,7 @@
 
         var imgName = cut.Find("#img-name");
         imgName.MarkupMatches(
-            @<p class="text-muted" id="img-name">
+            @<p class="text-muted" id="img-name" style:ignore>
                 <em>0.png</em>
             </p>
         );
@@ -125,7 +125,7 @@
 
         var errorText = cut.Find("#error-text");
         errorText.MarkupMatches(
-            @<p class="text-danger" id="error-text">File must be an image</p>
+            @<p class="text-danger" id="error-text" style:ignore>File must be an image</p>
         );
 
         Assert.DoesNotThrow(
@@ -149,7 +149,7 @@
 
         var errorText = cut.Find("#error-text");
         errorText.MarkupMatches(
-            @<p class="text-danger" id="error-text">Image too large! Max image size is 4MB</p>
+            @<p class="text-danger" id="error-text" style:ignore>Image too large! Max image size is 4MB</p>
         );
 
         Assert.DoesNotThrow(
