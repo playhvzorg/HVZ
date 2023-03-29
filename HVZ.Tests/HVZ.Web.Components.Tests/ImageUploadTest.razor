@@ -99,7 +99,7 @@
 
         var img = cut.Find("img");
         img.MarkupMatches(
-            @<img src="@srcString" class="rounded" height="@sizeInt" width="@sizeInt">
+            @<img src="@srcString" class:ignore height="@sizeInt" width="@sizeInt">
         );
 
         var imgName = cut.Find("#img-name");
