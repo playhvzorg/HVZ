@@ -19,14 +19,14 @@
         </AuthorizeView>
     </CascadingAuthenticationState>
 
-    <div class="row">
-        <div class="col-auto w-25 mx-0" style="max-width:128px; min-width:65px;">
+    <div class="d-flex">
+        <div class="flex-grow-0 mx-2" style="max-width:100px; min-width:65px; width:10%">
             @if (userId is not null)
             {
                 <Thumbnail UserId="@userId" width="100%"/>
             }
         </div>
-        <div class="col">
+        <div class="flex-grow-1">
             <h3 class="my-0" style="font-size:large">@user?.FullName</h3>
             <h5 class="text-muted my-0" style="font-size:small">@user?.Email</h5>
             <h5 class="text-muted my-0" style="font-size:small">Joined: @user?.CreatedAt.ToString("MMM d yyyy", null)</h5>

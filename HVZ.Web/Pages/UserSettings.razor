@@ -2,20 +2,22 @@
 @inject IUserRepo UserRepo
 @inject UserManager<ApplicationUser> UserManager
 @inject EmailService EmailService
+@inject NavigationManager NavManager
+@inject IJSRuntime JS
 @using HVZ.Web.Identity.Models
 @using HVZ.Web.Shared.Ui_Helpers
 @using Microsoft.AspNetCore.Identity
 @using System.ComponentModel.DataAnnotations
 @using HVZ.Web.Shared.User_Settings
 
-@page "/account/settings"
+@implements IDisposable
+
+@page "/settings"
 @attribute [Authorize]
 
 <PageTitle>Settings</PageTitle>
 <div class="container-md">
     <h3>Settings</h3>
-    @*Add a chevron*@
-    <a class="nav-link" href="/">Back</a>
 
     <div class="row">
         <div class="col-md-auto">
@@ -31,11 +33,11 @@
         </div>
     </div>
 
-    @*Save changes*@
     @if (UnsavedChanges)
     {
-        <div>
-            unsaved changes
+        <div class="mt-3">
+            <button class="btn btn-success" @onclick="SaveChangesAsync" >Save</button>
+            <button class="btn btn-danger" @onclick="DiscardChanges" >Discard</button>
         </div>
     }
 
@@ -67,19 +69,59 @@
     </div>
 </div>
 
+<div id="save-changes-modal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Unsaved changes</h5>
+            </div>
+            <div class="modal-body">
+                <p>You have unsaved changes, you must save or discard them before continuing</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" data-bs-toggle="modal" @onclick="DiscardAndContinue">Discard and continue</button>
+                <button class="btn btn-primary" data-bs-toggle="modal" @onclick="SaveAndContinue">Save and continue</button>
+                <button class="btn-btn-secondary" data-bs-toggle="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @code {
     string? userId = "";
     string userFullName = "Sample User Name";
     User User = null!;
     ApplicationUser appUser = null!;
     ImageUploader? uploader;
+    IDisposable navigationHandler = null!;
     bool verifiedEmail;
+    string targetLocation = "";
 
-    bool UnsavedChanges => User.FullName != userFullName;
+    bool UnsavedChanges => GetUnsavedChanges();
+
+    bool GetUnsavedChanges()
+    {
+        if (User is null) return false;
+        if (uploader is null) return false;
+
+        return User.FullName != userFullName || uploader.HasStagedFile;
+    }
 
     protected override async Task OnInitializedAsync()
     {
         // Get the user
+        appUser = await GetAppUser();
+        userId = appUser.DatabaseId;
+        verifiedEmail = appUser.EmailConfirmed;
+
+        User = await UserRepo.GetUserById(userId);
+        userFullName = User.FullName;
+
+        navigationHandler = NavManager.RegisterLocationChangingHandler(LocationChangeHandler);
+    }
+
+    async Task<ApplicationUser> GetAppUser()
+    {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
 
         appUser = await UserManager.GetUserAsync(authState.User) ?? null!;
@@ -88,21 +130,38 @@
             throw new ArgumentNullException("Authenticated user does not have associated Identity");
         }
 
-        userId = appUser.DatabaseId;
-        verifiedEmail = appUser.EmailConfirmed;
-
-        User = await UserRepo.GetUserById(userId);
-        userFullName = User.FullName;
-
+        return appUser;
     }
 
     async Task SaveChangesAsync()
     {
-        await UserRepo.SetUserFullName(User.Id, userFullName);
-        await UserManager.SetUserNameAsync(appUser, userFullName);
+        User = await UserRepo.SetUserFullName(User.Id, userFullName);
+        var result = await UserManager.SetUserNameAsync(appUser, userFullName);
+        if (result.Succeeded)
+        {
+            appUser = await GetAppUser();
+        }
         // Null suppression is fine here, uploader is only null if user is null
         // which will throw an error upon initialization
         await uploader!.SaveFile();
+    }
+
+    async Task SaveAndContinue()
+    {
+        await SaveChangesAsync();
+        NavManager.NavigateTo(targetLocation);
+    }
+
+    void DiscardChanges()
+    {
+        userFullName = User.FullName;
+        uploader!.ClearFile();
+    }
+
+    void DiscardAndContinue()
+    {
+        DiscardChanges();
+        NavManager.NavigateTo(targetLocation);
     }
 
     async Task SendVerificationEmail()
@@ -110,5 +169,22 @@
         string requestId = await UserManager.GenerateEmailConfirmationTokenAsync(appUser);
         await EmailService.SendVerificationEmailAsync(User.Email, User.FullName, requestId);
 
+    }
+
+    private ValueTask LocationChangeHandler(LocationChangingContext context)
+    {
+        if (UnsavedChanges)
+        {
+            targetLocation = context.TargetLocation;
+            context.PreventNavigation();
+            JS.InvokeVoidAsync("showModalById", "save-changes-modal");
+        }
+
+        return ValueTask.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        navigationHandler.Dispose();
     }
 }

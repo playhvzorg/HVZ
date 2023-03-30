@@ -16,9 +16,15 @@
                 <li class="nav-item">
                     <a class="nav-link @AboutActive" aria-current="page" href="/@aboutLink"><i class="fa-solid fa-circle-question"></i> About</a>
                 </li>
+                <li class="nav-item d-inline d-lg-none">
+                    <a href="/@settingsLink" class="nav-link @SettingsLinkActive"><i class="fa-solid fa-gear"></i> Settings</a>
+                </li>
             </ul>
             <div class="d-flex">
-                <LoginDisplay />
+                <a href="/@settingsLink">
+                    <LoginDisplay />
+                </a>
+                
             </div>
         </div>
     </div>
@@ -31,10 +37,12 @@
     string homeLink = "";
     string exploreLink = "explore";
     string aboutLink = "about";
+    string settingsLink = "settings";
 
     string HomeActive => currentLocation == homeLink ? "active" : null!;
     string ExploreActive => currentLocation == exploreLink ? "active" : null!;
     string AboutActive => currentLocation == aboutLink ? "active" : null!;
+    string SettingsLinkActive => currentLocation == settingsLink ? "active" : null!;
 
     protected override void OnInitialized()
     {
