@@ -21,7 +21,6 @@
         string escapedSource = EscapeHtml(Source);
         textBodyHtml = Markdown.ToHtml(escapedSource, new MarkdownPipelineBuilder().DisableHeadings().UseBootstrap().UseAdvancedExtensions().Build());
         textBodyHtml = Regex.Replace(textBodyHtml, iconPattern, new MatchEvaluator(ConvertToIcon)).Replace("\n", "<br />");
-        //base.OnInitialized();
     }
 
     static string SymmetricRemove(string input, int count) => input.Remove(input.Length - count).Remove(0, count);

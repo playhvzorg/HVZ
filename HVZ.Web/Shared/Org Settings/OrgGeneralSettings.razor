@@ -93,11 +93,8 @@
 
     bool UnsavedChanges =>
         (orgName != org?.Name) ||
-        // Org Description
         (orgDesc != org?.Description) ||
-        // Verified email
         (requireVerifiedEmail != org?.RequireVerifiedEmailForPlayer) ||
-        // Require profile picture
         (requireProfilePicture != org?.RequireProfilePictureForPlayer) ||
         stagedFile;
 
@@ -139,7 +136,7 @@
         if (OrgId is null) return;
 
         org = await OrgRepo.FindOrgById(OrgId);
-        if (org is null) throw new ArgumentNullException("How the fuck did you even get here?");
+        if (org is null) throw new ArgumentNullException("Could not find org");
         GetOrgParameters();
     }
 
@@ -162,12 +159,10 @@
             await uploader.SaveFile();
             uploader.ClearFile();
         }
-        if (OrgId is null) throw new ArgumentException("Seriously how the fuck did you even get here what the actual fuck is going on");
+        if (OrgId is null) throw new ArgumentException("OrgId is null make sure this is nested in an OrgAuth component");
         await OrgRepo.SetOrgDescription(OrgId, orgDesc);
         await OrgRepo.SetRequireProfilePicture(OrgId, requireProfilePicture);
-        await OrgRepo.SetRequireVerifiedEmail(OrgId, requireVerifiedEmail);
-
-        org = await OrgRepo.FindOrgById(OrgId);
+        org = await OrgRepo.SetRequireVerifiedEmail(OrgId, requireVerifiedEmail);
 
     }
 
@@ -184,7 +179,8 @@
 
     private bool UploaderHasStagedFile()
     {
-        if (uploader is not null) return uploader.HasStagedFile;
+        if (uploader is not null)
+            return uploader.HasStagedFile;
 
         return false;
     }
