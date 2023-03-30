@@ -1,0 +1,55 @@
+@using HVZ.Web.Shared.Org_Authorization
+@using HVZ.Web.Shared.Org_Settings
+@page "/org/{url}/settings"
+@inject IOrgRepo OrgRepo
+@inject ILogger<OrganizationSettings> Logger
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+@attribute [Authorize]
+
+<div class="d-inline">
+    <a href="/org/@Url" id="back-btn"><i class="fa-solid fa-chevron-left"></i> <div class="d-none d-md-inline"> Back</div></a> 
+    <h1 class="d-block">Settings</h1>
+</div>
+<OrgAuth OrgId="@org?.Id">
+    <OrgSettingsTabs />
+</OrgAuth>
+
+@code
+{
+    [Parameter]
+    public string? Url { get; set; }
+
+    public string? InviteEmail { get; set; }
+
+    @* Authorization state from OrgAuth; also true for admin *@
+
+    Organization? org;
+    AuthenticationState? authState;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        if (Url == null) return;
+
+        
+        
+        authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+        var userId = authState.User.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value;
+        
+        org = await OrgRepo.FindOrgByUrl(Url);
+
+        if (org == null || userId == null) 
+        {
+            Navigation.NavigateTo("/");
+            return;
+        }
+        
+        if (!await OrgRepo.IsAdminOfOrg(org.Id, userId) && !await OrgRepo.IsModOfOrg(org.Id, userId))
+        {
+            Navigation.NavigateTo($"/org/{Url}");
+        }
+
+        
+    }
+}

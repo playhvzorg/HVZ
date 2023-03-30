@@ -1,0 +1,34 @@
+@using Microsoft.AspNetCore.Components.Authorization
+@using HVZ.Web.Shared.Org_Authorization
+@inject IOrgRepo OrgRepo
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@page "/org/{url}"
+@attribute [Authorize]
+
+<OrgAuth OrgId="@organization?.Id">
+    <div class="d-inline mb-3">
+        <h1 class="d-inline">@organization?.Name</h1>
+        <OrgAuthorizedModerator>
+            <a class="d-inline ml-3 nav-item" href="/org/@Url/settings"><i class="fa-solid fa-wrench fa-lg"></i> <div class="d-none d-md-inline"> Settings</div></a>
+        </OrgAuthorizedModerator>
+        <MarkdownDisplay Source="@description" />
+    </div>
+    <div>
+        Page Content
+    </div>
+</OrgAuth>
+
+@code
+{
+    [Parameter]
+    public string? Url { get; set; } = "";
+
+    string description = "";
+
+    private Organization organization = null!;
+    protected override async Task OnInitializedAsync()
+    {
+        organization = await OrgRepo.GetOrgByUrl(Url??"");
+        description = organization.Description;
+    }
+}
