@@ -1,0 +1,197 @@
+@using HVZ.Web.Shared.Ui_Helpers
+@implements IDisposable
+@inject IOrgRepo OrgRepo
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+
+<div class="row">
+    <div class="col-lg-auto">
+        @if (OrgId != null)
+        {
+            <div class="ml-3 w-auto position-relative">
+                <ImageUploader OrgId="@OrgId" OnChangeCallback="StagedFile" @ref="uploader" />
+            </div>
+        }
+    </div>
+    
+    <div class="col-lg-4 mt-3 mt-lg-0">
+        <label for="org-name" class="form-label">Name</label>
+        <input class="form-control" @bind="orgName" @bind:event="oninput" id="org-name">
+
+        <label for="description" class="form-label mt-3">About</label>
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" data-bs-target="#edit">Edit <i class="fa-solid fa-pencil"></i></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" data-bs-target="#preview">Preview <i class="fa-brands fa-markdown"></i></a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane active" id="edit">
+                <textarea name="description" id="description" cols="30" rows="5" class="form-control" @bind="orgDesc" @bind:event="oninput"></textarea>
+            </div>
+            <div class="tab-pane" id="preview">
+                <MarkdownDisplay Source="@orgDesc" />
+            </div>
+        </div>
+        
+
+        <div class="ml-4 mt-1">
+            <input type="checkbox" @bind="requireVerifiedEmail" class="form-check-input" id="emailCheck">
+            <label for="emailCheck">Require players to have verified email</label>
+        </div>
+
+        <div class="ml-4 mt-1">
+            <input type="checkbox" @bind="requireProfilePicture" class="form-check-input" id="pictureCheck">
+            <label for="pictureCheck">Require players to have a profile picture</label>
+        </div>
+        
+    </div>
+</div>
+
+<div class="modal fade" tabindex="-1" id="saveChangesModal">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Unsaved Changes</h5>
+            </div>
+            <div class="modal-body">
+                <p>You have unsaved changes, you must save or discard them before continuing</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" data-bs-dismiss="modal" @onclick="DiscardAndContinue">Discard and continue</button>
+                <button class="btn btn-primary" data-bs-dismiss="modal" @onclick="SaveAndContinue">Save and continue</button>
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<div class="sticky-bottom my-3 @SaveFooterVisibility">
+    <button class="btn btn-success" @onclick="Save">Save</button>
+    <button class="btn btn-danger" @onclick="Discard">Discard</button>
+</div>
+
+@code
+{
+    [CascadingParameter(Name = "OrgId")]
+    public string? OrgId { get; set; }
+
+    Organization? org;
+    ImageUploader? uploader;
+    IDisposable navigationHandler = null!;
+
+    string orgName = "";
+    string orgDesc = "";
+    bool stagedFile;
+    bool requireVerifiedEmail = false;
+    bool requireProfilePicture = false;
+
+    string targetLocation = "";
+
+    bool UnsavedChanges =>
+        (orgName != org?.Name) ||
+        (orgDesc != org?.Description) ||
+        (requireVerifiedEmail != org?.RequireVerifiedEmailForPlayer) ||
+        (requireProfilePicture != org?.RequireProfilePictureForPlayer) ||
+        stagedFile;
+
+    string SaveFooterVisibility => UnsavedChanges ? "d-block" : "d-none";
+
+    protected override bool ShouldRender() => OrgId != null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        navigationHandler = NavigationManager.RegisterLocationChangingHandler(LocationChangeHandler);
+        await base.OnInitializedAsync();
+    }
+
+    void GetOrgParameters()
+    {
+        if (org is null) return; // Does not matter this was already handled
+        orgName = org.Name;
+        orgDesc = org.Description;
+        requireProfilePicture = org.RequireProfilePictureForPlayer;
+        requireVerifiedEmail = org.RequireVerifiedEmailForPlayer;
+    }
+
+    private ValueTask LocationChangeHandler(LocationChangingContext context)
+    {
+
+        if (UnsavedChanges)
+        {
+            Console.WriteLine(UnsavedChanges);
+            targetLocation = context.TargetLocation;
+            context.PreventNavigation();
+            JS.InvokeVoidAsync("showModalById", "saveChangesModal");
+        }
+
+        return ValueTask.CompletedTask;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (OrgId is null) return;
+
+        org = await OrgRepo.FindOrgById(OrgId);
+        if (org is null) throw new ArgumentNullException("Could not find org");
+        GetOrgParameters();
+    }
+
+    async Task SaveAndContinue()
+    {
+        await Save();
+        NavigationManager.NavigateTo(targetLocation, true);
+    }
+
+    void DiscardAndContinue()
+    {
+        Discard();
+        NavigationManager.NavigateTo(targetLocation, true);
+    }
+
+    async Task Save()
+    {
+        if (uploader is not null)
+        {
+            await uploader.SaveFile();
+            uploader.ClearFile();
+        }
+        if (OrgId is null) throw new ArgumentException("OrgId is null make sure this is nested in an OrgAuth component");
+        await OrgRepo.SetOrgDescription(OrgId, orgDesc);
+        await OrgRepo.SetRequireProfilePicture(OrgId, requireProfilePicture);
+        org = await OrgRepo.SetRequireVerifiedEmail(OrgId, requireVerifiedEmail);
+
+    }
+
+    void Discard()
+    {
+        if (uploader is not null)
+            uploader.ClearFile();
+
+        if (org is not null)
+        {
+            GetOrgParameters();
+        }
+    }
+
+    private bool UploaderHasStagedFile()
+    {
+        if (uploader is not null)
+            return uploader.HasStagedFile;
+
+        return false;
+    }
+
+    void StagedFile()
+    {
+        stagedFile = uploader?.HasStagedFile ?? false;
+    }
+
+    public void Dispose()
+    {
+        navigationHandler.Dispose();
+    }
+}
