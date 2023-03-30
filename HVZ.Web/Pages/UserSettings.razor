@@ -1,6 +1,7 @@
 ﻿@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IUserRepo UserRepo
 @inject UserManager<ApplicationUser> UserManager
+@inject EmailService EmailService
 @using HVZ.Web.Identity.Models
 @using HVZ.Web.Shared.Ui_Helpers
 @using Microsoft.AspNetCore.Identity
@@ -25,13 +26,22 @@
             
         </div>
         <div class="col" style="max-width:500px">
-            <input class="form-control mb-3" @bind="userFullName" />
+            <input class="form-control mb-3" @bind="userFullName" @bind:event="oninput" />
             <PasswordChange />
         </div>
     </div>
+
+    @*Save changes*@
+    @if (UnsavedChanges)
+    {
+        <div>
+            unsaved changes
+        </div>
+    }
+
     @if(!verifiedEmail)
     {
-        <div class="alert alert-warning">Your email is not verified. Resend email verification</div>
+        <div class="alert alert-warning mt-3">Your email is not verified. <a @onclick="SendVerificationEmail" style="cursor:pointer" class="text-decoration-underline">Resend verification email</a></div>
     }
     <hr />
     <h4>Appearance</h4>
@@ -65,6 +75,8 @@
     ImageUploader? uploader;
     bool verifiedEmail;
 
+    bool UnsavedChanges => User.FullName != userFullName;
+
     protected override async Task OnInitializedAsync()
     {
         // Get the user
@@ -87,8 +99,16 @@
     async Task SaveChangesAsync()
     {
         await UserRepo.SetUserFullName(User.Id, userFullName);
+        await UserManager.SetUserNameAsync(appUser, userFullName);
         // Null suppression is fine here, uploader is only null if user is null
         // which will throw an error upon initialization
         await uploader!.SaveFile();
+    }
+
+    async Task SendVerificationEmail()
+    {
+        string requestId = await UserManager.GenerateEmailConfirmationTokenAsync(appUser);
+        await EmailService.SendVerificationEmailAsync(User.Email, User.FullName, requestId);
+
     }
 }
