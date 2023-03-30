@@ -1,7 +1,7 @@
+using HVZ.Web.Settings;
+using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Mail;
-using Microsoft.Extensions.Options;
-using HVZ.Web.Settings;
 
 namespace HVZ.Web.Services
 {
@@ -24,7 +24,7 @@ namespace HVZ.Web.Services
             if (opts.Password == null)
                 throw new ArgumentNullException("Password cannot be null.\nSpecify Password with 'dotnet user-secrets set \"EmailServiceOptions:Password\" {Your password}'\nFor more information about user secrets see https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-7.0");
             smtpClient.Credentials = new NetworkCredential(opts.EmailId, opts.Password);
-            mailAddress = new MailAddress(opts.EmailId);
+            mailAddress = new MailAddress(opts.EmailId, opts.EmailAlias);
             smtpClient.EnableSsl = true;
         }
 
