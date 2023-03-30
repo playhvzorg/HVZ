@@ -16,12 +16,11 @@
     // Icon pattern match https://regex101.com/r/yyoyQa/3
     readonly string iconPattern = @"(?'t'(:))[\w\-]+?(\s\w+?)?(\'t')";
 
-    protected override void OnInitialized()
+    protected override void OnParametersSet()
     {
         string escapedSource = EscapeHtml(Source);
         textBodyHtml = Markdown.ToHtml(escapedSource, new MarkdownPipelineBuilder().DisableHeadings().UseBootstrap().UseAdvancedExtensions().Build());
         textBodyHtml = Regex.Replace(textBodyHtml, iconPattern, new MatchEvaluator(ConvertToIcon)).Replace("\n", "<br />");
-        base.OnInitialized();
     }
 
     static string SymmetricRemove(string input, int count) => input.Remove(input.Length - count).Remove(0, count);
