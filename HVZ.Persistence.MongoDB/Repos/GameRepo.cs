@@ -49,6 +49,14 @@ public class GameRepo : IGameRepo
                 .SetSerializer(InstantSerializer.Instance);
             cm.MapProperty(p => p.GameId);
         });
+
+        BsonClassMap.RegisterClassMap<GameEventLog>(cm =>
+        {
+            cm.MapProperty(e => e.GameEvent);
+            cm.MapProperty(e => e.Timestamp)
+                .SetSerializer(InstantSerializer.Instance);
+            cm.MapProperty(e => e.AdditionalInfo);
+        });
     }
     public GameRepo(IMongoDatabase database, IClock clock, ILogger logger)
     {
