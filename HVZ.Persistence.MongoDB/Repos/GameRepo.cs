@@ -52,6 +52,7 @@ public class GameRepo : IGameRepo
 
         BsonClassMap.RegisterClassMap<GameEventLog>(cm =>
         {
+            cm.MapProperty(e => e.UserId);
             cm.MapProperty(e => e.GameEvent);
             cm.MapProperty(e => e.Timestamp)
                 .SetSerializer(InstantSerializer.Instance);
