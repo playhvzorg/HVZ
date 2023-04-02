@@ -1,7 +1,28 @@
-﻿<h3>GameLog</h3>
+﻿@using HVZ.Web.Shared.Game.Game_Log
+@inject IGameRepo GameRepo
+@implements IDisposable
 
+<div class="mt-3" style="overflow-y:scroll;max-height:60vh;display:flex;flex-direction:column-reverse;" id="dynamic-container">
+    <Virtualize Items="eventLog" Context="LogItem">
+        <GameLogItem LogItem="@LogItem" />
+    </Virtualize>
+</div>
 
 
 @code {
-    
+    [CascadingParameter]
+    public Game? ActiveGame { get; set; }
+
+    List<GameEventLog> eventLog = new List<GameEventLog>();
+
+    protected override void OnParametersSet()
+    {
+        eventLog = ActiveGame?.EventLog ?? new List<GameEventLog>();
+        eventLog.Reverse();
+    }
+
+    public void Dispose()
+    {
+        
+    }
 }

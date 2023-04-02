@@ -1,0 +1,43 @@
+﻿<div class="d-md-flex border border-1 rounded p-2 my-1">
+    <div class="flex-grow-1">
+        @*@LogItem.ToString()*@
+        @switch(LogItem.GameEvent)
+        {
+            case GameEvent.GameCreated:
+                <GameCreatedEventLog LogItem="@LogItem" />
+                break;
+            case GameEvent.ActiveStatusChanged:
+                <p>Active status changed</p>
+                break;
+            case GameEvent.Tag:
+                <TaggedEventLog LogItem="@LogItem" />
+                break;
+            case GameEvent.PlayerRoleChangedByMod:
+                <RoleChangedByModEvent LogItem="@LogItem" />
+                break;
+            case GameEvent.PlayerJoined:
+                <PlayerJoinedEventLog LogItem="@LogItem" />
+                break;
+        }
+    </div>
+    <div class="flex-grow-0">
+        <p class="small mb-0">
+            @LogItem.Timestamp.ToString("MMM dd yyyy h:mm tt", null)
+        </p>
+        
+    </div>
+    
+</div>
+
+
+@code {
+    [Parameter]
+    public GameEventLog LogItem { get; set; } = null!;
+
+    protected override void OnInitialized()
+    {
+        if (LogItem is null)
+            throw new ArgumentNullException("LogItem cannot be null in GameLog");
+        base.OnInitialized();
+    }
+}

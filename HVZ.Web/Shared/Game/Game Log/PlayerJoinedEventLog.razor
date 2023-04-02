@@ -1,0 +1,26 @@
+﻿@using HVZ.Web.Shared.Ui_Helpers
+
+@inject IUserRepo UserRepo
+
+<div class="d-flex">
+    <div class="flex-grow-0">
+        @if (LogItem is not null)
+        {
+            <Thumbnail UserId="@LogItem.UserId" Size="ImageService.ImageSize.SMALL" style="width:32px; border-radius:50%;" />
+        }
+    </div>
+    <div class="flex-grow-1 mx-1">
+        <h6 class="mb-0"><b>@user?.FullName</b> has joined the game</h6>
+    </div>
+</div>
+@code {
+    [Parameter]
+    public GameEventLog LogItem { get; set; } = null!;
+
+    User? user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await UserRepo.GetUserById(LogItem.UserId);
+    }
+}

@@ -1,21 +1,53 @@
-﻿
+﻿@inject IUserRepo UserRepo
+@inject IGameRepo GameRepo
+
 @if (Player?.Role is not Player.gameRole.Human)
 {
-    <button class="btn btn-primary w-100">Tag</button>
+    <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#tag-modal" @onclick="ClearMessages">Tag</button>
 
-    <div class="modal">
+    <div class="modal fade" id="tag-modal">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">
-
+                        Tag
                     </h5>
                 </div>
                 <div class="modal-body">
+                    <label for="id-input">ID</label>
+                    <input class="form-control" type="number" @bind="idInt" @bind:event="oninput" name="id-input" />
+                    @if (error is not null)
+                    {
+                        <div class="alert alert-danger mt-2">
+                            <div class="d-flex">
+                                <div class="flex-grow-1">
+                                    @error
+                                </div>
+                                <div class="flex-grow-0">
+                                    <button class="btn-close" @onclick="ClearMessages"></button>
+                                </div>
+                            </div>
+                        </div>
+                    }
 
+                    @if (successMessage is not null)
+                    {
+                        <div class="alert alert-success mt-2">
+                            <div class="d-flex">
+                                <div class="flex-grow-1">
+                                    @successMessage
+                                </div>
+                                <div class="flex-grow-0">
+                                    <button class="btn-close" @onclick="ClearMessages"></button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    
                 </div>
                 <div class="modal-footer">
-
+                    <button class="btn btn-secondary" data-bs-toggle="modal">Close</button>
+                    <button class="btn btn-primary @SubmitEnabledClass" @onclick="TagInput">Tag</button>
                 </div>
             </div>
         </div>
@@ -25,4 +57,58 @@
 @code {
     [Parameter]
     public Player? Player { get; set; }
+
+    [CascadingParameter]
+    public Game? ActiveGame { get; set; }
+
+    //string? id;
+    int? idInt;
+
+    string? error;
+
+    string? successMessage;
+
+    string SubmitEnabledClass => idInt?.ToString().Length == 4 ? null! : "disabled";
+
+    void ClearMessages()
+    {
+        error = null;
+        successMessage = null;
+    }
+
+    async Task TagInput()
+    {
+        if (ActiveGame is null)
+            throw new ArgumentNullException("ActiveGame cannot be null");
+
+        if (Player is null)
+            throw new ArgumentNullException("Player cannot be null");
+
+        if (idInt is null)
+            return; // This is fine
+
+        try
+        {
+            await GameRepo.LogTag(ActiveGame.Id, Player.UserId, idInt?.ToString());
+            Player? targetPlayer = ActiveGame.Players.FirstOrDefault(p => p.GameId == idInt.ToString());
+            User targetUser = await UserRepo.GetUserById(targetPlayer?.UserId ?? "Invalid ID");
+
+            successMessage = $"You tagged {targetUser.FullName}";
+        }
+        catch (ArgumentException)
+        {
+
+            if (ActiveGame.Players.FirstOrDefault(p => p.GameId == idInt.ToString()) is null)
+            {
+                error = $"{idInt} is not a valid ID number";
+            }
+
+            else if (ActiveGame.Humans.FirstOrDefault(p => p.GameId == idInt.ToString()) is null)
+            {
+                error = $"The player with the ID: {idInt} is not a human";
+            }
+        }
+
+        idInt = null;
+    }
 }

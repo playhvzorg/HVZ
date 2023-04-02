@@ -1,6 +1,7 @@
 ﻿@inject IUserRepo UserRepo
 @inject IOrgRepo OrgRepo
 @inject IGameRepo GameRepo
+@implements IDisposable
 
 @using HVZ.Web.Shared.Org_Authorization
 @using HVZ.Web.Shared.Ui_Helpers
@@ -40,9 +41,18 @@
                         Set role
                     </button>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item">Human</a></li>
-                        <li><a class="dropdown-item">Zombie</a></li>
-                        <li><a class="dropdown-item">OZ</a></li>
+                        @if (Player?.Role != Player.gameRole.Human)
+                        {
+                            <li><a class="dropdown-item" @onclick="() => SetRole(Player.gameRole.Human)">Human</a></li>
+                        }
+                        @if (Player?.Role != Player.gameRole.Zombie)
+                        {
+                            <li><a class="dropdown-item" @onclick="() => SetRole(Player.gameRole.Zombie)">Zombie</a></li>
+                        }
+                        @if (Player?.Role != Player.gameRole.Oz)
+                        {
+                            <li><a class="dropdown-item" @onclick="() => SetRole(Player.gameRole.Oz)">OZ</a></li>
+                        }
                     </ul>
                 </div>
             </div>
@@ -65,6 +75,9 @@
     [CascadingParameter]
     public Game? ActiveGame { get; set; }
 
+    [CascadingParameter]
+    public Player? UserPlayer { get; set; }
+
     User? user;
     bool userIsMod;
 
@@ -84,5 +97,40 @@
         userIsMod = 
             await OrgRepo.IsModOfOrg(OrgId!, user?.Id!) || 
             await OrgRepo.IsAdminOfOrg(OrgId!, user?.Id!);
+
+        GameRepo.TagLogged += PlayerTagged;
+        GameRepo.PlayerRoleChanged += PlayerRoleChangedByMod;
+    }
+
+    void PlayerTagged(object? sender, TagEventArgs eventArgs)
+    {
+        UserRoleChanged(eventArgs.TagReciever);
+    }
+
+    void PlayerRoleChangedByMod(object? sender, PlayerRoleChangedEventArgs eventArgs)
+    {
+        Player p = eventArgs.player;
+        UserRoleChanged(eventArgs.player);
+    }
+
+    void UserRoleChanged(Player updatedPlayer)
+    {
+        if (updatedPlayer.GameId == Player?.GameId)
+        {
+            Player = updatedPlayer;
+            InvokeAsync(StateHasChanged);
+        }
+        
+    }
+
+    async Task SetRole(Player.gameRole role)
+    {
+        await GameRepo.SetPlayerToRole(ActiveGame!.Id, Player!.UserId, role, UserPlayer!.UserId);
+    }
+
+    public void Dispose()
+    {
+        GameRepo.TagLogged -= PlayerTagged;
+        GameRepo.PlayerRoleChanged -= PlayerRoleChangedByMod;
     }
 }

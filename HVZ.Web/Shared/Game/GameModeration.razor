@@ -1,5 +1,40 @@
-﻿<h3>GameModeration</h3>
+﻿@inject IGameRepo GameRepo
+
+<h3>GameModeration</h3>
+
+@GameStatus()
+
+@*Start game button*@
+@*Pause game button*@
+@*End game button  *@
+
+@*Default game role*@
+
+@*OZ passcode      *@
+@*OZ pool          *@
+@*Current OZ list  *@
+@*Select random    *@
+
 
 @code {
+    [CascadingParameter]
+    public Game ActiveGame { get; set; } = null!;
 
+    string GameStatus()
+    {
+        // this is fine
+        if (ActiveGame is null) return "";
+        //if (ActiveGame.StartedAt is null)
+        //    return "New";
+
+        if (ActiveGame.IsActive)
+            return "Active";
+
+        return "Paused";
+    }
+
+    void SetGameStatus()
+    {
+        
+    }
 }

@@ -305,6 +305,14 @@ public class GameRepo : IGameRepo
         {
             handler(this, args);
         }
-        await LogGameEvent(args.game.Id, new(GameEvent.Tag, _clock.GetCurrentInstant(), args.Tagger.UserId, new Dictionary<string, object> { { "tagreciever", args.TagReciever.UserId } }));
+        await LogGameEvent(
+            args.game.Id,
+            new(GameEvent.Tag, _clock.GetCurrentInstant(),
+            args.Tagger.UserId,
+            new Dictionary<string, object> {
+                { "tagreciever", args.TagReciever.UserId },
+                { "taggertagcount", args.Tagger.Tags },
+                { "oztagger", args.Tagger.Role == Player.gameRole.Oz }
+            }));
     }
 }

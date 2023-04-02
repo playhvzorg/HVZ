@@ -1,0 +1,92 @@
+﻿@using HVZ.Web.Shared.Ui_Helpers
+
+@inject IUserRepo UserRepo
+
+<div class="d-flex">
+    <div class="flex-grow-0">
+        <div style="width:32px;height:32px;position:relative">
+            @if (LogItem is not null)
+            {
+                @if (ozTag)
+                {
+                    @if (ShowOzDetails)
+                    {
+                        <Thumbnail UserId="@LogItem.UserId" Size="ImageService.ImageSize.SMALL" style="width:22px;position:absolute;top:0px;" />
+                    }
+                    else
+                    {
+                        <img src="https://ui-avatars.com/api/?name=Original+Zombie&size=64&background=0D8ABC&color=fff" class="rounded" style="width:22px;position:absolute;top:0px;" />
+                    }
+                }
+                else
+                {
+                    <Thumbnail UserId="@LogItem.UserId" Size="ImageService.ImageSize.SMALL" style="width:22px;position:absolute;top:0px;" />
+                }
+            }
+            @if (receiverUser is not null)
+            {
+                <Thumbnail UserId="@receiverUser?.Id" Size="ImageService.ImageSize.SMALL" style="width:22px;position:absolute;top:12px;left:10px;" />
+            }
+        </div>
+    </div>
+    <div class="flex-grow-1 mx-1">
+        <h6 class="mb-0"> 
+            @if (ozTag)
+            {
+                @if (ShowOzDetails)
+                {
+                    <b>@taggerUser?.FullName </b>
+                }
+                else
+                {
+                    <b>An OZ </b>
+                }
+            }
+            else
+            {
+                <b>@taggerUser?.FullName</b>
+            }
+            has tagged <b>@receiverUser?.FullName</b> 
+            @if (ozTag && ShowOzDetails)
+            {
+                <span> as OZ</span>
+            }
+        </h6>
+        @if (ozTag && ShowOzDetails)
+        {
+            <p class="mb-0">@numTagsForTagger tags</p>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public GameEventLog LogItem { get; set; } = null!;
+
+    [CascadingParameter]
+    public Game? ActiveGame { get; set; }
+
+    [CascadingParameter(Name = "IsMod")]
+    public bool IsMod { get; set; }
+
+    [CascadingParameter]
+    public Player? ActivePlayer { get; set; }
+
+    User taggerUser = null!;
+    User receiverUser = null!;
+
+    string receiverUserId = string.Empty;
+    int numTagsForTagger;
+    bool ozTag;
+
+    bool ShowOzDetails => IsMod || ActivePlayer?.UserId == LogItem.UserId || ActivePlayer?.Role == Player.gameRole.Oz;
+
+    protected override async Task OnInitializedAsync()
+    {
+        taggerUser = await UserRepo.GetUserById(LogItem.UserId);
+        receiverUserId = (string)LogItem.AdditionalInfo["tagreciever"];
+        receiverUser = await UserRepo.GetUserById(receiverUserId);
+        ozTag = (bool)LogItem.AdditionalInfo["oztagger"];
+        numTagsForTagger = (int)LogItem.AdditionalInfo["taggertagcount"];
+    }
+}

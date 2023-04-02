@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using NodaTime;
 namespace HVZ.Persistence.Models;
 
@@ -24,6 +23,10 @@ public class Game : IdEquatable<Game>
     /// Time that this game was created
     /// </summary>
     public Instant CreatedAt { get; init; }
+    /// <summary>
+    /// Time that this game was started. Null if the game has not been started.
+    /// </summary>
+    //public Instant? StartedAt { get; init; }
     /// <summary>
     /// Weather the game is currently active and tags should be processed
     /// </summary>
