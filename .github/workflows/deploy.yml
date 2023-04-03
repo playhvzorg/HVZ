@@ -3,13 +3,9 @@ name: Deployment
 on: 
   workflow_dispatch
 
-concurrency:
-  group: production
-  cancel-in-progress: true
-
 jobs:
   deployment:
-    runs-on: self-hosted
+    runs-on: production
     environment: production
     steps:
       - name: Git checkout
