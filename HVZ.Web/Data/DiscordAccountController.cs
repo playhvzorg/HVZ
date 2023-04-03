@@ -1,5 +1,4 @@
 using System.Net.Http.Headers;
-using System.Security.Claims;
 using HVZ.Web.Identity.Models;
 using HVZ.Web.Settings;
 using Microsoft.AspNetCore.DataProtection;

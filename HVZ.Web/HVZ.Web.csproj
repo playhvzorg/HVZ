@@ -12,6 +12,7 @@
     <PackageReference Include="AspNetCore.Identity.MongoDbCore" Version="3.1.2" />
     <PackageReference Include="Markdig" Version="0.31.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="SkiaSharp" Version="2.88.3" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.88.3" />
   </ItemGroup>
@@ -19,7 +20,6 @@
   <ItemGroup>
     <PorjectReference Include="..\HVZ.Persistence\HVZ.Persistence.csproj" />
     <ProjectReference Include="..\HVZ.Persistence.MongoDB\HVZ.Persistence.MongoDB.csproj" />
-    <ProjectReference Include="..\HVZ.DiscordIntegration\HVZ.DiscordIntegration.csproj" />
   </ItemGroup>
 
 </Project>
