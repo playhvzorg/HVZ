@@ -9,7 +9,7 @@ concurrency:
 
 jobs:
   deployment:
-    runs-on: self-hosted
+    runs-on: production
     environment: production
     steps:
       - name: Git checkout
