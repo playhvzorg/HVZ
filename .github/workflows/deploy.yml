@@ -1,6 +1,7 @@
 name: Deployment
 
-on: workflow_dispatch
+on: 
+  workflow_dispatch
 
 concurrency:
   group: production
