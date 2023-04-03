@@ -5,7 +5,10 @@ on:
 
 jobs:
   deployment:
-    runs-on: production
+    runs-on: 
+      labels:
+        production
+      
     environment: production
     steps:
       - name: Git checkout
