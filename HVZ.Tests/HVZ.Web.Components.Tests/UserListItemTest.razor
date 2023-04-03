@@ -1,0 +1,308 @@
+@using HVZ.Web.Services
+@using HVZ.Web.Shared.Users
+@inherits Bunit.TestContext
+
+@code
+{
+    string orgId = "0";
+    string ownerId = "1";
+    string adminId = "2";
+    string modId = "3";
+
+    Mock<IUserRepo> mockUserRepo = new Mock<IUserRepo>();
+    Mock<IOrgRepo> mockOrgRepo = new Mock<IOrgRepo>();
+    Mock<ImageService> mockImageSerice = new Mock<ImageService>();
+
+    // Use in instances where information about the user is not relevant
+    User defaultUser = new User("0", "Default User", "default.user@mail.tld");
+
+    [OneTimeSetUp]
+    public void Setup()
+    {
+        mockOrgRepo.Setup(repo => repo.IsAdminOfOrg(orgId, ownerId)).ReturnsAsync(true);
+        mockOrgRepo.Setup(repo => repo.IsAdminOfOrg(orgId, adminId)).ReturnsAsync(true);
+        mockOrgRepo.Setup(repo => repo.IsAdminOfOrg(orgId, modId)).ReturnsAsync(false);
+        mockOrgRepo.Setup(repo => repo.IsModOfOrg(orgId, ownerId)).ReturnsAsync(false);
+        mockOrgRepo.Setup(repo => repo.IsModOfOrg(orgId, adminId)).ReturnsAsync(false);
+        mockOrgRepo.Setup(repo => repo.IsModOfOrg(orgId, modId)).ReturnsAsync(true);
+
+        mockUserRepo.Setup(repo => repo.FindUserById(adminId)).ReturnsAsync(
+            defaultUser
+        );
+
+        mockUserRepo.Setup(repo => repo.GetUserById(adminId)).ReturnsAsync(defaultUser);
+        mockUserRepo.Setup(repo => repo.GetUserById(ownerId)).ReturnsAsync(defaultUser);
+        mockUserRepo.Setup(repo => repo.GetUserById(modId)).ReturnsAsync(defaultUser);
+
+        Services.AddSingleton<IOrgRepo>(mockOrgRepo.Object);
+        Services.AddSingleton<IUserRepo>(mockUserRepo.Object);
+        Services.AddSingleton<ImageService>(mockImageSerice.Object);
+    }
+
+    IRenderedFragment RenderAsAdmin(string id)
+    {
+        return Render(
+            @<CascadingValue Value="@orgId" Name="OrgId">
+                <CascadingValue Value="@ownerId" Name="OwnerId">
+                    <CascadingValue Value="true" Name="IsAdmin">
+                        <CascadingValue Value="true" Name="IsMod">
+                            <UserListItem UserId="@id" />
+                        </CascadingValue>
+                    </CascadingValue>
+                </CascadingValue>
+            </CascadingValue>
+        );
+    }
+
+    IRenderedFragment RenderAsMod(string id)
+    {
+        return Render(
+            @<CascadingValue Value="@orgId" Name="OrgId">
+                <CascadingValue Value="@ownerId" Name="OwnerId">
+                    <CascadingValue Value="false" Name="IsAdmin">
+                        <CascadingValue Value="true" Name="IsMod">
+                            <UserListItem UserId="@id" />
+                        </CascadingValue>
+                    </CascadingValue>
+                </CascadingValue>
+            </CascadingValue>
+        );
+    }
+
+#region Content Rendering Tests
+    
+    [Test]
+    public void Test_CardHasUserFullName()
+    {
+        var cut = RenderAsAdmin(adminId);
+
+        var nameText = cut.Find($"#name-{adminId}");
+
+        nameText.MarkupMatches(
+            @<p diff:ignoreAttributes>@defaultUser.FullName</p>
+        );
+    }
+
+    [Test]
+    public void Test_CardHasUserEmail()
+    {
+        var cut = RenderAsAdmin(adminId);
+
+        var emailText = cut.Find($"#email-{adminId}");
+
+        emailText.MarkupMatches(
+            @<p diff:ignoreAttributes>@defaultUser.Email</p>
+        );
+    }
+
+    @* Test that owner is handled properly *@
+    [Test]
+    public void Test_OwnerHasBadgeForAdmin()
+    {
+        var cut = RenderAsAdmin(ownerId);
+
+        var badge = cut.Find("#owner-badge");
+
+        badge.MarkupMatches(
+            @<span diff:ignore></span>
+        );
+    }
+
+    [Test]
+    public void Test_OwnerHasBadgeForModerator()
+    {
+        var cut = RenderAsMod(ownerId);
+
+        var badge = cut.Find("#owner-badge");
+
+        badge.MarkupMatches(
+            @<span diff:ignore></span>
+        );
+    }
+
+    [Test]
+    public void Test_OwnerDoesNotHaveRemoveButton()
+    {
+        var cut = RenderAsAdmin(ownerId);
+
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find($"#remove-{ownerId}"));
+    }
+
+    [Test]
+    public void Test_OwnerDoesNotHaveSetModButton()
+    {
+        var cut = RenderAsAdmin(ownerId);
+
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find($"#set-mod-{ownerId}"));
+    }
+
+    [Test]
+    public void Test_AdminDoesNotHaveOwnerBadgeForAdmin()
+    {
+        var cut = RenderAsAdmin(adminId);
+
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find("#owner-badge"));
+    }
+
+    [Test]
+    public void Test_AdminDoesNotHaveOwnerBadgeForMod()
+    {
+        var cut = RenderAsMod(adminId);
+
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find("#owner-badge"));
+    }
+
+    [Test]
+    public void Test_AdminHasSetModButtonForAdmin()
+    {
+        var cut = RenderAsAdmin(adminId);
+
+        var button = cut.Find($"#set-mod-{adminId}");
+        button.MarkupMatches(
+            @<button diff:ignore></button>
+        );
+    }
+#endregion
+
+#region Functionality Tests
+
+    [Test]
+    public void Test_AdminDoesNotHaveSetAdminButtonForAdmin()
+    {
+        var cut = RenderAsAdmin(adminId);
+
+        Assert.Throws<Bunit.ElementNotFoundException>(() =>cut.Find($"#set-admin-{adminId}"));
+    }
+
+    [Test]
+    public void Test_AdminHasRemoveButtonForAdmin()
+    {
+        var cut = RenderAsAdmin(adminId);
+
+        var button = cut.Find($"#remove-{adminId}");
+        button.MarkupMatches(
+            @<button diff:ignore></button>
+        );
+    }
+
+    @* Test that mod is handled properly *@
+    [Test]
+    public void Test_ModDoesNotHaveOwnerBadgeForAdmin()
+    {
+        var cut = RenderAsAdmin(modId);
+
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find("#owner-badge"));
+    }
+
+    [Test]
+    public void Test_ModDoesNotHaveOwnerBadgeForMod()
+    {
+        var cut = RenderAsMod(modId);
+
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find("#owner-badge"));
+    }
+
+    [Test]
+    public void Test_AdminHasConvertModToAdminButton()
+    {
+        var cut = RenderAsAdmin(modId);
+
+        var button = cut.Find($"#set-admin-{modId}");
+        button.MarkupMatches(
+            @<button diff:ignore></button>
+        );
+    }
+
+    [Test]
+    public void Test_ModDoesNotHaveSetModButtonForAdmin()
+    {
+        var cut = RenderAsAdmin(modId);
+
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find($"#set-mod-{modId}"));
+    }
+
+    [Test]
+    public void Test_ModHasRemoveButtonForAdmin()
+    {
+        var cut = RenderAsAdmin(modId);
+
+        var button = cut.Find($"#remove-{modId}");
+        button.MarkupMatches(
+            @<button diff:ignore></button>
+        );
+    }
+
+    @* Test the mod user *@
+    [Test]
+    public void Test_ModUserDoesNotSeeUserSettingsButton()
+    {
+        var cut = RenderAsMod(adminId);
+
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find($"#user-settings-toggle-{adminId}"));
+    }
+
+    [Test]
+    public void Test_ModUserDoesNotSeeUserSettingsMenu()
+    {
+        var cut = RenderAsMod(adminId);
+        
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find($"#user-settings-menu-{adminId}"));
+    }
+
+#endregion
+
+#region Null Testing
+
+    [Test]
+    public void Test_NullOrgIdThrowsError()
+    {
+        Assert.Throws<ArgumentNullException>( () =>
+            Render(
+                @<CascadingValue Value="@ownerId" Name="OwnerId">
+                    <CascadingValue Value="false" Name="IsAdmin">
+                        <CascadingValue Value="true" Name="IsMod">
+                            <UserListItem UserId="@adminId" />
+                        </CascadingValue>
+                    </CascadingValue>
+                </CascadingValue>
+            )
+        );
+    }
+
+    [Test]
+    public void Test_NullUserIdThrowsError()
+    {
+        Assert.Throws<ArgumentNullException>( () =>
+            Render(
+                @<CascadingValue Value="@orgId" Name="OrgId">
+                    <CascadingValue Value="@ownerId" Name="OwnerId">
+                        <CascadingValue Value="false" Name="IsAdmin">
+                            <CascadingValue Value="true" Name="IsMod">
+                                <UserListItem />
+                            </CascadingValue>
+                        </CascadingValue>
+                    </CascadingValue>
+                </CascadingValue>
+            )
+        );
+    }
+
+    [Test]
+    public void Test_NullOwnerIdThrowsError()
+    {
+        Assert.Throws<ArgumentNullException>( () =>
+            Render(
+                @<CascadingValue Value="@orgId" Name="OrgId">
+                    <CascadingValue Value="false" Name="IsAdmin">
+                        <CascadingValue Value="true" Name="IsMod">
+                            <UserListItem UserId="@adminId" />
+                        </CascadingValue>
+                    </CascadingValue>
+                </CascadingValue>
+            )
+        );
+    }
+
+#endregion
+
+}

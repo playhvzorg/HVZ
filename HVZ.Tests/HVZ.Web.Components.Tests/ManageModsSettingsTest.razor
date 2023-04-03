@@ -1,0 +1,210 @@
+@using HVZ.Web.Services
+@using HVZ.Web.Shared.Org_Settings
+@using HVZ.Web.Identity.Models
+@using Microsoft.AspNetCore.Identity
+
+@inherits Bunit.TestContext
+
+@code
+{
+    Mock<IOrgRepo> mockOrgRepo = new Mock<IOrgRepo>();
+    Mock<IUserRepo> mockUserRepo = new Mock<IUserRepo>();
+    Mock<ImageService> mockImageService = new Mock<ImageService>();
+    Mock<UserManager<ApplicationUser>> mockUserManager = 
+        new Mock<UserManager<ApplicationUser>>( 
+            new Mock<IUserStore<ApplicationUser>>().Object,
+                null, null, null, null, null, null, null, null);
+    
+    User defaultUser = new User("0", "Default User", "default.user@mail.tld");
+
+    readonly string orgId = "0";
+
+    HashSet<string> adminIds = new HashSet<string>(
+        new string[] {"1", "2"});
+    HashSet<string> modIds = new HashSet<string>(
+        new string[] {"3", "4", "5"});
+
+    IRenderedFragment RenderAsAdmin()
+    {
+        return Render(
+            @<CascadingValue Value="true" Name="IsAdmin">
+                <CascadingValue Value="true" Name="IsMod">
+                    <CascadingValue Value="@orgId" Name="OrgId">
+                        <ManageModsSettings />
+                    </CascadingValue>
+                </CascadingValue>
+            </CascadingValue>
+        );
+    }
+
+    IRenderedFragment RenderAsMod()
+    {
+        return Render(
+            @<CascadingValue Value="false" Name="IsAdmin">
+                <CascadingValue Value="true" Name="IsMod">
+                    <CascadingValue Value="@orgId" Name="OrgId">
+                        <ManageModsSettings />
+                    </CascadingValue>
+                </CascadingValue>
+            </CascadingValue>
+        );
+    }
+
+    [OneTimeSetUp]
+    public void Setup()
+    {
+        Organization org = new Organization(
+            id:"0",
+            name:"Test Org",
+            ownerid:"1",
+            moderators:modIds,
+            administrators:adminIds,
+            games:new HashSet<Game>(),
+            activegameid:"",
+            createdat:NodaTime.Instant.MinValue,
+            url:"testorg"
+        );
+
+        @* Pass this into the event args when calling AddModerator *@
+        @* Scuffed but functional *@
+        Organization updatedOrg = new Organization(
+            id:"0",
+            name:"Test Org",
+            ownerid:"1",
+            moderators:new HashSet<string>(new string[] {"3", "4", "5", "6"}),
+            administrators:adminIds,
+            games:new HashSet<Game>(),
+            activegameid:"",
+            createdat:NodaTime.Instant.MinValue,
+            url:"testorg"
+        );
+
+        mockOrgRepo.Setup(repo => repo.GetOrgById(orgId)).ReturnsAsync(
+            org
+        );
+
+        mockOrgRepo.Setup(repo => repo.GetModsOfOrg(orgId)).ReturnsAsync(
+            modIds
+        );
+
+        mockOrgRepo.Setup(repo => repo.GetAdminsOfOrg(orgId)).ReturnsAsync(
+            adminIds
+        );
+
+        mockOrgRepo
+            .Setup(repo => repo.AddModerator(orgId, It.IsAny<string>()))
+            .ReturnsAsync(updatedOrg)
+            .Raises(repo => repo.ModsUpdated += null, new OrgUpdatedEventArgs(updatedOrg));
+
+        mockUserManager.Setup(manager => manager.FindByEmailAsync("test@mail.com"))
+            .ReturnsAsync(
+                new ApplicationUser{
+                    FullName = "Name",
+                    UserName = "Name",
+                    DatabaseId = "6"
+                }
+            );
+
+        mockUserRepo.Setup(repo => repo.GetUserById(It.IsAny<string>())).ReturnsAsync(defaultUser);
+
+        Services.AddSingleton<IOrgRepo>(mockOrgRepo.Object);
+        Services.AddSingleton<IUserRepo>(mockUserRepo.Object);
+        Services.AddSingleton<UserManager<ApplicationUser>>(mockUserManager.Object);
+        Services.AddSingleton<ImageService>(mockImageService.Object);
+        this.AddTestAuthorization();
+    }
+
+    [Test]
+    public void Test_CorrectNumberOfUsersInLists()
+    {
+        var cut = RenderAsAdmin();
+
+        var numMods = cut.Find("#num-mods");
+        var numAdmins = cut.Find("#num-admins");
+
+        numMods.MarkupMatches(
+            @<span class:ignore id="num-mods">3</span>
+        );
+
+        numAdmins.MarkupMatches(
+            @<span class:ignore id="num-admins">2</span>
+        );
+        
+    }
+    
+    [Test]
+    public void Test_UsersListRendersForMods()
+    {
+        var cut = RenderAsMod();
+
+        var numMods = cut.Find("#num-mods");
+        var numAdmins = cut.Find("#num-admins");
+
+        numMods.MarkupMatches(
+            @<span class:ignore id="num-mods">3</span>
+        );
+
+        numAdmins.MarkupMatches(
+            @<span class:ignore id="num-admins">2</span>
+        );
+    }
+
+    [Test]
+    public void Test_CorrectNumberOfRenderedItemsInLists()
+    {
+        var cut = RenderAsAdmin();
+
+        var modsList = cut.Find("#mods-list");
+        var adminsList = cut.Find("#admins-list");
+
+        // Note that the virtualize component adds two extra elements to the list
+        // There are three items in the list being displayed in the mods list
+        // There are two elements being displayed in the admins list
+        Assert.AreEqual(modsList.ChildElementCount, 5);
+        Assert.AreEqual(adminsList.ChildElementCount, 4);
+    }
+
+    [Test]
+    public void Test_CorrectContentIsRenderedInListForMods()
+    {
+        var cut = RenderAsMod();
+
+        var modsList = cut.Find("#mods-list");
+        var adminsList = cut.Find("#admins-list");
+
+        // Note that the virtualize component adds two extra elements to the list
+        // There are three items in the list being displayed in the mods list
+        // There are two elements being displayed in the admins list
+        Assert.AreEqual(modsList.ChildElementCount, 5);
+        Assert.AreEqual(adminsList.ChildElementCount, 4);
+    }
+
+    [Test]
+    public void Test_InviteAddsModerator()
+    {
+        var cut = RenderAsAdmin();
+
+        var emailInput = cut.Find("#invite-email-input");
+        var inviteButton = cut.Find("#invite-button");
+        var modsList = cut.Find("#mods-list");
+        var adminsList = cut.Find("#admins-list");
+
+        Assert.AreEqual(modsList.ChildElementCount, 5);
+        Assert.AreEqual(adminsList.ChildElementCount, 4);
+        
+        emailInput.Input("test@mail.com");
+        inviteButton.Click();
+
+        Assert.AreEqual(modsList.ChildElementCount, 6);
+        Assert.AreEqual(adminsList.ChildElementCount, 4);
+    }
+
+    [Test]
+    public void Test_ModCannotAddNewMods()
+    {
+        var cut = RenderAsMod();
+
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find("#invite-email-input"));
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find("#invite-modal-toggle"));
+    }
+}
