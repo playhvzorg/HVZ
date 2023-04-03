@@ -1,5 +1,8 @@
 name: Deployment
 
+on: 
+  workflow_dispatch
+
 concurrency:
   group: production
   cancel-in-progress: true
