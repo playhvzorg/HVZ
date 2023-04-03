@@ -109,8 +109,6 @@ internal static class Program
 
         #endregion
 
-        builder.Services.AddSingleton<WeatherForecastService>();
-
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
