@@ -5,10 +5,7 @@ on:
 
 jobs:
   deployment:
-    runs-on: 
-      labels:
-        production
-      
+    runs-on: [self-hosted, production]
     environment: production
     steps:
       - name: Git checkout
