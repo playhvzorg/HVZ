@@ -95,9 +95,9 @@ public class Game : IdEquatable<Game>
     /// <summary>
     /// The maximum number of tags a player can get as an OZ
     /// </summary>
-    public int OzMaxTags { get; init; }
+    public int OzMaxTags { get; init; } = 3;
 
-    public Game(string name, string gameid, string creatorid, string orgid, Instant createdat, Boolean isActive, Player.gameRole defaultrole, HashSet<Player> players, List<GameEventLog> eventLog)
+    public Game(string name, string gameid, string creatorid, string orgid, Instant createdat, Boolean isActive, Player.gameRole defaultrole, HashSet<Player> players, List<GameEventLog> eventLog, int maxOzTags = 3)
     {
         Name = name;
         Id = gameid;
@@ -109,7 +109,7 @@ public class Game : IdEquatable<Game>
         Players = players;
         EventLog = eventLog;
         OzPool = new List<string>();
-        OzMaxTags = 3;
+        OzMaxTags = maxOzTags;
     }
 
     public override string ToString()

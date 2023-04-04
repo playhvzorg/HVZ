@@ -75,7 +75,7 @@ public class GameRepo : IGameRepo
         });
     }
 
-    public async Task<Game> CreateGame(string name, string creatorid, string orgid)
+    public async Task<Game> CreateGame(string name, string creatorid, string orgid, int maxOzTags = 3)
     {
         Game game = new Game(
             name: name,
@@ -86,7 +86,8 @@ public class GameRepo : IGameRepo
             isActive: true,
             defaultrole: Player.gameRole.Human,
             players: new HashSet<Player>(),
-            eventLog: new List<GameEventLog>()
+            eventLog: new List<GameEventLog>(),
+            maxOzTags: maxOzTags
             );
         await Collection.InsertOneAsync(game);
         GameUpdatedEventArgs gameCreatedEventArgs = new GameUpdatedEventArgs(game, creatorid);
@@ -232,14 +233,14 @@ public class GameRepo : IGameRepo
     public async Task<Game> AddPlayerToOzPool(string gameId, string playerId)
     {
         Game game = await GetGameById(gameId);
-        Player? player = await FindPlayerByGameId(gameId, playerId);
+        Player? player = await FindPlayerByUserId(gameId, playerId);
         if (player is null)
         {
             throw new ArgumentException($"Could not find player with GameId {playerId} in Game {gameId}");
         }
         if (game.OzPool.Contains(playerId))
         {
-            throw new ArgumentException($"Player with GameId {playerId} is already in OZ Pool for game {gameId}");
+            throw new ArgumentException($"Player with UserId {playerId} is already in OZ Pool for game {gameId}");
         }
 
         game.OzPool.Add(playerId);
@@ -255,10 +256,10 @@ public class GameRepo : IGameRepo
     public async Task<Game> RemovePlayerFromOzPool(string gameId, string playerId)
     {
         Game game = await GetGameById(gameId);
-        Player? player = await FindPlayerByGameId(gameId, playerId);
+        Player? player = await FindPlayerByUserId(gameId, playerId);
         if (player is null)
         {
-            throw new ArgumentException($"Could not find player with GameId {playerId} in Game {gameId}");
+            throw new ArgumentException($"Could not find player with UserId {playerId} in Game {gameId}");
         }
         if (!game.OzPool.Contains(playerId))
         {
@@ -287,7 +288,7 @@ public class GameRepo : IGameRepo
                 int randomIndex = Random.Shared.Next(game.OzPool.Count);
                 string playerId = game.OzPool[randomIndex];
                 selectedOzs.Add(playerId);
-                game.OzPool.RemoveAt(randomIndex);
+                game.OzPool.Remove(playerId);
             }
         }
         else
@@ -297,14 +298,39 @@ public class GameRepo : IGameRepo
 
         }
 
+        foreach (string playerId in selectedOzs)
+        {
+            await SetPlayerToRole(gameId, playerId, Player.gameRole.Oz, instigatorId);
+        }
+
         Game newGame = await Collection.FindOneAndUpdateAsync<Game>(g => g.Id == gameId,
             Builders<Game>.Update.Set(g => g.OzPool, game.OzPool),
             new FindOneAndUpdateOptions<Game, Game> { ReturnDocument = ReturnDocument.After }
         );
 
+        _logger.LogTrace($"User {instigatorId} set {count} random OZs");
         OnRandomOzs(new(newGame, selectedOzs.ToArray(), instigatorId));
 
         return newGame;
+    }
+
+    public async Task<Game> SetOzTagCount(string gameId, int count, string instigatorId)
+    {
+        Game newGame = await Collection.FindOneAndUpdateAsync<Game>(g => g.Id == gameId,
+            Builders<Game>.Update.Set(g => g.OzMaxTags, count),
+            new FindOneAndUpdateOptions<Game, Game> { ReturnDocument = ReturnDocument.After }
+        );
+
+        _logger.LogTrace($"User {instigatorId} set OZ tags to {count}");
+        OnSettingsChanged(new(newGame, instigatorId));
+
+        return newGame;
+    }
+
+    public async Task<int> GetOzTagCount(string gameId)
+    {
+        Game game = await GetGameById(gameId);
+        return game.OzMaxTags;
     }
 
     private async Task<String> GeneratePlayerGameId(string gameId)
@@ -398,6 +424,14 @@ public class GameRepo : IGameRepo
     protected virtual void OnRandomOzs(RandomOzEventArgs args)
     {
         EventHandler<RandomOzEventArgs>? handler = RandomOzsSet;
+        if (handler != null)
+        {
+            handler(this, args);
+        }
+    }
+    protected virtual void OnSettingsChanged(GameUpdatedEventArgs args)
+    {
+        EventHandler<GameUpdatedEventArgs> handler = GameSettingsChanged;
         if (handler != null)
         {
             handler(this, args);

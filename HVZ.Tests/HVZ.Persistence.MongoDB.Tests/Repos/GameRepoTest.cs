@@ -514,16 +514,14 @@ public class GameRepoTest : MongoTestBase
         string gameName = "test";
         string userid = "0";
         string orgid = "123";
-        //bool active = true;
 
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
         await gameRepo.AddPlayer(game.Id, userid);
-        Player player = await gameRepo.FindPlayerByUserId(game.Id, userid) ?? null!;
 
         Assert.That(game.OzPool.Count(), Is.EqualTo(0));
-        game = await gameRepo.AddPlayerToOzPool(game.Id, player.GameId);
+        game = await gameRepo.AddPlayerToOzPool(game.Id, userid);
         Assert.That(game.OzPool.Count(), Is.EqualTo(1));
-        Assert.That(game.OzPool[0], Is.EqualTo(player.GameId));
+        Assert.That(game.OzPool[0], Is.EqualTo(userid));
     }
 
     [Test]
@@ -535,7 +533,7 @@ public class GameRepoTest : MongoTestBase
         string orgid = "123";
 
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
-        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.AddPlayerToOzPool(game.Id, "12345"), $"Could not find player with GameId 12345 in Game {game.Id}");
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.AddPlayerToOzPool(game.Id, "12345"), $"Could not find player with UserId 12345 in Game {game.Id}");
     }
 
     [Test]
@@ -548,10 +546,9 @@ public class GameRepoTest : MongoTestBase
 
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
         await gameRepo.AddPlayer(game.Id, userid);
-        Player player = await gameRepo.FindPlayerByUserId(game.Id, userid) ?? null!;
 
-        await gameRepo.AddPlayerToOzPool(game.Id, player.GameId);
-        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.AddPlayerToOzPool(game.Id, player.GameId), $"Player with GameId {player.GameId} is already in OZ Pool for game {game.Id}");
+        await gameRepo.AddPlayerToOzPool(game.Id, userid);
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.AddPlayerToOzPool(game.Id, userid), $"Player with UserId {userid} is already in OZ Pool for game {game.Id}");
     }
 
     [Test]
@@ -573,14 +570,13 @@ public class GameRepoTest : MongoTestBase
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
 
         await gameRepo.AddPlayer(game.Id, userid);
-        Player player = await gameRepo.FindPlayerByUserId(game.Id, userid) ?? null!;
-        game = await gameRepo.AddPlayerToOzPool(game.Id, player.GameId);
+        game = await gameRepo.AddPlayerToOzPool(game.Id, userid);
 
         Assert.That(eventGame, Is.Not.Null);
         Assert.That(game, Is.EqualTo(eventGame));
 
         Assert.That(eventPlayerId, Is.Not.Null);
-        Assert.That(eventPlayerId, Is.EqualTo(player.GameId));
+        Assert.That(eventPlayerId, Is.EqualTo(userid));
     }
 
     [Test]
@@ -593,9 +589,8 @@ public class GameRepoTest : MongoTestBase
 
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
         await gameRepo.AddPlayer(game.Id, userid);
-        Player player = await gameRepo.FindPlayerByUserId(game.Id, userid) ?? null!;
-        game = await gameRepo.AddPlayerToOzPool(game.Id, player.GameId);
-        game = await gameRepo.RemovePlayerFromOzPool(game.Id, player.GameId);
+        game = await gameRepo.AddPlayerToOzPool(game.Id, userid);
+        game = await gameRepo.RemovePlayerFromOzPool(game.Id, userid);
 
         Assert.That(game.OzPool.Count(), Is.EqualTo(0));
     }
@@ -610,7 +605,7 @@ public class GameRepoTest : MongoTestBase
 
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
 
-        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.RemovePlayerFromOzPool(game.Id, "12345"), $"Could not find player with GameId 12345 in Game {game.Id}");
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.RemovePlayerFromOzPool(game.Id, "12345"), $"Could not find player with UserId 12345 in Game {game.Id}");
     }
 
     [Test]
@@ -623,9 +618,8 @@ public class GameRepoTest : MongoTestBase
 
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
         await gameRepo.AddPlayer(game.Id, userid);
-        Player player = await gameRepo.FindPlayerByUserId(game.Id, userid) ?? null!;
 
-        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.RemovePlayerFromOzPool(game.Id, player.GameId), $"Player with GameId {player.GameId} is not in the OZ pool for Game {game.Id}");
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.RemovePlayerFromOzPool(game.Id, userid), $"Player with UserId {userid} is not in the OZ pool for Game {game.Id}");
     }
 
     [Test]
@@ -646,15 +640,15 @@ public class GameRepoTest : MongoTestBase
 
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
         await gameRepo.AddPlayer(game.Id, userid);
-        Player player = await gameRepo.FindPlayerByUserId(game.Id, userid) ?? null!;
-        await gameRepo.AddPlayerToOzPool(game.Id, player.GameId);
-        game = await gameRepo.RemovePlayerFromOzPool(game.Id, player.GameId);
+
+        await gameRepo.AddPlayerToOzPool(game.Id, userid);
+        game = await gameRepo.RemovePlayerFromOzPool(game.Id, userid);
 
         Assert.That(eventGame, Is.Not.Null);
         Assert.That(game, Is.EqualTo(eventGame));
 
         Assert.That(eventPlayerId, Is.Not.Null);
-        Assert.That(eventPlayerId, Is.EqualTo(player.GameId));
+        Assert.That(eventPlayerId, Is.EqualTo(userid));
     }
 
     [TestCase(1, 1, 2)]
@@ -677,13 +671,9 @@ public class GameRepoTest : MongoTestBase
         await gameRepo.AddPlayer(game.Id, userid2);
         await gameRepo.AddPlayer(game.Id, userid3);
 
-        Player player1 = await gameRepo.FindPlayerByUserId(game.Id, userid1) ?? null!;
-        Player player2 = await gameRepo.FindPlayerByUserId(game.Id, userid2) ?? null!;
-        Player player3 = await gameRepo.FindPlayerByUserId(game.Id, userid3) ?? null!;
-
-        await gameRepo.AddPlayerToOzPool(game.Id, player1.GameId);
-        await gameRepo.AddPlayerToOzPool(game.Id, player2.GameId);
-        await gameRepo.AddPlayerToOzPool(game.Id, player3.GameId);
+        await gameRepo.AddPlayerToOzPool(game.Id, userid1);
+        await gameRepo.AddPlayerToOzPool(game.Id, userid2);
+        await gameRepo.AddPlayerToOzPool(game.Id, userid3);
 
         game = await gameRepo.RandomOzs(game.Id, count, creatorid);
 
@@ -735,5 +725,55 @@ public class GameRepoTest : MongoTestBase
         {
             Assert.That(playerIds.Contains(id), Is.True);
         }
+    }
+
+    [Test]
+    public async Task test_initializetagcount()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid1 = "123";
+        string orgid2 = "456";
+        int game2maxoztags = 15;
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid1);
+
+        Assert.That(game.OzMaxTags, Is.EqualTo(3));
+
+        Game game2 = await gameRepo.CreateGame(gameName, userid, orgid2, game2maxoztags);
+
+        Assert.That(game2.OzMaxTags, Is.EqualTo(game2maxoztags));
+    }
+
+    [Test]
+    public async Task test_setmaxtags()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+        int newTagCount = 2;
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+
+        game = await gameRepo.SetOzTagCount(game.Id, newTagCount, userid);
+
+        Assert.That(game.OzMaxTags, Is.EqualTo(newTagCount));
+    }
+
+    [Test]
+    public async Task test_getmaxtags()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+
+        int gameTagCount = await gameRepo.GetOzTagCount(game.Id);
+
+        Assert.That(gameTagCount, Is.EqualTo(game.OzMaxTags));
     }
 }

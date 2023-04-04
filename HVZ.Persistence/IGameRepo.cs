@@ -5,7 +5,7 @@ public interface IGameRepo
     /// <summary>
     /// Add a new game to the repo. This is usually done from the OrgRepo, see <see cref="IOrgRepo.CreateGame"/>
     /// </summary>
-    public Task<Game> CreateGame(string Name, string creatorUserId, string orgid);
+    public Task<Game> CreateGame(string Name, string creatorUserId, string orgid, int? ozMaxTags);
     /// <summary>
     /// Find a game by its Id
     /// </summary>
@@ -86,15 +86,15 @@ public interface IGameRepo
     /// Add a player to the game's OZ pool
     /// </summary>
     /// <param name="gameId">ID for the game</param>
-    /// <param name="playerId">Player's GameId</param>
-    public Task<Game> AddPlayerToOzPool(string gameId, string playerId);
+    /// <param name="userId">Player's UserId</param>
+    public Task<Game> AddPlayerToOzPool(string gameId, string userId);
 
     /// <summary>
     /// Remove a player from the game's OZ pool
     /// </summary>
     /// <param name="gameId">ID for the game</param>
-    /// <param name="playerId">Player's GameId</param>
-    public Task<Game> RemovePlayerFromOzPool(string gameId, string playerId);
+    /// <param name="userId">Player's UserId</param>
+    public Task<Game> RemovePlayerFromOzPool(string gameId, string userId);
 
     /// <summary>
     /// Select the specified number of random players from the game's OZ pool, set them to OZ, and remove them from the OZ pool
@@ -102,7 +102,6 @@ public interface IGameRepo
     /// <param name="gameId">ID for the game</param>
     /// <param name="count">Number of random OZs</param>
     /// <param name="instigatorId">UserId for user responsible for this action</param>
-    /// <returns></returns>
     public Task<Game> RandomOzs(string gameId, int count, string instigatorId);
 
     /// <summary>
@@ -111,8 +110,12 @@ public interface IGameRepo
     /// <param name="gameId">ID for the game</param>
     /// <param name="count">Maximum number of OZ tags</param>
     /// <param name="instigatorId">UserId for the user responsible for this action</param>
-    /// <returns></returns>
     public Task<Game> SetOzTagCount(string gameId, int count, string instigatorId);
+
+    /// <summary>
+    /// Get the maximum number of tags a player can get as an OZ
+    /// </summary>
+    public Task<int> GetOzTagCount(string gameId);
 
     /// <summary>
     /// Event that fires when a new game is created
