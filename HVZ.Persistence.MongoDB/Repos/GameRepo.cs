@@ -251,11 +251,7 @@ public class GameRepo : IGameRepo
     public async Task<Game> AddPlayerToOzPool(string gameId, string playerId)
     {
         Game game = await GetGameById(gameId);
-        Player? player = await FindPlayerByUserId(gameId, playerId);
-        if (player is null)
-        {
-            throw new ArgumentException($"Could not find player with GameId {playerId} in Game {gameId}");
-        }
+        Player player = await GetPlayerByUserId(gameId, playerId);
         if (game.OzPool.Contains(playerId))
         {
             throw new ArgumentException($"Player with UserId {playerId} is already in OZ Pool for game {gameId}");
@@ -271,26 +267,22 @@ public class GameRepo : IGameRepo
         return newGame;
     }
 
-    public async Task<Game> RemovePlayerFromOzPool(string gameId, string playerId)
+    public async Task<Game> RemovePlayerFromOzPool(string gameId, string userId)
     {
         Game game = await GetGameById(gameId);
-        Player? player = await FindPlayerByUserId(gameId, playerId);
-        if (player is null)
+        Player player = await GetPlayerByUserId(gameId, userId);
+        if (!game.OzPool.Contains(userId))
         {
-            throw new ArgumentException($"Could not find player with UserId {playerId} in Game {gameId}");
-        }
-        if (!game.OzPool.Contains(playerId))
-        {
-            throw new ArgumentException($"Player with GameId {playerId} is not in the OZ pool for Game {gameId}");
+            throw new ArgumentException($"Player with GameId {userId} is not in the OZ pool for Game {gameId}");
         }
 
-        game.OzPool.Remove(playerId);
+        game.OzPool.Remove(userId);
         Game newGame = await Collection.FindOneAndUpdateAsync<Game>(g => g.Id == gameId,
             Builders<Game>.Update.Set(g => g.OzPool, game.OzPool),
             new FindOneAndUpdateOptions<Game, Game>() { ReturnDocument = ReturnDocument.After }
         );
-        OnLeaveOzPool(new(newGame, playerId));
-        _logger.LogTrace($"Player {playerId} has been removed from the OZ pool in Game {gameId}");
+        OnLeaveOzPool(new(newGame, userId));
+        _logger.LogTrace($"Player {userId} has been removed from the OZ pool in Game {gameId}");
         return newGame;
     }
 
