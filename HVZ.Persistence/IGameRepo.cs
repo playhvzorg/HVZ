@@ -5,7 +5,7 @@ public interface IGameRepo
     /// <summary>
     /// Add a new game to the repo. This is usually done from the OrgRepo, see <see cref="IOrgRepo.CreateGame"/>
     /// </summary>
-    public Task<Game> CreateGame(string Name, string creatorUserId, string orgid, int? ozMaxTags);
+    public Task<Game> CreateGame(string Name, string creatorUserId, string orgid, int ozMaxTags = 3);
     /// <summary>
     /// Find a game by its Id
     /// </summary>

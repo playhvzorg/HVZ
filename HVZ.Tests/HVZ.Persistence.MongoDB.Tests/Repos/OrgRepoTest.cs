@@ -269,7 +269,7 @@ public class OrgRepotest : MongoTestBase
             eventLog: new()
         );
 
-        gameRepoMock.Setup(repo => repo.CreateGame(gameName, userid, org.Id)).ReturnsAsync(game);
+        gameRepoMock.Setup(repo => repo.CreateGame(gameName, userid, org.Id, 3)).ReturnsAsync(game);
         gameRepoMock.Setup(repo => repo.GetGameById(game.Id)).ReturnsAsync(game);
         await orgRepo.CreateGame(gameName, userid, org.Id);
         org = await orgRepo.GetOrgById(org.Id);
@@ -298,7 +298,7 @@ public class OrgRepotest : MongoTestBase
             new()
         );
 
-        gameRepoMock.Setup(repo => repo.CreateGame(gameName, userid, org.Id)).ReturnsAsync(game);
+        gameRepoMock.Setup(repo => repo.CreateGame(gameName, userid, org.Id, 3)).ReturnsAsync(game);
 
         Assert.That(await orgRepo.CreateGame(gameName, userid, org.Id), Is.Not.Null);
         Assert.ThrowsAsync<ArgumentException>(() => orgRepo.CreateGame(gameName, otherUserId, org.Id));

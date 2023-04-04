@@ -20,10 +20,10 @@ public class GameRepo : IGameRepo
     public event EventHandler<PlayerRoleChangedEventArgs>? PlayerRoleChanged;
     public event EventHandler<TagEventArgs>? TagLogged;
     public event EventHandler<GameActiveStatusChangedEventArgs>? GameActiveStatusChanged;
-    public event EventHandler<GameUpdatedEventArgs> GameSettingsChanged;
-    public event EventHandler<OzUpdatedEventArgs> PlayerJoinedOzPool;
-    public event EventHandler<OzUpdatedEventArgs> PlayerLeftOzPool;
-    public event EventHandler<RandomOzEventArgs> RandomOzsSet;
+    public event EventHandler<GameUpdatedEventArgs>? GameSettingsChanged;
+    public event EventHandler<OzUpdatedEventArgs>? PlayerJoinedOzPool;
+    public event EventHandler<OzUpdatedEventArgs>? PlayerLeftOzPool;
+    public event EventHandler<RandomOzEventArgs>? RandomOzsSet;
 
     static GameRepo()
     {
@@ -41,6 +41,8 @@ public class GameRepo : IGameRepo
             cm.MapProperty(g => g.Players);
             cm.MapProperty(g => g.IsActive);
             cm.MapProperty(g => g.EventLog);
+            cm.MapProperty(g => g.OzPool);
+            cm.MapProperty(g => g.OzMaxTags);
         });
 
         BsonClassMap.RegisterClassMap<Player>(cm =>
@@ -431,7 +433,7 @@ public class GameRepo : IGameRepo
     }
     protected virtual void OnSettingsChanged(GameUpdatedEventArgs args)
     {
-        EventHandler<GameUpdatedEventArgs> handler = GameSettingsChanged;
+        EventHandler<GameUpdatedEventArgs>? handler = GameSettingsChanged;
         if (handler != null)
         {
             handler(this, args);
