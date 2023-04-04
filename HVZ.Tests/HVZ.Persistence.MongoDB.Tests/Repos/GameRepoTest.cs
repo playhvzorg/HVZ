@@ -561,7 +561,7 @@ public class GameRepoTest : MongoTestBase
         string userid = "0";
         string orgid = "123";
 
-        gameRepo.PlayerJoinedOzPool += delegate (object? sender, OzUpdatedEventArgs args)
+        gameRepo.PlayerJoinedOzPool += delegate (object? sender, OzPoolUpdatedEventArgs args)
         {
             eventPlayerId = args.playerId;
             eventGame = args.game;
@@ -632,7 +632,7 @@ public class GameRepoTest : MongoTestBase
         Game? eventGame = null!;
         string? eventPlayerId = null!;
 
-        gameRepo.PlayerLeftOzPool += delegate (object? sender, OzUpdatedEventArgs args)
+        gameRepo.PlayerLeftOzPool += delegate (object? sender, OzPoolUpdatedEventArgs args)
         {
             eventGame = args.game;
             eventPlayerId = args.playerId;
@@ -675,7 +675,7 @@ public class GameRepoTest : MongoTestBase
         await gameRepo.AddPlayerToOzPool(game.Id, userid2);
         await gameRepo.AddPlayerToOzPool(game.Id, userid3);
 
-        game = await gameRepo.RandomOzs(game.Id, count, creatorid);
+        game = await gameRepo.AssignRandomOzs(game.Id, count, creatorid);
 
         Assert.That(game.OzPool.Count(), Is.EqualTo(numRemaining));
         Assert.That(game.Ozs.Count(), Is.EqualTo(numSelected));
@@ -713,7 +713,7 @@ public class GameRepoTest : MongoTestBase
             playerIds.Add(player.UserId);
         }
 
-        game = await gameRepo.RandomOzs(game.Id, randomOzCount, creatorid);
+        game = await gameRepo.AssignRandomOzs(game.Id, randomOzCount, creatorid);
 
         Assert.That(eventGame, Is.Not.Null);
         Assert.That(eventGame, Is.EqualTo(game));

@@ -102,7 +102,7 @@ public interface IGameRepo
     /// <param name="gameId">ID for the game</param>
     /// <param name="count">Number of random OZs</param>
     /// <param name="instigatorId">UserId for user responsible for this action</param>
-    public Task<Game> RandomOzs(string gameId, int count, string instigatorId);
+    public Task<Game> AssignRandomOzs(string gameId, int count, string instigatorId);
 
     /// <summary>
     /// Set the maximum number of tags a player can get as an OZ
@@ -144,11 +144,11 @@ public interface IGameRepo
     /// <summary>
     /// Event that fires when a player joins the OZ pool
     /// </summary>
-    public event EventHandler<OzUpdatedEventArgs> PlayerJoinedOzPool;
+    public event EventHandler<OzPoolUpdatedEventArgs> PlayerJoinedOzPool;
     /// <summary>
     /// Event that fires when a player leaves the OZ pool
     /// </summary>
-    public event EventHandler<OzUpdatedEventArgs> PlayerLeftOzPool;
+    public event EventHandler<OzPoolUpdatedEventArgs> PlayerLeftOzPool;
     /// <summary>
     /// Event that fires when random OZs are set
     /// </summary>
@@ -218,11 +218,11 @@ public class GameActiveStatusChangedEventArgs : EventArgs
     }
 }
 
-public class OzUpdatedEventArgs : EventArgs
+public class OzPoolUpdatedEventArgs : EventArgs
 {
     public Game game { get; init; }
     public string playerId { get; init; }
-    public OzUpdatedEventArgs(Game game, string playerId)
+    public OzPoolUpdatedEventArgs(Game game, string playerId)
     {
         this.game = game;
         this.playerId = playerId;

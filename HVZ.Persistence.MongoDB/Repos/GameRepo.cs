@@ -21,8 +21,8 @@ public class GameRepo : IGameRepo
     public event EventHandler<TagEventArgs>? TagLogged;
     public event EventHandler<GameActiveStatusChangedEventArgs>? GameActiveStatusChanged;
     public event EventHandler<GameUpdatedEventArgs>? GameSettingsChanged;
-    public event EventHandler<OzUpdatedEventArgs>? PlayerJoinedOzPool;
-    public event EventHandler<OzUpdatedEventArgs>? PlayerLeftOzPool;
+    public event EventHandler<OzPoolUpdatedEventArgs>? PlayerJoinedOzPool;
+    public event EventHandler<OzPoolUpdatedEventArgs>? PlayerLeftOzPool;
     public event EventHandler<RandomOzEventArgs>? RandomOzsSet;
 
     static GameRepo()
@@ -278,7 +278,7 @@ public class GameRepo : IGameRepo
         return newGame;
     }
 
-    public async Task<Game> RandomOzs(string gameId, int count, string instigatorId)
+    public async Task<Game> AssignRandomOzs(string gameId, int count, string instigatorId)
     {
         Game game = await GetGameById(gameId);
         List<string> selectedOzs = new List<string>();
@@ -310,7 +310,7 @@ public class GameRepo : IGameRepo
             new FindOneAndUpdateOptions<Game, Game> { ReturnDocument = ReturnDocument.After }
         );
 
-        _logger.LogTrace($"User {instigatorId} set {count} random OZs");
+        _logger.LogTrace($"User {instigatorId} set {count} random OZs in Game {gameId}");
         OnRandomOzs(new(newGame, selectedOzs.ToArray(), instigatorId));
 
         return newGame;
@@ -407,17 +407,17 @@ public class GameRepo : IGameRepo
         }
         await LogGameEvent(args.game.Id, new(GameEvent.Tag, _clock.GetCurrentInstant(), args.Tagger.UserId, new Dictionary<string, object> { { "tagreciever", args.TagReciever.UserId } }));
     }
-    protected virtual void OnJoinOzPool(OzUpdatedEventArgs args)
+    protected virtual void OnJoinOzPool(OzPoolUpdatedEventArgs args)
     {
-        EventHandler<OzUpdatedEventArgs>? handler = PlayerJoinedOzPool;
+        EventHandler<OzPoolUpdatedEventArgs>? handler = PlayerJoinedOzPool;
         if (handler != null)
         {
             handler(this, args);
         }
     }
-    protected virtual void OnLeaveOzPool(OzUpdatedEventArgs args)
+    protected virtual void OnLeaveOzPool(OzPoolUpdatedEventArgs args)
     {
-        EventHandler<OzUpdatedEventArgs>? handler = PlayerLeftOzPool;
+        EventHandler<OzPoolUpdatedEventArgs>? handler = PlayerLeftOzPool;
         if (handler != null)
         {
             handler(this, args);
