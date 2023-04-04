@@ -248,22 +248,22 @@ public class GameRepo : IGameRepo
         return newGame;
     }
 
-    public async Task<Game> AddPlayerToOzPool(string gameId, string playerId)
+    public async Task<Game> AddPlayerToOzPool(string gameId, string userId)
     {
         Game game = await GetGameById(gameId);
-        Player player = await GetPlayerByUserId(gameId, playerId);
-        if (game.OzPool.Contains(playerId))
+        Player player = await GetPlayerByUserId(gameId, userId);
+        if (game.OzPool.Contains(userId))
         {
-            throw new ArgumentException($"Player with UserId {playerId} is already in OZ Pool for game {gameId}");
+            throw new ArgumentException($"Player with UserId {userId} is already in OZ Pool for game {gameId}");
         }
 
-        game.OzPool.Add(playerId);
+        game.OzPool.Add(userId);
         Game newGame = await Collection.FindOneAndUpdateAsync<Game>(g => g.Id == gameId,
             Builders<Game>.Update.Set(g => g.OzPool, game.OzPool),
             new FindOneAndUpdateOptions<Game, Game>() { ReturnDocument = ReturnDocument.After }
         );
-        OnJoinOzPool(new(newGame, playerId));
-        _logger.LogTrace($"Player {playerId} has been added to the OZ pool in Game {gameId}");
+        OnJoinOzPool(new(newGame, userId));
+        _logger.LogTrace($"Player {userId} has been added to the OZ pool in Game {gameId}");
         return newGame;
     }
 
