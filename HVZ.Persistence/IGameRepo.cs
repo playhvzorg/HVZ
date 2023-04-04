@@ -37,10 +37,22 @@ public interface IGameRepo
     public Task<Player?> FindPlayerByUserId(string gameId, string userId);
 
     /// <summary>
+    /// Get a player by their global UserId
+    /// </summary>
+    ///<returns>The player with the given userId. Throws an exception when no player can be found</returns>
+    public Task<Player> GetPlayerByUserId(string gameId, string userId);
+
+    /// <summary>
     /// Find a player in a game by their game-specific ID
     /// </summary>
-    /// <returns>The player with the given userId, or Null if no player is found</returns>
+    /// <returns>The player with the given game-specific ID, or Null if no player is found</returns>
     public Task<Player?> FindPlayerByGameId(string gameId, string userGameId);
+
+    /// <summary>
+    /// Get a player in a game by their game-specific ID
+    /// </summary>
+    /// <returns>The player with the given game-specific ID. Throws an exception when no player can be found</returns>
+    public Task<Player> GetPlayerByGameId(string gameId, string userGameId);
 
     /// <summary>
     /// Add a new player to an existing game

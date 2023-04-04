@@ -105,6 +105,21 @@ public class GameRepoTest : MongoTestBase
     }
 
     [Test]
+    public async Task test_getplayerbyuserid()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.GetPlayerByUserId(game.Id, userid));
+        await gameRepo.AddPlayer(game.Id, userid);
+        Player p = await gameRepo.GetPlayerByUserId(game.Id, userid);
+        Assert.That(p.UserId, Is.EqualTo(userid));
+    }
+
+    [Test]
     public async Task test_findplayerbygameid()
     {
         GameRepo gameRepo = CreateGameRepo();
@@ -120,6 +135,22 @@ public class GameRepoTest : MongoTestBase
         foundPlayer = await gameRepo.FindPlayerByGameId(game.Id, createdPlayer.GameId);
         Assert.That(foundPlayer, Is.Not.Null);
 
+    }
+
+    [Test]
+    public async Task test_getplayerbygameid()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.GetPlayerByGameId(game.Id, userid));
+        game = await gameRepo.AddPlayer(game.Id, userid);
+        Player player = game.Players.Where(p => p.UserId == userid).First();
+        Player p = await gameRepo.GetPlayerByGameId(game.Id, player.GameId);
+        Assert.That(p, Is.EqualTo(player));
     }
 
     [Test]
