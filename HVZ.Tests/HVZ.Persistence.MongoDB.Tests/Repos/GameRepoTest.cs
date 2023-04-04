@@ -689,7 +689,7 @@ public class GameRepoTest : MongoTestBase
         string gameName = "test";
         string creatorid = "0";
         string orgid = "123";
-        int randomOzCount = 3;
+        int randomOzCount = 2;
         List<string> playerIds = new List<string>();
         Game? eventGame = null;
         string[]? ozIds = null;
@@ -704,13 +704,13 @@ public class GameRepoTest : MongoTestBase
 
         for (int i = 1; i < 5; i++)
         {
-            await gameRepo.AddPlayer(game.Id, i.ToString());
+            game = await gameRepo.AddPlayer(game.Id, i.ToString());
         }
 
         foreach (Player player in game.Players)
         {
-            await gameRepo.AddPlayerToOzPool(game.Id, player.GameId);
-            playerIds.Add(player.GameId);
+            await gameRepo.AddPlayerToOzPool(game.Id, player.UserId);
+            playerIds.Add(player.UserId);
         }
 
         game = await gameRepo.RandomOzs(game.Id, randomOzCount, creatorid);
