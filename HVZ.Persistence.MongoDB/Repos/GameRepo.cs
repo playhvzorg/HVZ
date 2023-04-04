@@ -1,11 +1,11 @@
-using MongoDB.Driver;
+using HVZ.Persistence.Models;
+using HVZ.Persistence.MongoDB.Serializers;
+using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.IdGenerators;
-using HVZ.Persistence.Models;
-using HVZ.Persistence.MongoDB.Serializers;
+using MongoDB.Driver;
 using NodaTime;
-using Microsoft.Extensions.Logging;
 
 namespace HVZ.Persistence.MongoDB.Repos;
 public class GameRepo : IGameRepo
@@ -20,6 +20,10 @@ public class GameRepo : IGameRepo
     public event EventHandler<PlayerRoleChangedEventArgs>? PlayerRoleChanged;
     public event EventHandler<TagEventArgs>? TagLogged;
     public event EventHandler<GameActiveStatusChangedEventArgs>? GameActiveStatusChanged;
+    public event EventHandler<GameUpdatedEventArgs> GameSettingsChanged;
+    public event EventHandler<OzUpdatedEventArgs> PlayerJoinedOzPool;
+    public event EventHandler<OzUpdatedEventArgs> PlayerLeftOzPool;
+    public event EventHandler<RandomOzEventArgs> RandomOzsSet;
 
     static GameRepo()
     {
@@ -225,6 +229,84 @@ public class GameRepo : IGameRepo
         return newGame;
     }
 
+    public async Task<Game> AddPlayerToOzPool(string gameId, string playerId)
+    {
+        Game game = await GetGameById(gameId);
+        Player? player = await FindPlayerByGameId(gameId, playerId);
+        if (player is null)
+        {
+            throw new ArgumentException($"Could not find player with GameId {playerId} in Game {gameId}");
+        }
+        if (game.OzPool.Contains(playerId))
+        {
+            throw new ArgumentException($"Player with GameId {playerId} is already in OZ Pool for game {gameId}");
+        }
+
+        game.OzPool.Add(playerId);
+        Game newGame = await Collection.FindOneAndUpdateAsync<Game>(g => g.Id == gameId,
+            Builders<Game>.Update.Set(g => g.OzPool, game.OzPool),
+            new FindOneAndUpdateOptions<Game, Game>() { ReturnDocument = ReturnDocument.After }
+        );
+        OnJoinOzPool(new(newGame, playerId));
+        _logger.LogTrace($"Player {playerId} has been added to the OZ pool in Game {gameId}");
+        return newGame;
+    }
+
+    public async Task<Game> RemovePlayerFromOzPool(string gameId, string playerId)
+    {
+        Game game = await GetGameById(gameId);
+        Player? player = await FindPlayerByGameId(gameId, playerId);
+        if (player is null)
+        {
+            throw new ArgumentException($"Could not find player with GameId {playerId} in Game {gameId}");
+        }
+        if (!game.OzPool.Contains(playerId))
+        {
+            throw new ArgumentException($"Player with GameId {playerId} is not in the OZ pool for Game {gameId}");
+        }
+
+        game.OzPool.Remove(playerId);
+        Game newGame = await Collection.FindOneAndUpdateAsync<Game>(g => g.Id == gameId,
+            Builders<Game>.Update.Set(g => g.OzPool, game.OzPool),
+            new FindOneAndUpdateOptions<Game, Game>() { ReturnDocument = ReturnDocument.After }
+        );
+        OnLeaveOzPool(new(newGame, playerId));
+        _logger.LogTrace($"Player {playerId} has been removed from the OZ pool in Game {gameId}");
+        return newGame;
+    }
+
+    public async Task<Game> RandomOzs(string gameId, int count, string instigatorId)
+    {
+        Game game = await GetGameById(gameId);
+        List<string> selectedOzs = new List<string>();
+
+        if (game.OzPool.Count > count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                int randomIndex = Random.Shared.Next(game.OzPool.Count);
+                string playerId = game.OzPool[randomIndex];
+                selectedOzs.Add(playerId);
+                game.OzPool.RemoveAt(randomIndex);
+            }
+        }
+        else
+        {
+            selectedOzs = new List<string>(game.OzPool);
+            game.OzPool.Clear();
+
+        }
+
+        Game newGame = await Collection.FindOneAndUpdateAsync<Game>(g => g.Id == gameId,
+            Builders<Game>.Update.Set(g => g.OzPool, game.OzPool),
+            new FindOneAndUpdateOptions<Game, Game> { ReturnDocument = ReturnDocument.After }
+        );
+
+        OnRandomOzs(new(newGame, selectedOzs.ToArray(), instigatorId));
+
+        return newGame;
+    }
+
     private async Task<String> GeneratePlayerGameId(string gameId)
     {
         Game game = await GetGameById(gameId);
@@ -296,5 +378,29 @@ public class GameRepo : IGameRepo
             handler(this, args);
         }
         await LogGameEvent(args.game.Id, new(GameEvent.Tag, _clock.GetCurrentInstant(), args.Tagger.UserId, new Dictionary<string, object> { { "tagreciever", args.TagReciever.UserId } }));
+    }
+    protected virtual void OnJoinOzPool(OzUpdatedEventArgs args)
+    {
+        EventHandler<OzUpdatedEventArgs>? handler = PlayerJoinedOzPool;
+        if (handler != null)
+        {
+            handler(this, args);
+        }
+    }
+    protected virtual void OnLeaveOzPool(OzUpdatedEventArgs args)
+    {
+        EventHandler<OzUpdatedEventArgs>? handler = PlayerLeftOzPool;
+        if (handler != null)
+        {
+            handler(this, args);
+        }
+    }
+    protected virtual void OnRandomOzs(RandomOzEventArgs args)
+    {
+        EventHandler<RandomOzEventArgs>? handler = RandomOzsSet;
+        if (handler != null)
+        {
+            handler(this, args);
+        }
     }
 }

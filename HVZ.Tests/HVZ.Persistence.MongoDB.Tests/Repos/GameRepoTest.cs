@@ -1,11 +1,9 @@
-using System.Threading.Tasks;
-using NUnit.Framework;
-using NodaTime;
-using Moq;
 using HVZ.Persistence.Models;
 using HVZ.Persistence.MongoDB.Repos;
-using MongoDB.Driver;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
+using Moq;
+using NodaTime;
 namespace HVZ.Persistence.MongoDB.Tests;
 
 [Parallelizable(ParallelScope.All)]
@@ -507,5 +505,235 @@ public class GameRepoTest : MongoTestBase
         string logMessage = $"{defaultTimeString} Game set to {"active"} by {userid}";
 
         Assert.That(game.EventLog.Last().ToString(), Is.EqualTo(logMessage));
+    }
+
+    [Test]
+    public async Task test_joinozpool()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+        //bool active = true;
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        await gameRepo.AddPlayer(game.Id, userid);
+        Player player = await gameRepo.FindPlayerByUserId(game.Id, userid) ?? null!;
+
+        Assert.That(game.OzPool.Count(), Is.EqualTo(0));
+        game = await gameRepo.AddPlayerToOzPool(game.Id, player.GameId);
+        Assert.That(game.OzPool.Count(), Is.EqualTo(1));
+        Assert.That(game.OzPool[0], Is.EqualTo(player.GameId));
+    }
+
+    [Test]
+    public async Task test_joinozpool_error_playernotingame()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.AddPlayerToOzPool(game.Id, "12345"), $"Could not find player with GameId 12345 in Game {game.Id}");
+    }
+
+    [Test]
+    public async Task test_joinozpool_error_alreadyinpool()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        await gameRepo.AddPlayer(game.Id, userid);
+        Player player = await gameRepo.FindPlayerByUserId(game.Id, userid) ?? null!;
+
+        await gameRepo.AddPlayerToOzPool(game.Id, player.GameId);
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.AddPlayerToOzPool(game.Id, player.GameId), $"Player with GameId {player.GameId} is already in OZ Pool for game {game.Id}");
+    }
+
+    [Test]
+    public async Task test_joinozpool_event()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        Game? eventGame = null;
+        string? eventPlayerId = null;
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        gameRepo.PlayerJoinedOzPool += delegate (object? sender, OzUpdatedEventArgs args)
+        {
+            eventPlayerId = args.playerId;
+            eventGame = args.game;
+        };
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+
+        await gameRepo.AddPlayer(game.Id, userid);
+        Player player = await gameRepo.FindPlayerByUserId(game.Id, userid) ?? null!;
+        game = await gameRepo.AddPlayerToOzPool(game.Id, player.GameId);
+
+        Assert.That(eventGame, Is.Not.Null);
+        Assert.That(game, Is.EqualTo(eventGame));
+
+        Assert.That(eventPlayerId, Is.Not.Null);
+        Assert.That(eventPlayerId, Is.EqualTo(player.GameId));
+    }
+
+    [Test]
+    public async Task test_leaveozpool()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        await gameRepo.AddPlayer(game.Id, userid);
+        Player player = await gameRepo.FindPlayerByUserId(game.Id, userid) ?? null!;
+        game = await gameRepo.AddPlayerToOzPool(game.Id, player.GameId);
+        game = await gameRepo.RemovePlayerFromOzPool(game.Id, player.GameId);
+
+        Assert.That(game.OzPool.Count(), Is.EqualTo(0));
+    }
+
+    [Test]
+    public async Task test_leaveozpool_error_notingame()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.RemovePlayerFromOzPool(game.Id, "12345"), $"Could not find player with GameId 12345 in Game {game.Id}");
+    }
+
+    [Test]
+    public async Task test_leaveozpool_error_notinpool()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        await gameRepo.AddPlayer(game.Id, userid);
+        Player player = await gameRepo.FindPlayerByUserId(game.Id, userid) ?? null!;
+
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.RemovePlayerFromOzPool(game.Id, player.GameId), $"Player with GameId {player.GameId} is not in the OZ pool for Game {game.Id}");
+    }
+
+    [Test]
+    public async Task test_leaveozpool_event()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+        Game? eventGame = null!;
+        string? eventPlayerId = null!;
+
+        gameRepo.PlayerLeftOzPool += delegate (object? sender, OzUpdatedEventArgs args)
+        {
+            eventGame = args.game;
+            eventPlayerId = args.playerId;
+        };
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        await gameRepo.AddPlayer(game.Id, userid);
+        Player player = await gameRepo.FindPlayerByUserId(game.Id, userid) ?? null!;
+        await gameRepo.AddPlayerToOzPool(game.Id, player.GameId);
+        game = await gameRepo.RemovePlayerFromOzPool(game.Id, player.GameId);
+
+        Assert.That(eventGame, Is.Not.Null);
+        Assert.That(game, Is.EqualTo(eventGame));
+
+        Assert.That(eventPlayerId, Is.Not.Null);
+        Assert.That(eventPlayerId, Is.EqualTo(player.GameId));
+    }
+
+    [TestCase(1, 1, 2)]
+    [TestCase(2, 2, 1)]
+    [TestCase(3, 3, 0)]
+    [TestCase(4, 3, 0)]
+    public async Task test_randomozs(int count, int numSelected, int numRemaining)
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string creatorid = "0";
+        string orgid = "123";
+
+        string userid1 = "1";
+        string userid2 = "2";
+        string userid3 = "3";
+
+        Game game = await gameRepo.CreateGame(gameName, creatorid, orgid);
+        await gameRepo.AddPlayer(game.Id, userid1);
+        await gameRepo.AddPlayer(game.Id, userid2);
+        await gameRepo.AddPlayer(game.Id, userid3);
+
+        Player player1 = await gameRepo.FindPlayerByUserId(game.Id, userid1) ?? null!;
+        Player player2 = await gameRepo.FindPlayerByUserId(game.Id, userid2) ?? null!;
+        Player player3 = await gameRepo.FindPlayerByUserId(game.Id, userid3) ?? null!;
+
+        await gameRepo.AddPlayerToOzPool(game.Id, player1.GameId);
+        await gameRepo.AddPlayerToOzPool(game.Id, player2.GameId);
+        await gameRepo.AddPlayerToOzPool(game.Id, player3.GameId);
+
+        game = await gameRepo.RandomOzs(game.Id, count, creatorid);
+
+        Assert.That(game.OzPool.Count(), Is.EqualTo(numRemaining));
+        Assert.That(game.Ozs.Count(), Is.EqualTo(numSelected));
+
+    }
+
+    [Test]
+    public async Task test_randomozs_event()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string creatorid = "0";
+        string orgid = "123";
+        int randomOzCount = 3;
+        List<string> playerIds = new List<string>();
+        Game? eventGame = null;
+        string[]? ozIds = null;
+
+        gameRepo.RandomOzsSet += delegate (object? sender, RandomOzEventArgs args)
+        {
+            eventGame = args.game;
+            ozIds = args.randomOzIds;
+        };
+
+        Game game = await gameRepo.CreateGame(gameName, creatorid, orgid);
+
+        for (int i = 1; i < 5; i++)
+        {
+            await gameRepo.AddPlayer(game.Id, i.ToString());
+        }
+
+        foreach (Player player in game.Players)
+        {
+            await gameRepo.AddPlayerToOzPool(game.Id, player.GameId);
+            playerIds.Add(player.GameId);
+        }
+
+        game = await gameRepo.RandomOzs(game.Id, randomOzCount, creatorid);
+
+        Assert.That(eventGame, Is.Not.Null);
+        Assert.That(eventGame, Is.EqualTo(game));
+
+        Assert.That(ozIds, Is.Not.Null);
+        Assert.That(ozIds.Length, Is.EqualTo(randomOzCount));
+
+        foreach (string id in ozIds)
+        {
+            Assert.That(playerIds.Contains(id), Is.True);
+        }
     }
 }
