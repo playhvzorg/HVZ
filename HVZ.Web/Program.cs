@@ -58,6 +58,7 @@ internal static class Program
         var mongoDatabase = mongoClient.GetDatabase(
             mongoConfig?.DatabaseName
         );
+        builder.Services.AddSingleton<IMongoDatabase>(mongoDatabase);
 
         IGameRepo gameRepo = new GameRepo(mongoDatabase, NodaTime.SystemClock.Instance, logger);
         IUserRepo userRepo = new UserRepo(mongoDatabase, NodaTime.SystemClock.Instance, logger);
