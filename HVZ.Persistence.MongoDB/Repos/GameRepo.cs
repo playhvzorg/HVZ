@@ -1,11 +1,11 @@
-using MongoDB.Driver;
+using HVZ.Persistence.Models;
+using HVZ.Persistence.MongoDB.Serializers;
+using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.IdGenerators;
-using HVZ.Persistence.Models;
-using HVZ.Persistence.MongoDB.Serializers;
+using MongoDB.Driver;
 using NodaTime;
-using Microsoft.Extensions.Logging;
 
 namespace HVZ.Persistence.MongoDB.Repos;
 public class GameRepo : IGameRepo
@@ -121,12 +121,28 @@ public class GameRepo : IGameRepo
         return player;
     }
 
+    public async Task<Player> GetPlayerByUserId(string gameId, string userId)
+    {
+        Player? player = await FindPlayerByUserId(gameId, userId);
+        if (player is null)
+            throw new ArgumentException($"Could not find player with UserId {userId} in Game {gameId}");
+        return player;
+    }
+
     public async Task<Player?> FindPlayerByGameId(string gameId, string userGameId)
     {
         Game game = await GetGameById(gameId);
 
         Player? player = game.Players.Where(p => p.GameId == userGameId).FirstOrDefault(defaultValue: null);
 
+        return player;
+    }
+
+    public async Task<Player> GetPlayerByGameId(string gameId, string userGameId)
+    {
+        Player? player = await FindPlayerByGameId(gameId, userGameId);
+        if (player is null)
+            throw new ArgumentException($"Could not find player with GameId {userGameId} in Game {gameId}");
         return player;
     }
 
