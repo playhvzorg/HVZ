@@ -685,7 +685,6 @@ public class GameRepoTest : MongoTestBase
     [TestCase(1, 1, 2)]
     [TestCase(2, 2, 1)]
     [TestCase(3, 3, 0)]
-    [TestCase(4, 3, 0)]
     public async Task test_randomozs(int count, int numSelected, int numRemaining)
     {
         GameRepo gameRepo = CreateGameRepo();
@@ -711,6 +710,20 @@ public class GameRepoTest : MongoTestBase
         Assert.That(game.OzPool.Count(), Is.EqualTo(numRemaining));
         Assert.That(game.Ozs.Count(), Is.EqualTo(numSelected));
 
+    }
+
+    [Test]
+    public async Task test_randomozs_error()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        await gameRepo.AddPlayer(game.Id, userid);
+
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.AssignRandomOzs(game.Id, 2, userid));
     }
 
     [Test]

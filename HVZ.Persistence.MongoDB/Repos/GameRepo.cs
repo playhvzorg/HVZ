@@ -292,6 +292,9 @@ public class GameRepo : IGameRepo
         List<string> OzPool = new List<string>(game.OzPool);
         List<string> selectedOzs = new List<string>();
 
+        if (count > game.OzPool.Count)
+            throw new ArgumentException($"Could not assign {count} OZs there are only {game.OzPool.Count} players in pool");
+
         if (game.OzPool.Count > count)
         {
             for (int i = 0; i < count; i++)
