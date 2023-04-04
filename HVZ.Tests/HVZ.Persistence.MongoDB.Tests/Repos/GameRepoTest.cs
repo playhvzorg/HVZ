@@ -763,6 +763,33 @@ public class GameRepoTest : MongoTestBase
     }
 
     [Test]
+    public async Task test_setmaxtags_event()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+        int newTagCount = 2;
+        Game? eventGame = null;
+        string? eventUpdator = null;
+
+        gameRepo.GameSettingsChanged += delegate (object? sender, GameUpdatedEventArgs args)
+        {
+            eventGame = args.game;
+            eventUpdator = args.updatorId;
+        };
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        game = await gameRepo.SetOzTagCount(game.Id, newTagCount, userid);
+
+        Assert.That(eventGame, Is.Not.Null);
+        Assert.That(eventGame, Is.EqualTo(game));
+
+        Assert.That(eventUpdator, Is.Not.Null);
+        Assert.That(eventUpdator, Is.EqualTo(userid));
+    }
+
+    [Test]
     public async Task test_getmaxtags()
     {
         GameRepo gameRepo = CreateGameRepo();
