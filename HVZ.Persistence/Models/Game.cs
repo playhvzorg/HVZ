@@ -97,7 +97,7 @@ public class Game : IdEquatable<Game>
     /// </summary>
     public int OzMaxTags { get; init; } = 3;
 
-    public Game(string name, string gameid, string creatorid, string orgid, Instant createdat, Boolean isActive, Player.gameRole defaultrole, HashSet<Player> players, List<GameEventLog> eventLog, int maxOzTags = 3)
+    public Game(string name, string gameid, string creatorid, string orgid, Instant createdat, Boolean isActive, Player.gameRole defaultrole, HashSet<Player> players, List<GameEventLog> eventLog, int maxOzTags, HashSet<string>? ozPool = null)
     {
         Name = name;
         Id = gameid;
@@ -108,7 +108,7 @@ public class Game : IdEquatable<Game>
         DefaultRole = defaultrole;
         Players = players;
         EventLog = eventLog;
-        OzPool = new HashSet<string>();
+        OzPool = ozPool ?? new HashSet<string>();
         OzMaxTags = maxOzTags;
     }
 
