@@ -552,7 +552,7 @@ public class GameRepoTest : MongoTestBase
         Assert.That(game.OzPool.Count(), Is.EqualTo(0));
         game = await gameRepo.AddPlayerToOzPool(game.Id, userid);
         Assert.That(game.OzPool.Count(), Is.EqualTo(1));
-        Assert.That(game.OzPool[0], Is.EqualTo(userid));
+        Assert.That(game.OzPool.ToList()[0], Is.EqualTo(userid));
     }
 
     [Test]

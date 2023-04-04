@@ -87,7 +87,7 @@ public class Game : IdEquatable<Game>
     /// <summary>
     /// List of game IDs for players interested in being selected as OZs
     /// </summary>
-    public List<string> OzPool { get; init; }
+    public HashSet<string> OzPool { get; init; }
     /// <summary>
     /// Optional passcode for joining the OZ pool
     /// </summary>
@@ -108,7 +108,7 @@ public class Game : IdEquatable<Game>
         DefaultRole = defaultrole;
         Players = players;
         EventLog = eventLog;
-        OzPool = new List<string>();
+        OzPool = new HashSet<string>();
         OzMaxTags = maxOzTags;
     }
 

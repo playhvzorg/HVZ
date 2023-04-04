@@ -297,22 +297,23 @@ public class GameRepo : IGameRepo
     public async Task<Game> AssignRandomOzs(string gameId, int count, string instigatorId)
     {
         Game game = await GetGameById(gameId);
+        List<string> OzPool = new List<string>(game.OzPool);
         List<string> selectedOzs = new List<string>();
 
         if (game.OzPool.Count > count)
         {
             for (int i = 0; i < count; i++)
             {
-                int randomIndex = Random.Shared.Next(game.OzPool.Count);
-                string playerId = game.OzPool[randomIndex];
+                int randomIndex = Random.Shared.Next(OzPool.Count);
+                string playerId = OzPool[randomIndex];
                 selectedOzs.Add(playerId);
-                game.OzPool.Remove(playerId);
+                OzPool.Remove(playerId);
             }
         }
         else
         {
-            selectedOzs = new List<string>(game.OzPool);
-            game.OzPool.Clear();
+            selectedOzs = new List<string>(OzPool);
+            OzPool.Clear();
 
         }
 
@@ -322,7 +323,7 @@ public class GameRepo : IGameRepo
         }
 
         Game newGame = await Collection.FindOneAndUpdateAsync<Game>(g => g.Id == gameId,
-            Builders<Game>.Update.Set(g => g.OzPool, game.OzPool),
+            Builders<Game>.Update.Set(g => g.OzPool, new HashSet<string>(OzPool)),
             new FindOneAndUpdateOptions<Game, Game> { ReturnDocument = ReturnDocument.After }
         );
 
