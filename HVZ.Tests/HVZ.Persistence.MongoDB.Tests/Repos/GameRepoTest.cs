@@ -288,7 +288,7 @@ public class GameRepoTest : MongoTestBase
     }
 
     [Test]
-    public async Task test_addplayer()
+    public async Task test_addplayer_status_new()
     {
         GameRepo gameRepo = CreateGameRepo();
         string gameName = "test";
@@ -303,6 +303,54 @@ public class GameRepoTest : MongoTestBase
         Assert.That(game.Players.Count, Is.EqualTo(1));
         Assert.ThrowsAsync<ArgumentException>(() => gameRepo.AddPlayer(game.Id, userid));
 
+    }
+
+    [Test]
+    public async Task test_addplayer_status_active()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        await gameRepo.StartGame(game.Id, userid);
+        await gameRepo.AddPlayer(game.Id, userid);
+
+        game = await gameRepo.GetGameById(game.Id);
+
+        Assert.That(game.Players.Count, Is.EqualTo(1));
+    }
+
+    public async Task test_addplayer_status_paused()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        await gameRepo.StartGame(game.Id, userid);
+        await gameRepo.SetGamePaused(game.Id, true, userid);
+        await gameRepo.AddPlayer(game.Id, userid);
+
+        game = await gameRepo.GetGameById(game.Id);
+
+        Assert.That(game.Players.Count, Is.EqualTo(1));
+    }
+
+    public async Task test_addplayer_status_ended()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        await gameRepo.StartGame(game.Id, userid);
+        await gameRepo.EndGame(game.Id, userid);
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.AddPlayer(game.Id, userid),
+            $"Cannot register for Game {game.Id} because registration has ended");
     }
 
     [Test]

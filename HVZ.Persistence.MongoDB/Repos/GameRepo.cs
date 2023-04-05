@@ -153,6 +153,8 @@ public class GameRepo : IGameRepo
     public async Task<Game> AddPlayer(string gameId, string userId)
     {
         Game game = await GetGameById(gameId);
+        if (!game.IsCurrent)
+            throw new ArgumentException($"Cannot register for Game {gameId} because registration has ended");
         if (FindPlayerByUserId(gameId, userId).Result != null)
             throw new ArgumentException($"User {userId} is already in Game {gameId}!");
 
