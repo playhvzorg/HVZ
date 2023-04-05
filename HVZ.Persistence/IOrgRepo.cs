@@ -40,9 +40,20 @@ public interface IOrgRepo
     public Task<Organization> SetActiveGameOfOrg(string orgId, string gameId);
 
     /// <summary>
+    /// Sets the ActiveGameId for the org to null
+    /// </summary>
+    public Task<Organization> RemoveActiveGameOfOrg(string orgId);
+
+    /// <summary>
     /// Creates a game that belongs to an org.
     /// </summary>
     public Task<Game> CreateGame(string name, string orgId, string creatorId);
+    /// <summary>
+    /// End the active game of an org
+    /// </summary>
+    /// <returns>The game that was ended. Throws exception if the org has no active game</returns>
+    /// <exception cref="ArgumentException"></exception>
+    public Task<Game> EndGame(string orgId, string instigatorId);
     /// <summary>
     /// Find the game that the org is currently playing. Returns null if there is no active game.
     /// </summary>

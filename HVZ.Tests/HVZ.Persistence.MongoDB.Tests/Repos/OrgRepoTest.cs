@@ -151,6 +151,26 @@ public class OrgRepotest : MongoTestBase
     }
 
     [Test]
+    public async Task test_removeactivegameoforg()
+    {
+        string orgname = "test";
+        string orgurl = "testurl";
+        string userid = "0";
+        string gameid = "1";
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
+
+        Game newGame = new("test", gameid, userid, org.Id, Instant.MinValue, Game.GameStatus.New, Player.gameRole.Human, new HashSet<Player>(), new());
+        gameRepoMock.Setup(repo => repo.GetGameById("1")).ReturnsAsync(newGame);
+        await orgRepo.SetActiveGameOfOrg(org.Id, gameid);
+
+        await orgRepo.RemoveActiveGameOfOrg(org.Id);
+
+        Game? nullGame = await orgRepo.FindActiveGameOfOrg(org.Id);
+
+        Assert.That(nullGame, Is.Null);
+    }
+
+    [Test]
     public async Task test_getorgadmins()
     {
         string orgname = "test";

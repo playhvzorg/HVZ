@@ -102,6 +102,19 @@ public class OrgRepo : IOrgRepo
         return game;
     }
 
+    public async Task<Game> EndGame(string orgId, string instigatorId)
+    {
+        Organization org = await GetOrgById(orgId);
+        if (org.ActiveGameId is null)
+            throw new ArgumentException($"There is no active game in {orgId}");
+        if (await IsAdminOfOrg(orgId, instigatorId) is false)
+            throw new ArgumentException($"User {instigatorId} is not an admin of org {orgId} and cannot end the game in this org.");
+
+        Game game = await _gameRepo.EndGame(org.ActiveGameId, instigatorId);
+        await RemoveActiveGameOfOrg(orgId);
+        return game;
+    }
+
     public async Task<Organization?> FindOrgById(string orgId)
         => orgId == string.Empty ? null : await Collection.Find<Organization>(o => o.Id == orgId).FirstOrDefaultAsync();
 
@@ -140,6 +153,17 @@ public class OrgRepo : IOrgRepo
         else
             return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.ActiveGameId, gameId),
+            new() { ReturnDocument = ReturnDocument.After });
+    }
+
+    public async Task<Organization> RemoveActiveGameOfOrg(string orgId)
+    {
+        Organization org = await GetOrgById(orgId);
+        if (org.ActiveGameId is null)
+            return org;
+
+        return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
+            Builders<Organization>.Update.Set(o => o.ActiveGameId, null),
             new() { ReturnDocument = ReturnDocument.After });
     }
 
