@@ -713,7 +713,7 @@ public class GameRepoTest : MongoTestBase
     }
 
     [Test]
-    public async Task test_randomozs_error()
+    public async Task test_randomozs_error_count_too_large()
     {
         GameRepo gameRepo = CreateGameRepo();
         string gameName = "test";
