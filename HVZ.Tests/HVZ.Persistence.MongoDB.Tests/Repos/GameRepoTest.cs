@@ -154,7 +154,7 @@ public class GameRepoTest : MongoTestBase
     }
 
     [Test]
-    public async Task test_setactive()
+    public async Task test_startgame()
     {
         GameRepo gameRepo = CreateGameRepo();
         string gameName = "test";
@@ -162,10 +162,129 @@ public class GameRepoTest : MongoTestBase
         string orgid = "123";
 
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
-        game = await gameRepo.SetActive(game.Id, true, string.Empty);
-        Assert.That(game.IsActive, Is.True);
-        game = await gameRepo.SetActive(game.Id, false, string.Empty);
-        Assert.That(game.IsActive, Is.False);
+        Assert.That(game.Status == Game.GameStatus.New);
+        Assert.That(game.StartedAt, Is.Null);
+
+        game = await gameRepo.StartGame(game.Id, userid);
+        Assert.That(game.Status == Game.GameStatus.Active);
+        Assert.That(game.StartedAt, Is.Not.Null);
+        Assert.That(game.StartedAt.ToString(), Is.EqualTo(defaultTimeString));
+    }
+
+    [Test]
+    public async Task test_startgame_error_gamestarted()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        game = await gameRepo.StartGame(game.Id, userid);
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.StartGame(game.Id, userid), $"Cannot start Game {game.Id} because it has already been started");
+    }
+
+    [Test]
+    public async Task test_setpaused()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        game = await gameRepo.StartGame(game.Id, userid);
+        game = await gameRepo.SetGamePaused(game.Id, true, userid);
+        Assert.That(game.Status, Is.EqualTo(Game.GameStatus.Paused));
+        game = await gameRepo.SetGamePaused(game.Id, false, userid);
+        Assert.That(game.Status, Is.EqualTo(Game.GameStatus.Active));
+    }
+
+    [Test]
+    public async Task test_setpaused_error_gamenotstarted()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.SetGamePaused(game.Id, true, userid), $"Cannot set paused for Game {game.Id} because it has not been started yet");
+    }
+
+    [Test]
+    public async Task test_setpaused_error_gameended()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        await gameRepo.StartGame(game.Id, userid);
+        game = await gameRepo.EndGame(game.Id, userid);
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.SetGamePaused(game.Id, true, userid), $"Cannot set paused for Game {game.Id} because it has ended");
+    }
+
+    [Test]
+    public async Task test_setpaused_error_duplicatestatus()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        await gameRepo.StartGame(game.Id, userid);
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.SetGamePaused(game.Id, false, userid), $"Cannot set Game {game.Id} to {Game.GameStatus.Active} because it is already {Game.GameStatus.Active}");
+
+        await gameRepo.SetGamePaused(game.Id, true, userid);
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.SetGamePaused(game.Id, true, userid), $"Cannot set Game {game.Id} to {Game.GameStatus.Paused} because it is already {Game.GameStatus.Paused}");
+    }
+
+    [Test]
+    public async Task test_endgame()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        await gameRepo.StartGame(game.Id, userid);
+        Assert.That(game.EndedAt, Is.Null);
+
+        game = await gameRepo.EndGame(game.Id, userid);
+
+        Assert.That(game.Status, Is.EqualTo(Game.GameStatus.Ended));
+        Assert.That(game.EndedAt, Is.Not.Null);
+        Assert.That(game.EndedAt.ToString(), Is.EqualTo(defaultTimeString));
+    }
+
+    [Test]
+    public async Task test_endgame_error_gamenotstarted()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.EndGame(game.Id, userid), $"Cannot end Game {game.Id} because it has not started");
+    }
+
+    [Test]
+    public async Task test_endgame_error_alreadyended()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        await gameRepo.StartGame(game.Id, userid);
+        await gameRepo.EndGame(game.Id, userid);
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.EndGame(game.Id, userid), $"Cannot end Game {game.Id} because it has already ended");
     }
 
     [Test]
@@ -217,13 +336,16 @@ public class GameRepoTest : MongoTestBase
         game = await gameRepo.AddPlayer(game.Id, userid2);
         String user2gameid = game.Players.Where(p => p.UserId == userid2).First().GameId;
 
-        await gameRepo.SetActive(game.Id, false, string.Empty);
+        //await gameRepo.SetGameStatus(game.Id, false, string.Empty);
         //tag while game is inactive
         await gameRepo.SetPlayerToRole(game.Id, userid1, Player.gameRole.Zombie, string.Empty);
         await gameRepo.SetPlayerToRole(game.Id, userid2, Player.gameRole.Human, string.Empty);
         Assert.ThrowsAsync<ArgumentException>(() => gameRepo.LogTag(game.Id, userid1, user2gameid));
+        await gameRepo.StartGame(game.Id, userid1);
+        await gameRepo.SetGamePaused(game.Id, true, userid1);
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.LogTag(game.Id, userid1, user2gameid));
 
-        await gameRepo.SetActive(game.Id, true, string.Empty);
+        await gameRepo.SetGamePaused(game.Id, false, userid1);
         //unregistered tags player
         Assert.ThrowsAsync<ArgumentException>(() => gameRepo.LogTag(game.Id, unregisteredUserId, userid1));
         //player tags unregistered
@@ -265,7 +387,7 @@ public class GameRepoTest : MongoTestBase
         Game game = await gameRepo.CreateGame(gameName, userid1, orgid);
         await gameRepo.AddPlayer(game.Id, userid1);
         await gameRepo.AddPlayer(game.Id, userid2);
-        game = await gameRepo.SetActive(game.Id, true, string.Empty);
+        game = await gameRepo.StartGame(game.Id, userid1);
         String gameid2 = game.Players.Where(p => p.UserId == userid2).First().GameId;
 
         await gameRepo.SetPlayerToRole(game.Id, userid1, Player.gameRole.Zombie, string.Empty);
@@ -303,13 +425,25 @@ public class GameRepoTest : MongoTestBase
         string orgid = "123";
 
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+
+        // Not in the game
+        Assert.That(await gameRepo.GetCurrentGamesWithUser(userid), Is.Empty);
+
+        // In game, status is new, game in list
         await gameRepo.AddPlayer(game.Id, userid);
+        Assert.That(await gameRepo.GetCurrentGamesWithUser(userid), Is.Not.Empty);
 
-        await gameRepo.SetActive(game.Id, false, string.Empty);
-        Assert.That(await gameRepo.GetActiveGamesWithUser(userid), Is.Empty);
+        // Game status is active, game in list
+        await gameRepo.StartGame(game.Id, userid);
+        Assert.That(await gameRepo.GetCurrentGamesWithUser(userid), Is.Not.Empty);
 
-        await gameRepo.SetActive(game.Id, true, string.Empty);
-        Assert.That(await gameRepo.GetActiveGamesWithUser(userid), Is.Not.Empty);
+        // Game status is paused, game in list
+        await gameRepo.SetGamePaused(game.Id, true, userid);
+        Assert.That(await gameRepo.GetCurrentGamesWithUser(userid), Is.Not.Empty);
+
+        // Game status is ended, no games in list
+        await gameRepo.EndGame(game.Id, userid);
+        Assert.That(await gameRepo.GetCurrentGamesWithUser(userid), Is.Empty);
     }
 
     [Test]
@@ -408,7 +542,8 @@ public class GameRepoTest : MongoTestBase
         await gameRepo.AddPlayer(game.Id, userid2);
         await gameRepo.SetPlayerToRole(game.Id, userid1, Player.gameRole.Zombie, string.Empty);
         await gameRepo.SetPlayerToRole(game.Id, userid2, Player.gameRole.Human, string.Empty);
-        game = await gameRepo.SetActive(game.Id, true, string.Empty);
+        //game = await gameRepo.SetGameStatus(game.Id, true, string.Empty);
+        game = await gameRepo.StartGame(game.Id, string.Empty);
 
         String gameid2 = game.Players.Where(p => p.UserId == userid2).First().GameId;
 
@@ -422,7 +557,7 @@ public class GameRepoTest : MongoTestBase
     }
 
     [Test]
-    public async Task test_gameactivestatuschanged_event()
+    public async Task test_gamestarted_event()
     {
         GameRepo gameRepo = CreateGameRepo();
         Game? eventGame = null;
@@ -431,14 +566,80 @@ public class GameRepoTest : MongoTestBase
         string userid = "0";
         string orgid = "123";
 
-        gameRepo.GameActiveStatusChanged += delegate (object? sender, GameActiveStatusChangedEventArgs args)
+        gameRepo.GameActiveStatusChanged += delegate (object? sender, GameStatusChangedEvent args)
         {
             eventGame = args.game;
             eventUpdatorId = args.updatorId;
         };
 
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
-        game = await gameRepo.SetActive(game.Id, true, string.Empty);
+        game = await gameRepo.StartGame(game.Id, userid);
+
+        Assert.That(eventGame, Is.Not.Null);
+        Assert.That(eventUpdatorId, Is.Not.Null);
+        Assert.That(game, Is.EqualTo(eventGame));
+    }
+
+    [Test]
+    public async Task test_gamepaused_event()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        Game? eventGame = null;
+        string? eventUpdatorId = null;
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        gameRepo.GameActiveStatusChanged += delegate (object? sender, GameStatusChangedEvent args)
+        {
+            if (args.Status == Game.GameStatus.Paused)
+            {
+                eventGame = args.game;
+                eventUpdatorId = args.updatorId;
+            }
+        };
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        game = await gameRepo.StartGame(game.Id, userid);
+
+        // Sanity check
+        Assert.That(eventGame, Is.Null);
+        Assert.That(eventUpdatorId, Is.Null);
+
+        game = await gameRepo.SetGamePaused(game.Id, true, userid);
+
+        Assert.That(eventGame, Is.Not.Null);
+        Assert.That(eventUpdatorId, Is.Not.Null);
+        Assert.That(game, Is.EqualTo(eventGame));
+    }
+
+    [Test]
+    public async Task test_endgame_event()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        Game? eventGame = null;
+        string? eventUpdatorId = null;
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        gameRepo.GameActiveStatusChanged += delegate (object? sender, GameStatusChangedEvent args)
+        {
+            if (args.Status == Game.GameStatus.Ended)
+            {
+                eventGame = args.game;
+                eventUpdatorId = args.updatorId;
+            }
+        };
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        game = await gameRepo.StartGame(game.Id, userid);
+
+        // Sanity check
+        Assert.That(eventGame, Is.Null);
+        Assert.That(eventUpdatorId, Is.Null);
+
+        game = await gameRepo.EndGame(game.Id, userid);
 
         Assert.That(eventGame, Is.Not.Null);
         Assert.That(eventUpdatorId, Is.Not.Null);
@@ -488,7 +689,7 @@ public class GameRepoTest : MongoTestBase
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
         Player user = (await gameRepo.AddPlayer(game.Id, userid)).Players.First();
         await gameRepo.AddPlayer(game.Id, taggerid);
-        await gameRepo.SetActive(game.Id, true, userid);
+        await gameRepo.StartGame(game.Id, userid);
         await gameRepo.SetPlayerToRole(game.Id, taggerid, Player.gameRole.Zombie, userid);
         await gameRepo.LogTag(game.Id, taggerid, user.GameId);
 
@@ -520,20 +721,58 @@ public class GameRepoTest : MongoTestBase
     }
 
     [Test]
-    public async Task test_activestatuschangedeventlog()
+    public async Task test_startgameeventlog()
     {
         GameRepo gameRepo = CreateGameRepo();
         string gameName = "test";
         string userid = "0";
         string orgid = "123";
-        bool active = true;
 
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
         await gameRepo.AddPlayer(game.Id, userid);
-        await gameRepo.SetActive(game.Id, active, userid);
+        await gameRepo.StartGame(game.Id, userid);
 
         game = await gameRepo.GetGameById(game.Id);
-        string logMessage = $"{defaultTimeString} Game set to {"active"} by {userid}";
+        string logMessage = $"{defaultTimeString} Game set to {Game.GameStatus.Active} by {userid}";
+
+        Assert.That(game.EventLog.Last().ToString(), Is.EqualTo(logMessage));
+    }
+
+    [Test]
+    public async Task test_pausegameeventlog()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        await gameRepo.AddPlayer(game.Id, userid);
+        await gameRepo.StartGame(game.Id, userid);
+        await gameRepo.SetGamePaused(game.Id, true, userid);
+
+        game = await gameRepo.GetGameById(game.Id);
+        string logMessage = $"{defaultTimeString} Game set to {Game.GameStatus.Paused} by {userid}";
+
+        Assert.That(game.EventLog.Last().ToString(), Is.EqualTo(logMessage));
+
+    }
+
+    [Test]
+    public async Task test_endgameeventlog()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        await gameRepo.AddPlayer(game.Id, userid);
+        await gameRepo.StartGame(game.Id, userid);
+        await gameRepo.EndGame(game.Id, userid);
+
+        game = await gameRepo.GetGameById(game.Id);
+        string logMessage = $"{defaultTimeString} Game set to {Game.GameStatus.Ended} by {userid}";
 
         Assert.That(game.EventLog.Last().ToString(), Is.EqualTo(logMessage));
     }
