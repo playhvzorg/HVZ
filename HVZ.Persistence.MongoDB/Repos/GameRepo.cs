@@ -171,20 +171,6 @@ public class GameRepo : IGameRepo
         return newGame;
     }
 
-    //public async Task<Game> SetGameStatus(string gameId, Game.GameStatus status, string updatorId)
-    //{
-    //    //TODO disallow if there is an active game in the org this game belongs to
-    //    Game game = await GetGameById(gameId);
-
-    //    Game newGame = await Collection.FindOneAndUpdateAsync<Game>(g => g.Id == gameId,
-    //        Builders<Game>.Update.Set(g => g.Status, status),
-    //        new FindOneAndUpdateOptions<Game, Game>() { ReturnDocument = ReturnDocument.After }
-    //    );
-    //    _logger.LogTrace($"game {game} IsActive updated to {status}");
-    //    await OnGameActiveStatusChanged(new(game, updatorId, status));
-    //    return newGame;
-    //}
-
     public async Task<Game> StartGame(string gameId, string instigatorId)
     {
         Game game = await GetGameById(gameId);
