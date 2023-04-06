@@ -1,0 +1,54 @@
+﻿@inherits ComponentTestBase
+
+@code {
+
+    [OneTimeSetUp]
+    public void Setup()
+    {
+        mockGameRepo.Setup(r => r.GetGameById(testGameId))
+            .ReturnsAsync(Mock.Of<TestGame>());
+        RegisterServices();
+    }
+
+    [Test]
+    public void Test_DisplayStartGame()
+    {
+        var cut = Render(
+            @<CascadingValue Value="@testOrgId" Name="OrgId">
+                <GameView ActiveGameId="@null"/>
+            </CascadingValue>
+        );
+
+        cut.FindComponent<StartGame>();
+    }
+
+    [Test]
+    public void Test_DisplayActiveGame()
+    {
+        var cut = Render(
+            @<CascadingValue Value="@testOrgId" Name="OrgId">
+                <GameView ActiveGameId="@testGameId" />
+            </CascadingValue>
+        );
+
+        cut.FindComponent<ActiveGame>();
+    }
+
+    [Test]
+    public void Test_RefreshOnCreateGame()
+    {
+        var cut = Render(
+            @<CascadingValue Value="@testOrgId" Name="OrgId">
+                <GameView ActiveGameId="@null" />
+            </CascadingValue>
+        );
+
+        mockGameRepo.Raise(
+            r => r.GameCreated += null, new GameUpdatedEventArgs(
+                Mock.Of<TestGame>(), string.Empty
+            )
+        );
+
+        cut.FindComponent<ActiveGame>();
+    }
+}

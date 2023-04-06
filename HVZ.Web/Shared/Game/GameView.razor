@@ -1,5 +1,53 @@
-﻿<h3>GameView</h3>
+﻿@inject IGameRepo GameRepo
+@implements IDisposable
+
+@if (ActiveGameId is not null)
+{
+    <ActiveGame />
+}
+else
+{
+    <StartGame />
+}
 
 @code {
+    [Parameter]
+    public string? ActiveGameId { get; set; }
 
+    [CascadingParameter(Name = "OrgId")]
+    public string OrgId { get; set; } = null!;
+
+    Game activeGame = null!;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (OrgId is null)
+        {
+            throw new ArgumentNullException("Could not get OrgId please ensure that this component is inside OrgAuth");
+        }
+
+        if (ActiveGameId is not null)
+        {
+            activeGame = await GameRepo.GetGameById(ActiveGameId);
+        }
+
+        GameRepo.GameCreated += GameCreated;
+    }
+
+    void GameCreated(object? sender, GameUpdatedEventArgs eventArgs)
+    {
+        var game = eventArgs.game;
+
+        if (OrgId == game.OrgId)
+        {
+            activeGame = game;
+            ActiveGameId = game.Id;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public void Dispose()
+    {
+        GameRepo.GameCreated -= GameCreated;
+    }
 }
