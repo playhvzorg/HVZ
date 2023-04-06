@@ -7,7 +7,7 @@
 }
 else
 {
-    <StartGame />
+    <StartGame OrgId="@OrgId" />
 }
 
 @code {
@@ -18,6 +18,8 @@ else
     public string OrgId { get; set; } = null!;
 
     Game activeGame = null!;
+
+    protected override bool ShouldRender() => OrgId is not null;
 
     protected override async Task OnParametersSetAsync()
     {

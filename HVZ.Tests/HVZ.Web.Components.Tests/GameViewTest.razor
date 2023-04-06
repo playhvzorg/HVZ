@@ -8,6 +8,11 @@
         mockGameRepo.Setup(r => r.GetGameById(testGameId))
             .ReturnsAsync(Mock.Of<TestGame>());
         RegisterServices();
+        ConfigureTestAuthorization();
+
+        authContext?.SetClaims(
+            new Claim("DatabaseId", testUserId)
+        );
     }
 
     [Test]

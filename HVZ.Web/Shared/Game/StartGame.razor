@@ -1,5 +1,86 @@
-﻿<h3>StartGame</h3>
+﻿@inject IOrgRepo OrgRepo
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JS
+
+@if (IsAdmin)
+{
+    <button class="btn btn-primary w-100" id="btn-start-game">
+        <i class="fa-solid fa-plus"></i> New game
+    </button>
+
+    <div class="modal fade" id="start-game-modal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fs-5">
+                        New game
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <div class="form-floating">
+                        <input @bind="gameName" id="game-title" class="form-control" placeholder="Game title" />
+                        <label for="game-title">Game title</label>
+                    </div>
+                    @if (createGameError is not null)
+                    {
+                        <p class="mb-0 text-danger" id="error-text">@createGameError</p>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary" id="btn-new-game" @onclick="NewGame">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
+    [Parameter]
+    public string OrgId { get; set; } = null!;
+    
+    [CascadingParameter(Name = "IsAdmin")]
+    public bool IsAdmin { get; set; }
 
+    string userId = "";
+    string? gameName;
+    string? createGameError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (OrgId is null)
+        {
+            throw new ArgumentNullException("OrgId is null in StartGame");
+        }
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        userId = authState?.User.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value ?? string.Empty;
+        if (userId == string.Empty)
+        {
+            throw new ArgumentException($"UserId is null in StartGame for org {OrgId}");
+        }
+
+    }
+
+    async Task NewGame()
+    {
+        if (gameName is null)
+        {
+            createGameError = "Game title cannot be blank!";
+            return;
+        }
+
+        await JS.InvokeVoidAsync("hideModalById", "start-game-modal");
+        try
+        {
+            await OrgRepo.CreateGame(gameName, OrgId, userId);
+        }
+        catch(ArgumentException e)
+        {
+            // Scuffed but this shouldn't ever occur so its fine I guess?
+            await JS.InvokeVoidAsync("showModalById", "start-game-modal");
+            createGameError = e.Message;
+        }
+
+    }
 }
