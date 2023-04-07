@@ -1,0 +1,63 @@
+﻿@inject IGameRepo GameRepo
+
+<button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#tag-modal">
+    Tag
+</button>
+
+<div class="modal fade" id="tag-modal">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Tag
+                </h5>
+            </div>
+            <div class="modal-body">
+                <label for="id-input">ID</label>
+                <input type="number" class="form-control" placeholder="ID" />
+
+                <div class="msg-container @ErrorDisplayClass">
+                    hello
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" @onclick="ShowError">Show error</button>
+                <button class="btn btn-secondary" @onclick="ClearMessages">Hide error</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Player ActivePlayer { get; set; } = null!;
+
+    [Parameter]
+    public Game ActiveGame { get; set; } = null!;
+
+    string? tagErrorMsg;
+    string? tagSuccessMsg;
+
+    string? ErrorDisplayClass => tagErrorMsg is null ? null : "show";
+    string? SuccessDisplayClass => tagSuccessMsg is null ? null : "show";
+
+    protected override void OnInitialized()
+    {
+        if (ActivePlayer is null)
+        {
+
+        }
+    }
+
+    void ClearMessages()
+    {
+        tagErrorMsg = null;
+        tagSuccessMsg = null;
+    }
+
+    void ShowError()
+    {
+        tagErrorMsg = "Hello";
+    }
+}
