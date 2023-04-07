@@ -1,4 +1,5 @@
 ﻿@inherits ComponentTestBase
+@using System.Security.Claims
 
 @code {
 
@@ -7,7 +8,13 @@
     {
         mockGameRepo.Setup(r => r.GetGameById(testGameId))
             .ReturnsAsync(Mock.Of<TestGame>());
+
+        ConfigureTestAuthorization();
         RegisterServices();
+
+        authContext?.SetClaims(
+            new Claim("DatabaseId", testUserId)
+        );
     }
 
     [Test]
@@ -31,7 +38,7 @@
             </CascadingValue>
         );
 
-        cut.FindComponent<ActiveGame>();
+        cut.FindComponent<ActiveGameView>();
     }
 
     [Test]
@@ -49,6 +56,6 @@
             )
         );
 
-        cut.FindComponent<ActiveGame>();
+        cut.FindComponent<ActiveGameView>();
     }
 }

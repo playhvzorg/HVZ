@@ -62,7 +62,7 @@
 
 @code {
     [Parameter]
-    public Game ActiveGame { get; set; } = null!;
+    public Game? ActiveGame { get; set; }
 
     [Parameter]
     public string UserId { get; set; } = null!;
@@ -71,19 +71,14 @@
 
     protected override void OnInitialized()
     {
-        if (ActiveGame is null)
-        {
-            throw new ArgumentNullException("ActiveGame cannot be null in ActiveGameView");
-        }
-
-        activePlayer = ActiveGame.Players.FirstOrDefault(p => p.UserId == UserId);
+        activePlayer = ActiveGame?.Players.FirstOrDefault(p => p.UserId == UserId);
 
         GameRepo.PlayerJoinedGame += PlayerJoined;
     }
 
     void PlayerJoined(object? sender, PlayerUpdatedEventArgs args)
     {
-        if (args.player.UserId == UserId && args.game.Id == ActiveGame.Id)
+        if (args.player.UserId == UserId && args.game.Id == ActiveGame?.Id)
         {
             activePlayer = args.player;
             InvokeAsync(StateHasChanged);
