@@ -131,12 +131,28 @@ public class GameRepo : IGameRepo
         return player;
     }
 
+    public async Task<Player> GetPlayerByUserId(string gameId, string userId)
+    {
+        Player? player = await FindPlayerByUserId(gameId, userId);
+        if (player is null)
+            throw new ArgumentException($"Could not find player with UserId {userId} in Game {gameId}");
+        return player;
+    }
+
     public async Task<Player?> FindPlayerByGameId(string gameId, string userGameId)
     {
         Game game = await GetGameById(gameId);
 
         Player? player = game.Players.Where(p => p.GameId == userGameId).FirstOrDefault(defaultValue: null);
 
+        return player;
+    }
+
+    public async Task<Player> GetPlayerByGameId(string gameId, string userGameId)
+    {
+        Player? player = await FindPlayerByGameId(gameId, userGameId);
+        if (player is null)
+            throw new ArgumentException($"Could not find player with GameId {userGameId} in Game {gameId}");
         return player;
     }
 
