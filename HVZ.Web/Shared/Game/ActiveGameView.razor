@@ -62,24 +62,29 @@
 
 @code {
     [Parameter]
-    public Game ActiveGame { get; set; } = null!;
+    public Game? ActiveGame { get; set; }
 
     [Parameter]
-    public string UserId { get; set; } = null!;
+    public string? UserId { get; set; }
 
     Player? activePlayer;
 
     protected override void OnInitialized()
     {
-        if (ActiveGame is null)
-        {
-            throw new ArgumentNullException("ActiveGame cannot be null in ActiveGameView");
-        }
 
-        activePlayer = ActiveGame.Players.FirstOrDefault(p => p.UserId == UserId);
+
+        activePlayer = ActiveGame?.Players.FirstOrDefault(p => p.UserId == UserId);
 
         GameRepo.PlayerJoinedGame += PlayerJoined;
     }
+
+    //protected override void OnParametersSet()
+    //{
+    //    if (ActiveGame is null)
+    //    {
+    //        throw new ArgumentNullException("ActiveGame cannot be null in ActiveGameView");
+    //    }
+    //}
 
     void PlayerJoined(object? sender, PlayerUpdatedEventArgs args)
     {

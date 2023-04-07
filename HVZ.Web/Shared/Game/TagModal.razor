@@ -16,14 +16,26 @@
                 <label for="id-input">ID</label>
                 <input type="number" class="form-control" placeholder="ID" />
 
-                <div class="msg-container @ErrorDisplayClass">
+                @*<div class="msg-container @ErrorDisplayClass">
                     hello
-                </div>
+                </div>*@
+
+                @if (tagErrorMsg is not null)
+                {
+                    <div class="alert alert-danger d-flex">
+                        <button class="btn-close"></button>
+                    </div>
+                }
+
+                @if (tagSuccessMsg is not null)
+                {
+                    <div class="alert alert-success d-flex">
+                        <button class="btn-close"></button>
+                    </div>
+                }
 
             </div>
             <div class="modal-footer">
-                <button class="btn btn-primary" @onclick="ShowError">Show error</button>
-                <button class="btn btn-secondary" @onclick="ClearMessages">Hide error</button>
             </div>
         </div>
     </div>
@@ -56,8 +68,8 @@
         tagSuccessMsg = null;
     }
 
-    void ShowError()
+    void LogTag()
     {
-        tagErrorMsg = "Hello";
+        
     }
 }

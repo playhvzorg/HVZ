@@ -20,10 +20,12 @@
                     <i class="fa-solid fa-user"></i> Role: <GameRoleTracker ShowOz="true" Player="@ActivePlayer" GameId="@ActiveGame?.Id" />
                 </p>
                 <p class="mb-0">
-                    <i class="fa-solid fa-people-robbery"></i> Tags: <GameTagCounter Player="@ActivePlayer" GameId="@ActiveGame.Id" />
+                    <i class="fa-solid fa-people-robbery"></i> Tags: <GameTagCounter Player="@ActivePlayer" GameId="@ActiveGame?.Id" />
                 </p>
             </div>
         </div>
+
+        <TagModal ActiveGame="@ActiveGame" ActivePlayer="@ActivePlayer" />
     }
     else
     {
