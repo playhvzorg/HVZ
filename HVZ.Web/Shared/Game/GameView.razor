@@ -2,9 +2,9 @@
 @implements IDisposable
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
-@if (ActiveGameId is not null)
+@if (activeGame is not null)
 {
-    <ActiveGameView ActiveGame="@activeGame" />
+    <ActiveGameView ActiveGame="@activeGame" UserId="@userId" />
 }
 else
 {
@@ -30,11 +30,6 @@ else
         {
             throw new ArgumentNullException("Current user is not authenticated and should not have access to GameView");
         }
-
-        //if (OrgId is null)
-        //{
-        //    throw new ArgumentNullException("Could not get OrgId please ensure that this component is inside OrgAuth");
-        //}
 
         if (ActiveGameId is not null)
         {

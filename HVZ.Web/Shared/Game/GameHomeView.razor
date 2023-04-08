@@ -41,7 +41,7 @@
     <hr />
     @if (Org is not null)
     {
-        <MarkdownDisplay Source="@Org?.Description" />
+        <MarkdownDisplay Source="@Org.Description" />
     }
     
 </div>
@@ -58,4 +58,15 @@
 
     [CascadingParameter(Name = "Org")]
     Organization? Org { get; set; }
+
+    protected override bool ShouldRender()
+    {
+        return ActivePlayer is not null;
+    }
+
+    protected override void OnInitialized()
+    {
+        Console.WriteLine(ActivePlayer);
+        base.OnInitialized();
+    }
 }
