@@ -73,7 +73,7 @@
         await JS.InvokeVoidAsync("hideModalById", "start-game-modal");
         try
         {
-            await OrgRepo.CreateGame(gameName, OrgId, userId);
+            await OrgRepo.CreateGame(gameName, OrgId, userId, 3);
         }
         catch(ArgumentException e)
         {

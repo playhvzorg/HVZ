@@ -7,7 +7,7 @@
     public void Setup()
     {
         mockOrgRepo.Setup(
-            r => r.CreateGame(testGameName, testOrgId, testUserId)
+            r => r.CreateGame(testGameName, testOrgId, testUserId, 3)
         ).ReturnsAsync(
             Mock.Of<TestGame>()
         ).Verifiable();
