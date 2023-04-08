@@ -1,58 +1,60 @@
 ﻿@inject IUserRepo UserRepo
 @inject IGameRepo GameRepo
 
-<button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#tag-modal">
+<button class="btn btn-primary w-100 @OpenModalEnabledClass" data-bs-toggle="modal" data-bs-target="#tag-modal" id="open-modal">
     Tag
 </button>
+@if (ActiveGame?.IsActive ?? false)
+{
+    <div class="modal fade" id="tag-modal">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        Tag
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <label for="id-input">ID</label>
+                    <input id="id-input" name="id-input" type="number" @bind="receiverId" @bind:event="oninput" class="form-control" placeholder="ID" />
 
-<div class="modal fade" id="tag-modal">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    Tag
-                </h5>
-            </div>
-            <div class="modal-body">
-                <label for="id-input">ID</label>
-                <input type="number" @bind="receiverId" @bind:event="oninput" class="form-control" placeholder="ID" />
-
-                @if (tagErrorMsg is not null)
-                {
-                    <div class="alert alert-danger d-flex mt-3">
-                        <div class="d-flex">
-                            <div class="flex-grow-1">
-                                @tagErrorMsg
-                            </div>
-                            <div class="flex-grow-0">
-                                <button class="btn-close" @onclick="ClearMessages"></button>
-                            </div>
-                        </div>
-                    </div>
-                }
-
-                @if (tagSuccessMsg is not null)
-                {
-                    <div class="alert alert-success d-flex mt-3">
-                        <div class="d-flex">
-                            <div class="flex-grow-1">
-                                @tagSuccessMsg
-                            </div>
-                            <div class="flex-grow-0">
-                                <button class="btn-close" @onclick="ClearMessages"></button>
+                    @if (tagErrorMsg is not null)
+                    {
+                        <div class="alert alert-danger d-flex mt-3">
+                            <div class="d-flex">
+                                <div class="flex-grow-1" id="display-error-msg">
+                                    @tagErrorMsg
+                                </div>
+                                <div class="flex-grow-0">
+                                    <button class="btn-close" @onclick="ClearMessages"></button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                }
+                    }
 
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-toggle="modal">Close</button>
-                <button class="btn btn-primary @SubmitEnabledClass" @onclick="LogTag">Tag</button>
+                    @if (tagSuccessMsg is not null)
+                    {
+                        <div class="alert alert-success d-flex mt-3">
+                            <div class="d-flex">
+                                <div class="flex-grow-1" id="display-success-msg">
+                                    @tagSuccessMsg
+                                </div>
+                                <div class="flex-grow-0">
+                                    <button class="btn-close" @onclick="ClearMessages"></button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-toggle="modal">Close</button>
+                    <button class="btn btn-primary @SubmitEnabledClass" @onclick="LogTag" id="tag-btn">Tag</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
+}
 
 @code {
     [Parameter]
@@ -67,6 +69,7 @@
     string? tagSuccessMsg;
 
     string? SubmitEnabledClass => receiverId?.Length == 4 ? null : "disabled";
+    string? OpenModalEnabledClass => ActiveGame?.IsActive ?? false ? null : "disabled";
 
     void ClearMessages()
     {
@@ -97,12 +100,14 @@
         }
         catch(ArgumentException)
         {
-            if (await GameRepo.FindPlayerByGameId(ActiveGame.Id, receiverId) is null)
+            Player? receiver = await GameRepo.FindPlayerByGameId(ActiveGame.Id, receiverId);
+
+            if (receiver is null)
             {
                 tagErrorMsg = $"{receiverId} is not a valid ID number";
             }
 
-            else if (ActiveGame.Humans.FirstOrDefault(p => p.GameId == receiverId) is null)
+            else if (receiver.Role != Player.gameRole.Human)
             {
                 tagErrorMsg = $"The player with the ID: {receiverId} is not a human";
             }
