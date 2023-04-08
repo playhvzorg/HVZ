@@ -1,4 +1,5 @@
 ﻿@inherits ComponentTestBase
+@using System.Security.Claims
 
 @code {
 
@@ -92,12 +93,6 @@
 
         var btn = cut.Find("#btn-new-game");
         btn.Click();
-        
-        // TODO: Figure out how Verify actually works
-        // Currently saying that this is not being called at all
-        //mockOrgRepo.Verify(
-        //    r => r.CreateGame(testGameName, testOrgId, testUserId)
-        //);
 
         Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find("#error-text"));
     }
