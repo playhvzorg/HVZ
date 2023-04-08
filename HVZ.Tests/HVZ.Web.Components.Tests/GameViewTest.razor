@@ -11,6 +11,7 @@
 
         ConfigureTestAuthorization();
         RegisterServices();
+        ConfigureTestAuthorization();
 
         authContext?.SetClaims(
             new Claim("DatabaseId", testUserId)
