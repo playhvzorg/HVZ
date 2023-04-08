@@ -140,7 +140,7 @@ public class OrgRepotest : MongoTestBase
         string userid = "0";
         string gameid = "1";
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
-        Game newGame = new("test", gameid, userid, org.Id, Instant.MinValue, true, Player.gameRole.Human, new HashSet<Player>(), new());
+        Game newGame = new("test", gameid, userid, org.Id, Instant.MinValue, true, Player.gameRole.Human, new HashSet<Player>(), new(), 9999);
         gameRepoMock.Setup(repo => repo.GetGameById("1")).ReturnsAsync(newGame);
         await orgRepo.SetActiveGameOfOrg(org.Id, gameid);
 
@@ -266,10 +266,11 @@ public class OrgRepotest : MongoTestBase
             isActive: true,
             defaultrole: Player.gameRole.Human,
             players: new HashSet<Player>(),
-            eventLog: new()
+            eventLog: new(),
+            maxOzTags: 9999
         );
 
-        gameRepoMock.Setup(repo => repo.CreateGame(gameName, userid, org.Id)).ReturnsAsync(game);
+        gameRepoMock.Setup(repo => repo.CreateGame(gameName, userid, org.Id, 3)).ReturnsAsync(game);
         gameRepoMock.Setup(repo => repo.GetGameById(game.Id)).ReturnsAsync(game);
         await orgRepo.CreateGame(gameName, userid, org.Id);
         org = await orgRepo.GetOrgById(org.Id);
@@ -295,10 +296,11 @@ public class OrgRepotest : MongoTestBase
             isActive: true,
             defaultrole: Player.gameRole.Human,
             players: new HashSet<Player>(),
-            new()
+            new(),
+            maxOzTags: 9999
         );
 
-        gameRepoMock.Setup(repo => repo.CreateGame(gameName, userid, org.Id)).ReturnsAsync(game);
+        gameRepoMock.Setup(repo => repo.CreateGame(gameName, userid, org.Id, 3)).ReturnsAsync(game);
 
         Assert.That(await orgRepo.CreateGame(gameName, userid, org.Id), Is.Not.Null);
         Assert.ThrowsAsync<ArgumentException>(() => orgRepo.CreateGame(gameName, otherUserId, org.Id));
