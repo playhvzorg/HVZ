@@ -175,8 +175,8 @@ public interface IGameRepo
     public event EventHandler<TagEventArgs> TagLogged;
     /// <summary>
     /// Event that fires when a game's isActive status is changed
-    public event EventHandler<GameStatusChangedEvent> GameActiveStatusChanged;
     /// </summary>
+    public event EventHandler<GameStatusChangedEvent> GameActiveStatusChanged;
     /// <summary>
     /// Event that fires when a game's settings are changed
     /// </summary>
@@ -193,7 +193,6 @@ public interface IGameRepo
     /// Event that fires when random OZs are set
     /// </summary>
     public event EventHandler<RandomOzEventArgs> RandomOzsSet;
-    
 }
 
 public class GameUpdatedEventArgs : EventArgs
