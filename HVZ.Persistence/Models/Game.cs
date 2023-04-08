@@ -113,7 +113,7 @@ public class Game : IdEquatable<Game>
     /// </summary>
     public int OzMaxTags { get; init; } = 3;
 
-    public Game(string name, string gameid, string creatorid, string orgid, Instant createdat, GameStatus status, Player.gameRole defaultrole, HashSet<Player> players, List<GameEventLog> eventLog)
+    public Game(string name, string gameid, string creatorid, string orgid, Instant createdat, GameStatus status, Player.gameRole defaultrole, HashSet<Player> players, List<GameEventLog> eventLog, int maxOzTags, HashSet<string>? ozPool = null)
     {
         Name = name;
         Id = gameid;
