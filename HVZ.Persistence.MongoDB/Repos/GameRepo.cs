@@ -159,7 +159,7 @@ public class GameRepo : IGameRepo
     public async Task<Game> AddPlayer(string gameId, string userId)
     {
         Game game = await GetGameById(gameId);
-        if (FindPlayerByUserId(gameId, userId).Result != null)
+        if (await FindPlayerByUserId(gameId, userId) != null)
             throw new ArgumentException($"User {userId} is already in Game {gameId}!");
 
         Player player = new Player(userId, await GeneratePlayerGameId(gameId), game.DefaultRole, 0, _clock.GetCurrentInstant());
