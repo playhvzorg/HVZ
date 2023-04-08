@@ -1,4 +1,5 @@
-﻿@inject IGameRepo GameRepo
+﻿@inject IUserRepo UserRepo
+@inject IGameRepo GameRepo
 
 <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#tag-modal">
     Tag
@@ -14,28 +15,40 @@
             </div>
             <div class="modal-body">
                 <label for="id-input">ID</label>
-                <input type="number" class="form-control" placeholder="ID" />
-
-                @*<div class="msg-container @ErrorDisplayClass">
-                    hello
-                </div>*@
+                <input type="number" @bind="receiverId" @bind:event="oninput" class="form-control" placeholder="ID" />
 
                 @if (tagErrorMsg is not null)
                 {
-                    <div class="alert alert-danger d-flex">
-                        <button class="btn-close"></button>
+                    <div class="alert alert-danger d-flex mt-3">
+                        <div class="d-flex">
+                            <div class="flex-grow-1">
+                                @tagErrorMsg
+                            </div>
+                            <div class="flex-grow-0">
+                                <button class="btn-close" @onclick="ClearMessages"></button>
+                            </div>
+                        </div>
                     </div>
                 }
 
                 @if (tagSuccessMsg is not null)
                 {
-                    <div class="alert alert-success d-flex">
-                        <button class="btn-close"></button>
+                    <div class="alert alert-success d-flex mt-3">
+                        <div class="d-flex">
+                            <div class="flex-grow-1">
+                                @tagSuccessMsg
+                            </div>
+                            <div class="flex-grow-0">
+                                <button class="btn-close" @onclick="ClearMessages"></button>
+                            </div>
+                        </div>
                     </div>
                 }
 
             </div>
             <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-toggle="modal">Close</button>
+                <button class="btn btn-primary @SubmitEnabledClass" @onclick="LogTag">Tag</button>
             </div>
         </div>
     </div>
@@ -48,19 +61,12 @@
     [Parameter]
     public Game ActiveGame { get; set; } = null!;
 
+    string? receiverId;
+
     string? tagErrorMsg;
     string? tagSuccessMsg;
 
-    string? ErrorDisplayClass => tagErrorMsg is null ? null : "show";
-    string? SuccessDisplayClass => tagSuccessMsg is null ? null : "show";
-
-    protected override void OnInitialized()
-    {
-        if (ActivePlayer is null)
-        {
-
-        }
-    }
+    string? SubmitEnabledClass => receiverId?.Length == 4 ? null : "disabled";
 
     void ClearMessages()
     {
@@ -68,8 +74,40 @@
         tagSuccessMsg = null;
     }
 
-    void LogTag()
+    async void LogTag()
     {
-        
+        if (ActiveGame is null)
+            throw new ArgumentNullException("Active game cannot be null");
+
+        if (ActivePlayer is null)
+            throw new ArgumentNullException("Active player cannot be null");
+
+        if (receiverId is null)
+            throw new ArgumentNullException("Make sure the tag button is being properly disabled");
+
+        ClearMessages();
+
+        try
+        {
+            await GameRepo.LogTag(ActiveGame.Id, ActivePlayer.UserId, receiverId);
+            Player targetPlayer = await GameRepo.GetPlayerByGameId(ActiveGame.Id, receiverId);
+            User targetUser = await UserRepo.GetUserById(targetPlayer.UserId);
+
+            tagSuccessMsg = $"You tagged {targetUser.FullName}!";
+        }
+        catch(ArgumentException)
+        {
+            if (await GameRepo.FindPlayerByGameId(ActiveGame.Id, receiverId) is null)
+            {
+                tagErrorMsg = $"{receiverId} is not a valid ID number";
+            }
+
+            else if (ActiveGame.Humans.FirstOrDefault(p => p.GameId == receiverId) is null)
+            {
+                tagErrorMsg = $"The player with the ID: {receiverId} is not a human";
+            }
+        }
+        receiverId = null;
+        StateHasChanged();
     }
 }
