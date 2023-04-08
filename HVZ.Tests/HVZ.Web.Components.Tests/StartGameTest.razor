@@ -1,0 +1,99 @@
+﻿@inherits ComponentTestBase
+@using System.Security.Claims
+
+@code {
+
+    [OneTimeSetUp]
+    public void Setup()
+    {
+        mockOrgRepo.Setup(
+            r => r.CreateGame(testGameName, testOrgId, testUserId, 3)
+        ).ReturnsAsync(
+            Mock.Of<TestGame>()
+        ).Verifiable();
+
+        JSInterop.SetupVoid("hideModalById", _ => true);
+        RegisterServices();
+        ConfigureTestAuthorization();
+    }
+
+    [Test]
+    public void Test_DoNotRenderForNonAdmin()
+    {
+        authContext?.SetClaims(
+            new Claim("DatabaseId", testUserId)
+        );
+
+        var cut = Render(
+            @<CascadingValue Value="@false" Name="IsAdmin">
+                <StartGame OrgId="@testOrgId" />
+            </CascadingValue>
+        );
+
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find("#btn-start-game"));
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find("#start-game-modal"));
+    }
+
+    [Test]
+    public void Test_RenderForAdmin()
+    {
+        authContext?.SetClaims(
+            new Claim("DatabaseId", testUserId)
+        );
+
+        var cut = Render(
+            @<CascadingValue Value="@true" Name="IsAdmin">
+                <StartGame OrgId="@testOrgId" />
+            </CascadingValue>
+        );
+
+        Assert.DoesNotThrow(() => cut.Find("#btn-start-game"));
+        Assert.DoesNotThrow(() => cut.Find("#start-game-modal"));
+    }
+
+    [Test]
+    public void Test_ErrorOnEmptyGameTitle()
+    {
+        authContext?.SetClaims(
+            new Claim("DatabaseId", testUserId)
+        );
+
+        var cut = Render(
+            @<CascadingValue Value="@true" Name="IsAdmin">
+                <StartGame OrgId="@testOrgId" />
+            </CascadingValue>
+        );
+        
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find("#error-text"));
+
+        var btn = cut.Find("#btn-new-game");
+        btn.Click();
+
+        var errorText = cut.Find("#error-text");
+        errorText.MarkupMatches(
+            @<p id:ignore class:regex="(text-danger){1}" diff:ignoreChildren></p>
+        );
+    }
+
+    [Test]
+    public void Test_NewGame()
+    {
+        authContext?.SetClaims(
+            new Claim("DatabaseId", testUserId)
+        );
+
+        var cut = Render(
+            @<CascadingValue Value="@true" Name="IsAdmin">
+                <StartGame OrgId="@testOrgId" />
+            </CascadingValue>
+        );
+
+        var input = cut.Find("#game-title");
+        input.Change(testGameName);
+
+        var btn = cut.Find("#btn-new-game");
+        btn.Click();
+
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find("#error-text"));
+    }
+}
