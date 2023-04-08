@@ -159,7 +159,7 @@ public class OrgRepotest : MongoTestBase
         string gameid = "1";
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
 
-        Game newGame = new("test", gameid, userid, org.Id, Instant.MinValue, Game.GameStatus.New, Player.gameRole.Human, new HashSet<Player>(), new());
+        Game newGame = new("test", gameid, userid, org.Id, Instant.MinValue, Game.GameStatus.New, Player.gameRole.Human, new HashSet<Player>(), new(), 9999);
         gameRepoMock.Setup(repo => repo.GetGameById("1")).ReturnsAsync(newGame);
         await orgRepo.SetActiveGameOfOrg(org.Id, gameid);
 
