@@ -81,7 +81,7 @@ public interface IGameRepo
     /// <param name="instigatorId">The glboal Id for the user initiating the change</param>
     /// <returns>The updated game. Throws exception if the <see cref="Game.GameStatus"/> is not either Active or Paused</returns>
     /// <exception cref="ArgumentException"></exception>
-    public Task<Game> SetGamePaused(string gameId, bool paused, string instigatorId);
+    public Task<Game> PauseGame(string gameId, bool paused, string instigatorId);
 
     /// <summary>
     /// Set the <see cref="Game.GameStatus"/> to Ended and set the endedAt field to the current <see cref="NodaTime.Instant"/>

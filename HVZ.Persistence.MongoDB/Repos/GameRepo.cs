@@ -191,7 +191,7 @@ public class GameRepo : IGameRepo
         return newGame;
     }
 
-    public async Task<Game> SetGamePaused(string gameId, bool paused, string instigatorId)
+    public async Task<Game> PauseGame(string gameId, bool paused, string instigatorId)
     {
         Game game = await GetGameById(gameId);
 

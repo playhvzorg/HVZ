@@ -194,9 +194,9 @@ public class GameRepoTest : MongoTestBase
 
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
         game = await gameRepo.StartGame(game.Id, userid);
-        game = await gameRepo.SetGamePaused(game.Id, true, userid);
+        game = await gameRepo.PauseGame(game.Id, true, userid);
         Assert.That(game.Status, Is.EqualTo(Game.GameStatus.Paused));
-        game = await gameRepo.SetGamePaused(game.Id, false, userid);
+        game = await gameRepo.PauseGame(game.Id, false, userid);
         Assert.That(game.Status, Is.EqualTo(Game.GameStatus.Active));
     }
 
@@ -209,7 +209,7 @@ public class GameRepoTest : MongoTestBase
         string orgid = "123";
 
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
-        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.SetGamePaused(game.Id, true, userid), $"Cannot set paused for Game {game.Id} because it has not been started yet");
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.PauseGame(game.Id, true, userid), $"Cannot set paused for Game {game.Id} because it has not been started yet");
     }
 
     [Test]
@@ -223,7 +223,7 @@ public class GameRepoTest : MongoTestBase
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
         await gameRepo.StartGame(game.Id, userid);
         game = await gameRepo.EndGame(game.Id, userid);
-        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.SetGamePaused(game.Id, true, userid), $"Cannot set paused for Game {game.Id} because it has ended");
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.PauseGame(game.Id, true, userid), $"Cannot set paused for Game {game.Id} because it has ended");
     }
 
     [Test]
@@ -236,10 +236,10 @@ public class GameRepoTest : MongoTestBase
 
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
         await gameRepo.StartGame(game.Id, userid);
-        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.SetGamePaused(game.Id, false, userid), $"Cannot set Game {game.Id} to {Game.GameStatus.Active} because it is already {Game.GameStatus.Active}");
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.PauseGame(game.Id, false, userid), $"Cannot set Game {game.Id} to {Game.GameStatus.Active} because it is already {Game.GameStatus.Active}");
 
-        await gameRepo.SetGamePaused(game.Id, true, userid);
-        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.SetGamePaused(game.Id, true, userid), $"Cannot set Game {game.Id} to {Game.GameStatus.Paused} because it is already {Game.GameStatus.Paused}");
+        await gameRepo.PauseGame(game.Id, true, userid);
+        Assert.ThrowsAsync<ArgumentException>(() => gameRepo.PauseGame(game.Id, true, userid), $"Cannot set Game {game.Id} to {Game.GameStatus.Paused} because it is already {Game.GameStatus.Paused}");
     }
 
     [Test]
@@ -331,7 +331,7 @@ public class GameRepoTest : MongoTestBase
 
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
         await gameRepo.StartGame(game.Id, userid);
-        await gameRepo.SetGamePaused(game.Id, true, userid);
+        await gameRepo.PauseGame(game.Id, true, userid);
         await gameRepo.AddPlayer(game.Id, userid);
 
         game = await gameRepo.GetGameById(game.Id);
@@ -390,10 +390,10 @@ public class GameRepoTest : MongoTestBase
         await gameRepo.SetPlayerToRole(game.Id, userid2, Player.gameRole.Human, string.Empty);
         Assert.ThrowsAsync<ArgumentException>(() => gameRepo.LogTag(game.Id, userid1, user2gameid));
         await gameRepo.StartGame(game.Id, userid1);
-        await gameRepo.SetGamePaused(game.Id, true, userid1);
+        await gameRepo.PauseGame(game.Id, true, userid1);
         Assert.ThrowsAsync<ArgumentException>(() => gameRepo.LogTag(game.Id, userid1, user2gameid));
 
-        await gameRepo.SetGamePaused(game.Id, false, userid1);
+        await gameRepo.PauseGame(game.Id, false, userid1);
         //unregistered tags player
         Assert.ThrowsAsync<ArgumentException>(() => gameRepo.LogTag(game.Id, unregisteredUserId, userid1));
         //player tags unregistered
@@ -486,7 +486,7 @@ public class GameRepoTest : MongoTestBase
         Assert.That(await gameRepo.GetCurrentGamesWithUser(userid), Is.Not.Empty);
 
         // Game status is paused, game in list
-        await gameRepo.SetGamePaused(game.Id, true, userid);
+        await gameRepo.PauseGame(game.Id, true, userid);
         Assert.That(await gameRepo.GetCurrentGamesWithUser(userid), Is.Not.Empty);
 
         // Game status is ended, no games in list
@@ -654,7 +654,7 @@ public class GameRepoTest : MongoTestBase
         Assert.That(eventGame, Is.Null);
         Assert.That(eventUpdatorId, Is.Null);
 
-        game = await gameRepo.SetGamePaused(game.Id, true, userid);
+        game = await gameRepo.PauseGame(game.Id, true, userid);
 
         Assert.That(eventGame, Is.Not.Null);
         Assert.That(eventUpdatorId, Is.Not.Null);
@@ -797,7 +797,7 @@ public class GameRepoTest : MongoTestBase
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
         await gameRepo.AddPlayer(game.Id, userid);
         await gameRepo.StartGame(game.Id, userid);
-        await gameRepo.SetGamePaused(game.Id, true, userid);
+        await gameRepo.PauseGame(game.Id, true, userid);
 
         game = await gameRepo.GetGameById(game.Id);
         string logMessage = $"{defaultTimeString} Game set to {Game.GameStatus.Paused} by {userid}";
