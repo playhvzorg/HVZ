@@ -100,8 +100,20 @@ public class Game : IdEquatable<Game>
     /// The role to put new people in when they join this game
     /// </summary>
     public Player.gameRole DefaultRole { get; init; }
+    /// <summary>
+    /// List of game IDs for players interested in being selected as OZs
+    /// </summary>
+    public HashSet<string> OzPool { get; init; }
+    /// <summary>
+    /// Optional passcode for joining the OZ pool
+    /// </summary>
+    public string? OzPassword { get; init; }
+    /// <summary>
+    /// The maximum number of tags a player can get as an OZ
+    /// </summary>
+    public int OzMaxTags { get; init; } = 3;
 
-    public Game(string name, string gameid, string creatorid, string orgid, Instant createdat, GameStatus status, Player.gameRole defaultrole, HashSet<Player> players, List<GameEventLog> eventLog)
+    public Game(string name, string gameid, string creatorid, string orgid, Instant createdat, Boolean isActive, Player.gameRole defaultrole, HashSet<Player> players, List<GameEventLog> eventLog, int maxOzTags, HashSet<string>? ozPool = null)
     {
         Name = name;
         Id = gameid;
@@ -112,6 +124,8 @@ public class Game : IdEquatable<Game>
         DefaultRole = defaultrole;
         Players = players;
         EventLog = eventLog;
+        OzPool = ozPool ?? new HashSet<string>();
+        OzMaxTags = maxOzTags;
     }
 
     public override string ToString()

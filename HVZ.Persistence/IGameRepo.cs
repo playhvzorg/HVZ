@@ -5,7 +5,7 @@ public interface IGameRepo
     /// <summary>
     /// Add a new game to the repo. This is usually done from the OrgRepo, see <see cref="IOrgRepo.CreateGame"/>
     /// </summary>
-    public Task<Game> CreateGame(string Name, string creatorUserId, string orgid);
+    public Task<Game> CreateGame(string Name, string creatorUserId, string orgid, int ozMaxTags = 3);
     /// <summary>
     /// Find a game by its Id
     /// </summary>
@@ -123,6 +123,41 @@ public interface IGameRepo
     public Task<List<GameEventLog>> GetGameEventLog(string gameId);
 
     /// <summary>
+    /// Add a player to the game's OZ pool
+    /// </summary>
+    /// <param name="gameId">ID for the game</param>
+    /// <param name="userId">Player's UserId</param>
+    public Task<Game> AddPlayerToOzPool(string gameId, string userId);
+
+    /// <summary>
+    /// Remove a player from the game's OZ pool
+    /// </summary>
+    /// <param name="gameId">ID for the game</param>
+    /// <param name="userId">Player's UserId</param>
+    public Task<Game> RemovePlayerFromOzPool(string gameId, string userId);
+
+    /// <summary>
+    /// Select the specified number of random players from the game's OZ pool, set them to OZ, and remove them from the OZ pool
+    /// </summary>
+    /// <param name="gameId">ID for the game</param>
+    /// <param name="count">Number of random OZs</param>
+    /// <param name="instigatorId">UserId for user responsible for this action</param>
+    public Task<Game> AssignRandomOzs(string gameId, int count, string instigatorId);
+
+    /// <summary>
+    /// Set the maximum number of tags a player can get as an OZ
+    /// </summary>
+    /// <param name="gameId">ID for the game</param>
+    /// <param name="count">Maximum number of OZ tags</param>
+    /// <param name="instigatorId">UserId for the user responsible for this action</param>
+    public Task<Game> SetOzTagCount(string gameId, int count, string instigatorId);
+
+    /// <summary>
+    /// Get the maximum number of tags a player can get as an OZ
+    /// </summary>
+    public Task<int> GetOzTagCount(string gameId);
+
+    /// <summary>
     /// Event that fires when a new game is created
     /// </summary>
     public event EventHandler<GameUpdatedEventArgs> GameCreated;
@@ -142,6 +177,22 @@ public interface IGameRepo
     /// Event that fires when a game's isActive status is changed
     /// </summary>
     public event EventHandler<GameStatusChangedEvent> GameActiveStatusChanged;
+    /// <summary>
+    /// Event that fires when a game's settings are changed
+    /// </summary>
+    public event EventHandler<GameUpdatedEventArgs> GameSettingsChanged;
+    /// <summary>
+    /// Event that fires when a player joins the OZ pool
+    /// </summary>
+    public event EventHandler<OzPoolUpdatedEventArgs> PlayerJoinedOzPool;
+    /// <summary>
+    /// Event that fires when a player leaves the OZ pool
+    /// </summary>
+    public event EventHandler<OzPoolUpdatedEventArgs> PlayerLeftOzPool;
+    /// <summary>
+    /// Event that fires when random OZs are set
+    /// </summary>
+    public event EventHandler<RandomOzEventArgs> RandomOzsSet;
 }
 
 public class GameUpdatedEventArgs : EventArgs
@@ -204,5 +255,29 @@ public class GameStatusChangedEvent : EventArgs
         game = g;
         updatorId = id;
         Status = status;
+    }
+}
+
+public class OzPoolUpdatedEventArgs : EventArgs
+{
+    public Game game { get; init; }
+    public string playerId { get; init; }
+    public OzPoolUpdatedEventArgs(Game game, string playerId)
+    {
+        this.game = game;
+        this.playerId = playerId;
+    }
+}
+
+public class RandomOzEventArgs : EventArgs
+{
+    public Game game { get; init; }
+    public string[] randomOzIds { get; init; }
+    public string instigatorId { get; init; }
+    public RandomOzEventArgs(Game game, string[] randomOzIds, string instigatorId)
+    {
+        this.game = game;
+        this.randomOzIds = randomOzIds;
+        this.instigatorId = instigatorId;
     }
 }

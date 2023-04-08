@@ -47,7 +47,7 @@ public interface IOrgRepo
     /// <summary>
     /// Creates a game that belongs to an org.
     /// </summary>
-    public Task<Game> CreateGame(string name, string orgId, string creatorId);
+    public Task<Game> CreateGame(string name, string orgId, string creatorId, int ozTagCount);
     /// <summary>
     /// End the active game of an org
     /// </summary>

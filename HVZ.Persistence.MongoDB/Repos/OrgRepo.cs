@@ -91,13 +91,13 @@ public class OrgRepo : IOrgRepo
         return org;
     }
 
-    public async Task<Game> CreateGame(string name, string creatorId, string orgId)
+    public async Task<Game> CreateGame(string name, string creatorId, string orgId, int ozTagCount = 3)
     {
         if (await IsAdminOfOrg(orgId, creatorId) is false)
             throw new ArgumentException($"User {creatorId} is not an admin of org {orgId} and cannot create a game in this org.");
         if (await FindActiveGameOfOrg(orgId) is not null)
             throw new ArgumentException($"There is already an active game in org {orgId}, not allowing creation of a new game");
-        Game game = await _gameRepo.CreateGame(name, creatorId, orgId);
+        Game game = await _gameRepo.CreateGame(name, creatorId, orgId, ozTagCount);
         await SetActiveGameOfOrg(orgId, game.Id);
         return game;
     }
