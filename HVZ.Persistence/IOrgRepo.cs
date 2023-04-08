@@ -52,7 +52,7 @@ public interface IOrgRepo
     /// End the active game of an org
     /// </summary>
     /// <returns>The game that was ended. Throws exception if the org has no active game</returns>
-    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="ArgumentException">If the org has no active game</exception>
     public Task<Game> EndGame(string orgId, string instigatorId);
     /// <summary>
     /// Find the game that the org is currently playing. Returns null if there is no active game.
