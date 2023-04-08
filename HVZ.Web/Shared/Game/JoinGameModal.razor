@@ -17,7 +17,7 @@
             <div class="modal-body">
                 @if (errors.Count > 0)
                 {
-                    <ul class="text-danger">
+                    <ul class="text-danger" id="join-error-list">
                         @foreach(var error in errors)
                         {
                             <li>@error</li>
@@ -31,7 +31,10 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" data-bs-toggle="modal">Cancel</button>
-                <button class="btn btn-primary @JoinEnabledClass" data-bs-toggle="modal" @onclick="Join">Join</button>
+                @if (errors.Count == 0)
+                {
+                    <button class="btn btn-primary @JoinEnabledClass" data-bs-toggle="modal" @onclick="Join" id="join-btn">Join</button>
+                }
             </div>
         </div>
     </div>
