@@ -40,7 +40,7 @@
 
 <div id="tab-content" class="tab-content">
     <div id="tab-home" class="tab-pane fade show active" role="tabpanel">
-        @*Home tab*@
+        <GameHomeView ActiveGame="@ActiveGame" ActivePlayer="@activePlayer" UserId="@UserId" />
     </div>
     <div id="tab-players" class="tab-pane fade" role="tabpanel">
         @*Players tab*@
@@ -78,17 +78,9 @@
         GameRepo.PlayerJoinedGame += PlayerJoined;
     }
 
-    //protected override void OnParametersSet()
-    //{
-    //    if (ActiveGame is null)
-    //    {
-    //        throw new ArgumentNullException("ActiveGame cannot be null in ActiveGameView");
-    //    }
-    //}
-
     void PlayerJoined(object? sender, PlayerUpdatedEventArgs args)
     {
-        if (args.player.UserId == UserId && args.game.Id == ActiveGame.Id)
+        if (args.player.UserId == UserId && args.game.Id == ActiveGame?.Id)
         {
             activePlayer = args.player;
             InvokeAsync(StateHasChanged);
