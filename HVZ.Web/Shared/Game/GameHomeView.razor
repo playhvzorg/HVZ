@@ -1,7 +1,7 @@
 ﻿@using HVZ.Web.Shared.Ui_Helpers
 @inject IGameRepo GameRepo
 
-<div class="border border-1 border-secondary rounded p-2 m-auto mt-3">
+<div class="border border-1 border-secondary rounded p-2 m-auto mt-3" style="max-width:650px;">
     @if (ActivePlayer is not null)
     {
         @*Player info card*@
@@ -29,7 +29,6 @@
     }
     else
     {
-        @*Join game 4head*@
         <div class="m-auto">
             <p class="text-center">You are not registered for this game</p>
         </div>
@@ -37,8 +36,9 @@
 </div>
 
 @*Org info*@
-<div class="p-2 m-auto mt-3">
+<div class="p-2 m-auto mt-5">
     <h3>About @Org?.Name</h3>
+    <hr />
     @if (Org is not null)
     {
         <MarkdownDisplay Source="@Org?.Description" />
@@ -56,6 +56,6 @@
     [Parameter]
     public Player? ActivePlayer { get; set; }
 
-    [CascadingParameter]
+    [CascadingParameter(Name = "Org")]
     Organization? Org { get; set; }
 }
