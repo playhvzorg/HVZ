@@ -48,11 +48,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (OrgId is null)
-        {
-            throw new ArgumentNullException("OrgId is null in StartGame");
-        }
-
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         userId = authState?.User.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value ?? string.Empty;
         if (userId == string.Empty)
