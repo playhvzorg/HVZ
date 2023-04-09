@@ -6,6 +6,7 @@ using HVZ.Persistence.Models;
 using HVZ.Persistence.MongoDB.Serializers;
 using NodaTime;
 using Microsoft.Extensions.Logging;
+
 namespace HVZ.Persistence.MongoDB.Repos;
 
 public class UserRepo : IUserRepo
@@ -91,7 +92,9 @@ public class UserRepo : IUserRepo
     }
 
     public async Task<User?> FindUserByEmail(string email)
-        => email == string.Empty ? null : await Collection.Find(u => u.Email.ToLowerInvariant() == email.ToLowerInvariant()).FirstOrDefaultAsync();
+        => email == string.Empty
+            ? null
+            : await Collection.Find(u => u.Email.ToLowerInvariant() == email.ToLowerInvariant()).FirstOrDefaultAsync();
 
     public async Task<User> GetUserByEmail(string email)
     {
@@ -100,10 +103,10 @@ public class UserRepo : IUserRepo
             throw new ArgumentException($"User with email {email} not found!");
         return (User)user;
     }
+
     public async Task DeleteUser(string userId)
     {
         _logger.LogTrace($"Deleting user {userId}");
         await Collection.FindOneAndDeleteAsync(u => u.Id == userId);
     }
-
 }

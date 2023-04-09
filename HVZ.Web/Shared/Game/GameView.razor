@@ -2,9 +2,9 @@
 @implements IDisposable
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
-@if (ActiveGameId is not null)
+@if (activeGame is not null)
 {
-    <ActiveGameView ActiveGame="@activeGame" />
+    <ActiveGameView ActiveGame="@activeGame" UserId="@userId" />
 }
 else
 {

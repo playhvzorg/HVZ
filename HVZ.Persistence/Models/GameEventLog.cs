@@ -32,7 +32,7 @@ public record GameEventLog
             case GameEvent.PlayerRoleChangedByMod:
                 return $"{this.Timestamp.ToString()} User {this.UserId} was set to {(Player.gameRole)this.AdditionalInfo["role"]} by {this.AdditionalInfo["modid"]}";
             case GameEvent.ActiveStatusChanged:
-                return $"{this.Timestamp.ToString()} Game set to {((bool)this.AdditionalInfo["state"] ? "active" : "inactive")} by {this.UserId}";
+                return $"{this.Timestamp.ToString()} Game set to {((Game.GameStatus)this.AdditionalInfo["state"])} by {this.UserId}";
             default:
                 return $"{this.Timestamp.ToString()} Unrecognized event: {this.GameEvent.ToString()} user: {this.UserId} {this.AdditionalInfo.ToString()}";
         }
