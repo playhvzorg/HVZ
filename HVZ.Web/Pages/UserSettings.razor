@@ -23,7 +23,7 @@
         <div class="col-md-auto">
             @if (User is not null)
             {
-                <ImageUploader UserId="@userId" @ref="uploader"/>
+                <ImageUploader OnChangeCallback="ImageUploaded" UserId="@userId" @ref="uploader"/>
             }
             
         </div>
@@ -186,5 +186,10 @@
     public void Dispose()
     {
         navigationHandler.Dispose();
+    }
+
+    void ImageUploaded()
+    {
+        InvokeAsync(StateHasChanged);
     }
 }
