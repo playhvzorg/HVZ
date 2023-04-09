@@ -1,0 +1,63 @@
+﻿@inject IGameRepo GameRepo
+@implements IDisposable
+
+<button class="btn btn-secondary w-100">
+    @OzPoolAction Oz pool?
+</button>
+
+@*Modal*@
+<div class="modal fade" id="oz-modal">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    @OzPoolAction Oz pool?
+                </h5>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Player ActivePlayer { get; set; } = null!;
+
+    [Parameter]
+    public Game ActiveGame { get; set; } = null!;
+
+    bool inOzPool;
+
+    string OzPoolAction => inOzPool ? "Leave" : "Join";
+
+    protected override void OnInitialized()
+    {
+        inOzPool = ActiveGame.OzPool.Contains(ActivePlayer.UserId);
+
+        GameRepo.PlayerJoinedOzPool += PlayerJoined;
+        GameRepo.PlayerLeftOzPool += PlayerLeft;
+    }
+
+    void PlayerJoined(object? sender, OzPoolUpdatedEventArgs args)
+    {
+        if (args.game.Id == ActiveGame.Id && args.playerId == ActivePlayer.UserId)
+        {
+            inOzPool = true;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    void PlayerLeft(object? sender, OzPoolUpdatedEventArgs args)
+    {
+        if (args.game.Id == ActiveGame.Id && args.playerId == ActivePlayer.UserId)
+        {
+            inOzPool = false;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public void Dispose()
+    {
+        GameRepo.PlayerJoinedOzPool -= PlayerJoined;
+        GameRepo.PlayerLeftOzPool -= PlayerLeft;
+    }
+}

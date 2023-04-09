@@ -26,6 +26,11 @@
         </div>
 
         <TagModal ActiveGame="@ActiveGame" ActivePlayer="@ActivePlayer" />
+
+        @if (ActiveGame?.Status == Game.GameStatus.New)
+        {
+            <JoinOzPoolButton ActiveGame="@ActiveGame" ActivePlayer="@ActivePlayer" />
+        }
     }
     else
     {
