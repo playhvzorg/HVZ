@@ -3,7 +3,7 @@
 @implements IDisposable
 
 <h3 class="mb-3">@ActiveGame?.Name
-    @if (activePlayer is null)
+    @if (activePlayer is null && (ActiveGame?.IsCurrent ?? false))
     {
         <JoinGameButton ModalId="join-game-modal"/>
     }
@@ -58,7 +58,7 @@
     </OrgAuthorizedModerator>
 </div>
 
-@if (activePlayer is null)
+@if (activePlayer is null && (ActiveGame?.IsCurrent ?? false))
 {
     <JoinGameModal ModalId="join-game-modal" ActiveGame="@ActiveGame" UserId="@UserId"/>
 }
