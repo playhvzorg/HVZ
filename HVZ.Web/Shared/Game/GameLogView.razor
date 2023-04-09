@@ -1,15 +1,11 @@
 ﻿@inject IGameRepo GameRepo
 @implements IDisposable
+@using HVZ.Web.Shared.Game.GameLog
 
-<div class="mt-3 reverse-list" style="overflow-y:scroll;max-height:55vh;">
-    <div style="align-self:flex-start">
+<div class="mt-3 reverse-list w-100" style="overflow-y:scroll;max-height:55vh;">
+    <div class="w-100" style="align-self:flex-start">
         <Virtualize Items="eventLog" Context="logItem" >
-            <div>
-                <Thumbnail UserId="@logItem.UserId" Size="ImageService.ImageSize.SMALL" style="height:32px;" />
-            </div>
-            <div>
-                @logItem
-            </div>
+            <LogItem GameLogItem="@logItem" SeesOzDetails="@SeesOzDetails" />
         </Virtualize>
     </div>
 </div>
@@ -18,7 +14,15 @@
     [Parameter]
     public Game ActiveGame { get; set; } = null!;
 
+    [Parameter]
+    public Player ActivePlayer { get; set; } = null!;
+
+    [CascadingParameter(Name = "IsMod")]
+    public bool IsMod { get; set; }
+
     List<GameEventLog> eventLog = new List<GameEventLog>();
+
+    bool SeesOzDetails => IsMod || ActivePlayer?.Role == Player.gameRole.Oz;
 
     protected override void OnParametersSet()
     {

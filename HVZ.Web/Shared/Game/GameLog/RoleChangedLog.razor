@@ -1,0 +1,40 @@
+﻿@inject IUserRepo UserRepo
+
+<div class="d-flex">
+    <div class="flex-grow-0">
+        <div style="width:32px;position:relative;height:32px;">
+            @if (LogItem is not null)
+            {
+                <Thumbnail UserId="@LogItem.UserId" Size="ImageService.ImageSize.SMALL" style="width:22px;position:absolute;top:0px;" />
+            }
+            @if (modId != string.Empty)
+            {
+                <Thumbnail UserId="@modId" Size="ImageService.ImageSize.SMALL" style="width:22px;position:absolute;top:12px;left:10px;" />
+            }
+        </div>
+    </div>
+    <div class="flex-grow-1 mx-1">
+        <h6 class="mb-0">Role changed</h6>
+        <p class="mb-0"><b>@user?.FullName</b> has been set to <em>@RoleDisplay</em> by <b>@modUser?.FullName</b></p>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public GameEventLog LogItem { get; set; } = null!;
+
+    string modId = string.Empty;
+    User? user;
+    User? modUser;
+    Player.gameRole role;
+
+    string RoleDisplay => role == Player.gameRole.Oz ? "OZ" : role.ToString();
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await UserRepo.GetUserById(LogItem.UserId);
+        role = (Player.gameRole)LogItem.AdditionalInfo["role"];
+        modId = (string)LogItem.AdditionalInfo["modid"];
+        modUser = await UserRepo.GetUserById(modId);
+    }
+}
