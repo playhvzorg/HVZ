@@ -24,9 +24,25 @@ public class Game : IdEquatable<Game>
     /// </summary>
     public Instant CreatedAt { get; init; }
     /// <summary>
+    /// Time that the game was set to Active
+    /// </summary>
+    public Instant? StartedAt { get; init; }
+    /// <summary>
+    /// Time that the game was ended
+    /// </summary>
+    public Instant? EndedAt { get; init; }
+    /// <summary>
+    /// Current <see cref="GameStatus"/> for the game
+    /// </summary>
+    public GameStatus Status { get; init; }
+    /// <summary>
     /// Weather the game is currently active and tags should be processed
     /// </summary>
-    public Boolean IsActive { get; init; }
+    public bool IsActive => Status == GameStatus.Active;
+    /// <summary>
+    /// Wheter the game is the current and players can register
+    /// </summary>
+    public bool IsCurrent => Status != GameStatus.Ended;
     /// <summary>
     /// List of events that have happened this game
     /// </summary>
@@ -97,14 +113,14 @@ public class Game : IdEquatable<Game>
     /// </summary>
     public int OzMaxTags { get; init; } = 3;
 
-    public Game(string name, string gameid, string creatorid, string orgid, Instant createdat, Boolean isActive, Player.gameRole defaultrole, HashSet<Player> players, List<GameEventLog> eventLog, int maxOzTags, HashSet<string>? ozPool = null)
+    public Game(string name, string gameid, string creatorid, string orgid, Instant createdat, GameStatus status, Player.gameRole defaultrole, HashSet<Player> players, List<GameEventLog> eventLog, int maxOzTags, HashSet<string>? ozPool = null)
     {
         Name = name;
         Id = gameid;
         CreatorId = creatorid;
         OrgId = orgid;
         CreatedAt = createdat;
-        IsActive = isActive;
+        Status = status;
         DefaultRole = defaultrole;
         Players = players;
         EventLog = eventLog;
@@ -118,4 +134,12 @@ public class Game : IdEquatable<Game>
     }
 
     protected override object EqualityId => ToString();
+
+    public enum GameStatus
+    {
+        New,
+        Active,
+        Paused,
+        Ended
+    }
 }
