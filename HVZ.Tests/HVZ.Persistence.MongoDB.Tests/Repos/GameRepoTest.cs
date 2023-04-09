@@ -352,7 +352,7 @@ public class GameRepoTest : MongoTestBase
 
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
         await gameRepo.StartGame(game.Id, userid);
-        await gameRepo.PauseGame(game.Id, true, userid);
+        await gameRepo.PauseGame(game.Id, userid);
         await gameRepo.AddPlayer(game.Id, userid);
 
         game = await gameRepo.GetGameById(game.Id);
