@@ -1,5 +1,6 @@
 namespace HVZ.Persistence;
 using HVZ.Persistence.Models;
+
 public interface IGameRepo
 {
     /// <summary>
@@ -60,9 +61,45 @@ public interface IGameRepo
     public Task<Game> AddPlayer(string gameId, string userId);
 
     /// <summary>
-    /// Sets isActive for a game
+    /// Set the <see cref="Game.GameStatus"/> of a game
     /// </summary>
-    public Task<Game> SetActive(string gameId, bool active, string instigatorId);
+    //public Task<Game> SetGameStatus(string gameId, Game.GameStatus status, string instigatorId);
+
+    /// <summary>
+    /// Set the <see cref="Game.GameStatus"/> of a New game to Active and set the startedAt field the current <see cref="NodaTime.Instant"/>
+    /// </summary>
+    /// <param name="gameId">The global ID for the game</param>
+    /// <param name="instigatorId">The global Id for the user initiating the change</param>
+    /// <returns>The updated game. Throws exception if the <see cref="Game.GameStatus"/> is not New</returns>
+    /// <exception cref="ArgumentException"></exception>
+    public Task<Game> StartGame(string gameId, string instigatorId);
+
+    /// <summary>
+    /// Set whether the <see cref="Game.GameStatus"/> is set to Paused (true) or Active (false)
+    /// </summary>
+    /// <param name="gameId">The global ID for the game</param>
+    /// <param name="instigatorId">The glboal Id for the user initiating the change</param>
+    /// <returns>The updated game. Throws exception if the <see cref="Game.GameStatus"/> is not Active</returns>
+    /// <exception cref="ArgumentException"></exception>
+    public Task<Game> PauseGame(string gameId, string instigatorId);
+
+    /// <summary>
+    /// Set whether the <see cref="Game.GameStatus"/> is set to Paused (true) or Active (false)
+    /// </summary>
+    /// <param name="gameId">The global ID for the game</param>
+    /// <param name="instigatorId">The glboal Id for the user initiating the change</param>
+    /// <returns>The updated game. Throws exception if the <see cref="Game.GameStatus"/> is not Paused</returns>
+    /// <exception cref="ArgumentException"></exception>
+    public Task<Game> ResumeGame(string gameId, string instigatorId);
+
+    /// <summary>
+    /// Set the <see cref="Game.GameStatus"/> to Ended and set the endedAt field to the current <see cref="NodaTime.Instant"/>
+    /// </summary>
+    /// <param name="gameId">The global ID for the game</param>
+    /// <param name="instigatorId">The global Id for the user initiating the change</param>
+    /// <returns>The updated game. Throws exception if the <see cref="Game.GameStatus"/> is New</returns>
+    /// <exception cref="ArgumentException"></exception>
+    public Task<Game> EndGame(string gameId, string instigatorId);
 
     /// <summary>
     /// Set the <see cref="HVZ.Persistence.Models.Player.gameRole"/> of a player
@@ -87,7 +124,7 @@ public interface IGameRepo
     /// </summary>
     /// <param name="limit">Max amount of games to return. Unlimited if not provided</param>
     /// <returns>An IEnumerable of games. May be empty.</returns>
-    public Task<List<Game>> GetActiveGamesWithUser(string userId, int? limit = null);
+    public Task<List<Game>> GetCurrentGamesWithUser(string userId, int? limit = null);
 
     /// <summary>
     /// Get the event log
@@ -133,22 +170,26 @@ public interface IGameRepo
     /// Event that fires when a new game is created
     /// </summary>
     public event EventHandler<GameUpdatedEventArgs> GameCreated;
+
     /// <summary>
     /// Event that fires when a player joins a game
     /// </summary>
     public event EventHandler<PlayerUpdatedEventArgs> PlayerJoinedGame;
+
     /// <summary>
     /// Event that fires when a player's role is changed for a game
     /// </summary>
     public event EventHandler<PlayerRoleChangedEventArgs> PlayerRoleChanged;
+
     /// <summary>
     /// Event that fires when a tag is logged in a game
     /// </summary>
     public event EventHandler<TagEventArgs> TagLogged;
+
     /// <summary>
     /// Event that fires when a game's isActive status is changed
     /// </summary>
-    public event EventHandler<GameActiveStatusChangedEventArgs> GameActiveStatusChanged;
+    public event EventHandler<GameStatusChangedEvent> GameActiveStatusChanged;
     /// <summary>
     /// Event that fires when a game's settings are changed
     /// </summary>
@@ -171,6 +212,7 @@ public class GameUpdatedEventArgs : EventArgs
 {
     public Game game { get; init; }
     public string updatorId { get; init; }
+
     public GameUpdatedEventArgs(Game g, string id)
     {
         game = g;
@@ -182,6 +224,7 @@ public class PlayerUpdatedEventArgs : EventArgs
 {
     public Game game { get; init; }
     public Player player { get; init; }
+
     public PlayerUpdatedEventArgs(Game g, Player p)
     {
         game = g;
@@ -195,6 +238,7 @@ public class PlayerRoleChangedEventArgs : EventArgs
     public Player player { get; init; }
     public string instigatorId { get; init; }
     public Player.gameRole Role { get; init; }
+
     public PlayerRoleChangedEventArgs(Game g, Player p, string instigatorid, Player.gameRole role)
     {
         game = g;
@@ -209,6 +253,7 @@ public class TagEventArgs : EventArgs
     public Game game { get; init; }
     public Player Tagger { get; init; }
     public Player TagReciever { get; init; }
+
     public TagEventArgs(Game g, Player tagger, Player tagreciever)
     {
         game = g;
@@ -217,16 +262,17 @@ public class TagEventArgs : EventArgs
     }
 }
 
-public class GameActiveStatusChangedEventArgs : EventArgs
+public class GameStatusChangedEvent : EventArgs
 {
     public Game game { get; init; }
     public string updatorId { get; init; }
-    public bool Active { get; init; }
-    public GameActiveStatusChangedEventArgs(Game g, string id, bool active)
+    public Game.GameStatus Status { get; init; }
+
+    public GameStatusChangedEvent(Game g, string id, Game.GameStatus status)
     {
         game = g;
         updatorId = id;
-        Active = active;
+        Status = status;
     }
 }
 
