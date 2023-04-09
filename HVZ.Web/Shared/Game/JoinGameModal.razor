@@ -1,0 +1,88 @@
+﻿@inject IGameRepo GameRepo
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject ImageService ImageService
+@inject IJSRuntime JS
+@using HVZ.Web.Identity.Models
+@using Microsoft.AspNetCore.Identity
+
+<div class="modal fade" tabindex="-1" id="@ModalId">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Join game
+                </h5>
+            </div>
+            <div class="modal-body">
+                @if (errors.Count > 0)
+                {
+                    <ul class="text-danger" id="join-error-list">
+                        @foreach(var error in errors)
+                        {
+                            <li>@error</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p>You are about to join <em><b>@ActiveGame?.Name</b></em> in <em><b>@Org?.Name</b></em></p>
+                }
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-toggle="modal">Cancel</button>
+                @if (errors.Count == 0)
+                {
+                    <button class="btn btn-primary @JoinEnabledClass" data-bs-toggle="modal" @onclick="Join" id="join-btn">Join</button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string? ModalId { get; set; }
+
+    [Parameter]
+    public Game? ActiveGame { get; set; }
+
+    [Parameter]
+    public string UserId { get; set; } = "";
+
+    [CascadingParameter(Name = "Org")]
+    public Organization Org { get; set; } = null!;
+
+    List<string> errors = new List<string>();
+
+    string? JoinEnabledClass => errors.Count > 0 ? "disabled" : null;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Org is null) return;
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var appUser = await UserManager.GetUserAsync(authState.User);
+
+        if (appUser is null)
+            throw new ArgumentException($"Could not find AppUser for user with ID: {UserId}");
+
+        bool hasProfileImage = ImageService.HasUploadedUserImage(UserId);
+        
+        errors.Clear();
+        if (Org.RequireProfilePictureForPlayer && !hasProfileImage)
+            errors.Add("You must upload a profile image to join this game");
+
+        if (Org.RequireVerifiedEmailForPlayer && !appUser.EmailConfirmed)
+            errors.Add("You must verify your email to join this game");
+    }
+
+    async Task Join()
+    {
+        if (ActiveGame is not null && UserId is not null)
+        {
+            await GameRepo.AddPlayer(ActiveGame.Id, UserId);
+        }
+    }
+
+}
