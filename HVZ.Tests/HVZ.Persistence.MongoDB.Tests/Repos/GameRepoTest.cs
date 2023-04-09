@@ -522,7 +522,7 @@ public class GameRepoTest : MongoTestBase
         string userid = "0";
         string orgid = "123";
 
-        gameRepo.GameCreated += delegate(object? sender, GameUpdatedEventArgs args) { eventGame = args.game; };
+        gameRepo.GameCreated += delegate (object? sender, GameUpdatedEventArgs args) { eventGame = args.game; };
 
         Game game = await gameRepo.CreateGame(gameName, userid, orgid);
 
@@ -540,7 +540,7 @@ public class GameRepoTest : MongoTestBase
         string userid = "0";
         string orgid = "123";
 
-        gameRepo.PlayerJoinedGame += delegate(object? sender, PlayerUpdatedEventArgs args)
+        gameRepo.PlayerJoinedGame += delegate (object? sender, PlayerUpdatedEventArgs args)
         {
             eventGame = args.game;
             eventPlayer = args.player;
@@ -565,7 +565,7 @@ public class GameRepoTest : MongoTestBase
         string userid = "0";
         string orgid = "123";
 
-        gameRepo.PlayerRoleChanged += delegate(object? sender, PlayerRoleChangedEventArgs args)
+        gameRepo.PlayerRoleChanged += delegate (object? sender, PlayerRoleChangedEventArgs args)
         {
             eventGame = args.game;
             eventPlayer = args.player;
@@ -594,7 +594,7 @@ public class GameRepoTest : MongoTestBase
         string userid2 = "2";
         string orgid = "123";
 
-        gameRepo.TagLogged += delegate(object? sender, TagEventArgs args)
+        gameRepo.TagLogged += delegate (object? sender, TagEventArgs args)
         {
             eventGame = args.game;
             eventTagger = args.Tagger;
@@ -630,7 +630,7 @@ public class GameRepoTest : MongoTestBase
         string userid = "0";
         string orgid = "123";
 
-        gameRepo.GameActiveStatusChanged += delegate(object? sender, GameStatusChangedEvent args)
+        gameRepo.GameActiveStatusChanged += delegate (object? sender, GameStatusChangedEvent args)
         {
             eventGame = args.game;
             eventUpdatorId = args.updatorId;
@@ -654,7 +654,7 @@ public class GameRepoTest : MongoTestBase
         string userid = "0";
         string orgid = "123";
 
-        gameRepo.GameActiveStatusChanged += delegate(object? sender, GameStatusChangedEvent args)
+        gameRepo.GameActiveStatusChanged += delegate (object? sender, GameStatusChangedEvent args)
         {
             if (args.Status == Game.GameStatus.Paused)
             {
@@ -687,7 +687,7 @@ public class GameRepoTest : MongoTestBase
         string userid = "0";
         string orgid = "123";
 
-        gameRepo.GameActiveStatusChanged += delegate(object? sender, GameStatusChangedEvent args)
+        gameRepo.GameActiveStatusChanged += delegate (object? sender, GameStatusChangedEvent args)
         {
             if (args.Status == Game.GameStatus.Ended)
             {
@@ -896,7 +896,7 @@ public class GameRepoTest : MongoTestBase
         string userid = "0";
         string orgid = "123";
 
-        gameRepo.PlayerJoinedOzPool += delegate(object? sender, OzPoolUpdatedEventArgs args)
+        gameRepo.PlayerJoinedOzPool += delegate (object? sender, OzPoolUpdatedEventArgs args)
         {
             eventPlayerId = args.playerId;
             eventGame = args.game;
@@ -969,7 +969,7 @@ public class GameRepoTest : MongoTestBase
         Game? eventGame = null!;
         string? eventPlayerId = null!;
 
-        gameRepo.PlayerLeftOzPool += delegate(object? sender, OzPoolUpdatedEventArgs args)
+        gameRepo.PlayerLeftOzPool += delegate (object? sender, OzPoolUpdatedEventArgs args)
         {
             eventGame = args.game;
             eventPlayerId = args.playerId;
@@ -1043,7 +1043,7 @@ public class GameRepoTest : MongoTestBase
         Game? eventGame = null;
         string[]? ozIds = null;
 
-        gameRepo.RandomOzsSet += delegate(object? sender, RandomOzEventArgs args)
+        gameRepo.RandomOzsSet += delegate (object? sender, RandomOzEventArgs args)
         {
             eventGame = args.game;
             ozIds = args.randomOzIds;
@@ -1122,7 +1122,7 @@ public class GameRepoTest : MongoTestBase
         Game? eventGame = null;
         string? eventUpdator = null;
 
-        gameRepo.GameSettingsChanged += delegate(object? sender, GameUpdatedEventArgs args)
+        gameRepo.GameSettingsChanged += delegate (object? sender, GameUpdatedEventArgs args)
         {
             eventGame = args.game;
             eventUpdator = args.updatorId;
