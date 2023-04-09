@@ -6,6 +6,7 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.IdGenerators;
 using MongoDB.Driver;
 using NodaTime;
+using Microsoft.Extensions.Logging;
 namespace HVZ.Persistence.MongoDB.Repos;
 
 public class UserRepo : IUserRepo
@@ -91,7 +92,9 @@ public class UserRepo : IUserRepo
     }
 
     public async Task<User?> FindUserByEmail(string email)
-        => email == string.Empty ? null : await Collection.Find(u => u.Email.ToLowerInvariant() == email.ToLowerInvariant()).FirstOrDefaultAsync();
+        => email == string.Empty
+            ? null
+            : await Collection.Find(u => u.Email.ToLowerInvariant() == email.ToLowerInvariant()).FirstOrDefaultAsync();
 
     public async Task<User> GetUserByEmail(string email)
     {
@@ -100,12 +103,12 @@ public class UserRepo : IUserRepo
             throw new ArgumentException($"User with email {email} not found!");
         return (User)user;
     }
+
     public async Task DeleteUser(string userId)
     {
         _logger.LogTrace($"Deleting user {userId}");
         await Collection.FindOneAndDeleteAsync(u => u.Id == userId);
     }
-
     public async Task<User> SetUserFullName(string userId, string fullname)
     {
         var user = await GetUserById(userId);
@@ -123,5 +126,4 @@ public class UserRepo : IUserRepo
         var user = await GetUserById(userId);
         return user.FullName;
     }
-
 }
