@@ -1,11 +1,14 @@
 namespace HVZ.Persistence;
+
 using HVZ.Persistence.Models;
+
 public interface IGameRepo
 {
     /// <summary>
     /// Add a new game to the repo. This is usually done from the OrgRepo, see <see cref="IOrgRepo.CreateGame"/>
     /// </summary>
     public Task<Game> CreateGame(string Name, string creatorUserId, string orgid);
+
     /// <summary>
     /// Find a game by its Id
     /// </summary>
@@ -77,11 +80,19 @@ public interface IGameRepo
     /// Set whether the <see cref="Game.GameStatus"/> is set to Paused (true) or Active (false)
     /// </summary>
     /// <param name="gameId">The global ID for the game</param>
-    /// <param name="paused">Whether or not the game is paused</param>
     /// <param name="instigatorId">The glboal Id for the user initiating the change</param>
-    /// <returns>The updated game. Throws exception if the <see cref="Game.GameStatus"/> is not either Active or Paused</returns>
+    /// <returns>The updated game. Throws exception if the <see cref="Game.GameStatus"/> is not Active</returns>
     /// <exception cref="ArgumentException"></exception>
-    public Task<Game> SetGamePaused(string gameId, bool paused, string instigatorId);
+    public Task<Game> PauseGame(string gameId, string instigatorId);
+
+    /// <summary>
+    /// Set whether the <see cref="Game.GameStatus"/> is set to Paused (true) or Active (false)
+    /// </summary>
+    /// <param name="gameId">The global ID for the game</param>
+    /// <param name="instigatorId">The glboal Id for the user initiating the change</param>
+    /// <returns>The updated game. Throws exception if the <see cref="Game.GameStatus"/> is not Paused</returns>
+    /// <exception cref="ArgumentException"></exception>
+    public Task<Game> ResumeGame(string gameId, string instigatorId);
 
     /// <summary>
     /// Set the <see cref="Game.GameStatus"/> to Ended and set the endedAt field to the current <see cref="NodaTime.Instant"/>
@@ -126,18 +137,22 @@ public interface IGameRepo
     /// Event that fires when a new game is created
     /// </summary>
     public event EventHandler<GameUpdatedEventArgs> GameCreated;
+
     /// <summary>
     /// Event that fires when a player joins a game
     /// </summary>
     public event EventHandler<PlayerUpdatedEventArgs> PlayerJoinedGame;
+
     /// <summary>
     /// Event that fires when a player's role is changed for a game
     /// </summary>
     public event EventHandler<PlayerRoleChangedEventArgs> PlayerRoleChanged;
+
     /// <summary>
     /// Event that fires when a tag is logged in a game
     /// </summary>
     public event EventHandler<TagEventArgs> TagLogged;
+
     /// <summary>
     /// Event that fires when a game's isActive status is changed
     /// </summary>
@@ -148,6 +163,7 @@ public class GameUpdatedEventArgs : EventArgs
 {
     public Game game { get; init; }
     public string updatorId { get; init; }
+
     public GameUpdatedEventArgs(Game g, string id)
     {
         game = g;
@@ -159,6 +175,7 @@ public class PlayerUpdatedEventArgs : EventArgs
 {
     public Game game { get; init; }
     public Player player { get; init; }
+
     public PlayerUpdatedEventArgs(Game g, Player p)
     {
         game = g;
@@ -172,6 +189,7 @@ public class PlayerRoleChangedEventArgs : EventArgs
     public Player player { get; init; }
     public string instigatorId { get; init; }
     public Player.gameRole Role { get; init; }
+
     public PlayerRoleChangedEventArgs(Game g, Player p, string instigatorid, Player.gameRole role)
     {
         game = g;
@@ -186,6 +204,7 @@ public class TagEventArgs : EventArgs
     public Game game { get; init; }
     public Player Tagger { get; init; }
     public Player TagReciever { get; init; }
+
     public TagEventArgs(Game g, Player tagger, Player tagreciever)
     {
         game = g;
@@ -199,6 +218,7 @@ public class GameStatusChangedEvent : EventArgs
     public Game game { get; init; }
     public string updatorId { get; init; }
     public Game.GameStatus Status { get; init; }
+
     public GameStatusChangedEvent(Game g, string id, Game.GameStatus status)
     {
         game = g;

@@ -8,6 +8,7 @@ using MongoDB.Driver;
 using NodaTime;
 
 namespace HVZ.Persistence.MongoDB.Repos;
+
 public class OrgRepo : IOrgRepo
 {
     private const string CollectionName = "Orgs";
@@ -94,9 +95,11 @@ public class OrgRepo : IOrgRepo
     public async Task<Game> CreateGame(string name, string creatorId, string orgId)
     {
         if (await IsAdminOfOrg(orgId, creatorId) is false)
-            throw new ArgumentException($"User {creatorId} is not an admin of org {orgId} and cannot create a game in this org.");
+            throw new ArgumentException(
+                $"User {creatorId} is not an admin of org {orgId} and cannot create a game in this org.");
         if (await FindActiveGameOfOrg(orgId) is not null)
-            throw new ArgumentException($"There is already an active game in org {orgId}, not allowing creation of a new game");
+            throw new ArgumentException(
+                $"There is already an active game in org {orgId}, not allowing creation of a new game");
         Game game = await _gameRepo.CreateGame(name, creatorId, orgId);
         await SetActiveGameOfOrg(orgId, game.Id);
         return game;
@@ -139,8 +142,8 @@ public class OrgRepo : IOrgRepo
             return org;
         else
             return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
-            Builders<Organization>.Update.Set(o => o.ActiveGameId, gameId),
-            new() { ReturnDocument = ReturnDocument.After });
+                Builders<Organization>.Update.Set(o => o.ActiveGameId, gameId),
+                new() { ReturnDocument = ReturnDocument.After });
     }
 
     public async Task<Game?> FindActiveGameOfOrg(string orgId)
@@ -167,14 +170,15 @@ public class OrgRepo : IOrgRepo
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Administrators, org.Administrators),
             new() { ReturnDocument = ReturnDocument.After }
-            );
+        );
     }
 
     public async Task<Organization> RemoveAdmin(string orgId, string userId)
     {
         Organization org = await GetOrgById(orgId);
         if (org.OwnerId == userId)
-            throw new ArgumentException($"User with ID {userId} is the owner of org with id {org.Id}, cannot remove them from this org's admins.");
+            throw new ArgumentException(
+                $"User with ID {userId} is the owner of org with id {org.Id}, cannot remove them from this org's admins.");
 
         org.Administrators.Remove(userId);
         _logger.LogTrace($"User {userId} removed from admin group of org {orgId}");
@@ -183,7 +187,7 @@ public class OrgRepo : IOrgRepo
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Administrators, org.Administrators),
             new() { ReturnDocument = ReturnDocument.After }
-            );
+        );
     }
 
     public async Task<HashSet<string>> GetModsOfOrg(string orgId)
@@ -200,7 +204,7 @@ public class OrgRepo : IOrgRepo
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.OwnerId, newOwnerId),
             new() { ReturnDocument = ReturnDocument.After }
-            );
+        );
     }
 
     public async Task<Organization> AddModerator(string orgId, string userId)
@@ -215,7 +219,7 @@ public class OrgRepo : IOrgRepo
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Moderators, org.Moderators),
             new() { ReturnDocument = ReturnDocument.After }
-            );
+        );
     }
 
     public async Task<Organization> RemoveModerator(string orgId, string userId)
@@ -229,7 +233,7 @@ public class OrgRepo : IOrgRepo
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Moderators, org.Moderators),
             new() { ReturnDocument = ReturnDocument.After }
-            );
+        );
     }
 
     public async Task<bool> IsAdminOfOrg(string orgId, string userId)
@@ -255,7 +259,7 @@ public class OrgRepo : IOrgRepo
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Name, name),
             new() { ReturnDocument = ReturnDocument.After }
-            );
+        );
     }
 
     public async Task<string> GetOrgName(string orgId)
@@ -272,11 +276,12 @@ public class OrgRepo : IOrgRepo
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Description, description),
             new() { ReturnDocument = ReturnDocument.After }
-            );
+        );
     }
 
     public async Task<string> GetOrgDescription(string orgId)
         => (await GetOrgById(orgId)).Description;
+
     public async Task<Organization> SetRequireVerifiedEmail(string orgId, bool requireVerifiedEmail)
     {
         var org = await GetOrgById(orgId);
@@ -289,11 +294,12 @@ public class OrgRepo : IOrgRepo
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.RequireVerifiedEmailForPlayer, requireVerifiedEmail),
             new() { ReturnDocument = ReturnDocument.After }
-            );
+        );
     }
 
     public async Task<bool> GetRequireVerifiedEmail(string orgId)
         => (await GetOrgById(orgId)).RequireVerifiedEmailForPlayer;
+
     public async Task<Organization> SetRequireProfilePicture(string orgId, bool requireProfilePicture)
     {
         var org = await GetOrgById(orgId);
@@ -305,7 +311,7 @@ public class OrgRepo : IOrgRepo
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.RequireProfilePictureForPlayer, requireProfilePicture),
             new() { ReturnDocument = ReturnDocument.After }
-            );
+        );
     }
 
     public async Task<bool> GetRequireProfilePicture(string orgId)

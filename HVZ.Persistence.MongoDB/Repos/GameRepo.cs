@@ -8,6 +8,7 @@ using MongoDB.Driver;
 using NodaTime;
 
 namespace HVZ.Persistence.MongoDB.Repos;
+
 public class GameRepo : IGameRepo
 {
     private const string CollectionName = "Games";
@@ -53,6 +54,7 @@ public class GameRepo : IGameRepo
             cm.MapProperty(p => p.GameId);
         });
     }
+
     public GameRepo(IMongoDatabase database, IClock clock, ILogger logger)
     {
         var filter = new BsonDocument("name", CollectionName);
@@ -87,7 +89,7 @@ public class GameRepo : IGameRepo
             defaultrole: Player.gameRole.Human,
             players: new HashSet<Player>(),
             eventLog: new List<GameEventLog>()
-            );
+        );
         await Collection.InsertOneAsync(game);
         GameUpdatedEventArgs gameCreatedEventArgs = new GameUpdatedEventArgs(game, creatorid);
         _logger.LogTrace($"New game created in org {orgid} by user {creatorid}");
@@ -105,6 +107,7 @@ public class GameRepo : IGameRepo
             throw new ArgumentException($"Game with id \"{id}\" not found!");
         return (Game)game;
     }
+
     public async Task<Game?> FindGameByName(string name) =>
         await Collection.Find<Game>(g => g.Name == name).FirstOrDefaultAsync();
 
@@ -156,7 +159,8 @@ public class GameRepo : IGameRepo
         if (FindPlayerByUserId(gameId, userId).Result != null)
             throw new ArgumentException($"User {userId} is already in Game {gameId}!");
 
-        Player player = new Player(userId, await GeneratePlayerGameId(gameId), game.DefaultRole, 0, _clock.GetCurrentInstant());
+        Player player = new Player(userId, await GeneratePlayerGameId(gameId), game.DefaultRole, 0,
+            _clock.GetCurrentInstant());
         HashSet<Player> newPlayers = game.Players;
         newPlayers.Add(player);
 
@@ -203,7 +207,7 @@ public class GameRepo : IGameRepo
         return newGame;
     }
 
-    public async Task<Game> SetGamePaused(string gameId, bool paused, string instigatorId)
+    private async Task<Game> SetGamePaused(string gameId, bool paused, string instigatorId)
     {
         Game game = await GetGameById(gameId);
 
@@ -233,6 +237,12 @@ public class GameRepo : IGameRepo
         await OnGameActiveStatusChanged(new(newGame, instigatorId, status));
         return newGame;
     }
+
+    public async Task<Game> PauseGame(string gameId, string instagatorId) =>
+        await SetGamePaused(gameId, true, instagatorId);
+
+    public async Task<Game> ResumeGame(string gameId, string instagatorId) =>
+        await SetGamePaused(gameId, false, instagatorId);
 
     public async Task<Game> EndGame(string gameId, string instigatorId)
     {
@@ -330,6 +340,7 @@ public class GameRepo : IGameRepo
         {
             id = Random.Shared.Next(1000, 9999);
         } while (game.Players.Where(p => p.GameId == id.ToString()).Any());
+
         return id.ToString();
     }
 
@@ -344,7 +355,8 @@ public class GameRepo : IGameRepo
 
     private async Task LogGameEvent(string gameId, GameEventLog log)
     {
-        await Collection.FindOneAndUpdateAsync(g => g.Id == gameId, Builders<Game>.Update.AddToSet(g => g.EventLog, log));
+        await Collection.FindOneAndUpdateAsync(g => g.Id == gameId,
+            Builders<Game>.Update.AddToSet(g => g.EventLog, log));
     }
 
     protected virtual async Task OnGameCreated(GameUpdatedEventArgs args)
@@ -354,7 +366,10 @@ public class GameRepo : IGameRepo
         {
             handler(this, args);
         }
-        await LogGameEvent(args.game.Id, new(GameEvent.GameCreated, _clock.GetCurrentInstant(), args.game.CreatorId, new Dictionary<string, object>() { { "name", args.game.Name } }));
+
+        await LogGameEvent(args.game.Id,
+            new(GameEvent.GameCreated, _clock.GetCurrentInstant(), args.game.CreatorId,
+                new Dictionary<string, object>() { { "name", args.game.Name } }));
     }
 
     protected virtual async Task OnPlayerJoined(PlayerUpdatedEventArgs args)
@@ -364,8 +379,10 @@ public class GameRepo : IGameRepo
         {
             handler(this, args);
         }
+
         await LogGameEvent(args.game.Id, new(GameEvent.PlayerJoined, _clock.GetCurrentInstant(), args.player.UserId));
     }
+
     protected virtual async Task OnPlayerRoleChanged(PlayerRoleChangedEventArgs args)
     {
         EventHandler<PlayerRoleChangedEventArgs>? handler = PlayerRoleChanged;
@@ -373,8 +390,12 @@ public class GameRepo : IGameRepo
         {
             handler(this, args);
         }
-        await LogGameEvent(args.game.Id, new(GameEvent.PlayerRoleChangedByMod, _clock.GetCurrentInstant(), args.player.UserId, new Dictionary<string, object> { { "modid", args.instigatorId }, { "role", args.Role } }));
+
+        await LogGameEvent(args.game.Id,
+            new(GameEvent.PlayerRoleChangedByMod, _clock.GetCurrentInstant(), args.player.UserId,
+                new Dictionary<string, object> { { "modid", args.instigatorId }, { "role", args.Role } }));
     }
+
     protected virtual async Task OnGameActiveStatusChanged(GameStatusChangedEvent args)
     {
         EventHandler<GameStatusChangedEvent>? handler = GameActiveStatusChanged;
@@ -382,8 +403,12 @@ public class GameRepo : IGameRepo
         {
             handler(this, args);
         }
-        await LogGameEvent(args.game.Id, new(GameEvent.ActiveStatusChanged, _clock.GetCurrentInstant(), args.updatorId, new Dictionary<string, object> { { "state", args.Status } }));
+
+        await LogGameEvent(args.game.Id,
+            new(GameEvent.ActiveStatusChanged, _clock.GetCurrentInstant(), args.updatorId,
+                new Dictionary<string, object> { { "state", args.Status } }));
     }
+
     protected virtual async Task OnTag(TagEventArgs args)
     {
         EventHandler<TagEventArgs>? handler = TagLogged;
@@ -391,6 +416,9 @@ public class GameRepo : IGameRepo
         {
             handler(this, args);
         }
-        await LogGameEvent(args.game.Id, new(GameEvent.Tag, _clock.GetCurrentInstant(), args.Tagger.UserId, new Dictionary<string, object> { { "tagreciever", args.TagReciever.UserId } }));
+
+        await LogGameEvent(args.game.Id,
+            new(GameEvent.Tag, _clock.GetCurrentInstant(), args.Tagger.UserId,
+                new Dictionary<string, object> { { "tagreciever", args.TagReciever.UserId } }));
     }
 }
