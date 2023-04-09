@@ -50,7 +50,7 @@
     [TestCase("00000")]
     public void Test_TagButtonDisabled(string inputString)
     {
-        Game testGame = Mock.Of<TestGame>(g => g.IsActive == true);
+        Game testGame = Mock.Of<TestGame>(g => g.Status == Game.GameStatus.Active);
         Player testPlayer = Mock.Of<TestPlayer>(p => p.Role == Player.gameRole.Zombie);
 
         var cut = Render(@<TagModal ActiveGame="@testGame" ActivePlayer="@testPlayer" />);
@@ -67,7 +67,7 @@
     [Test]
     public void Test_TagButtonEnabled()
     {
-        Game testGame = Mock.Of<TestGame>(g => g.IsActive == true);
+        Game testGame = Mock.Of<TestGame>(g => g.Status == Game.GameStatus.Active);
         Player testPlayer = Mock.Of<TestPlayer>(p => p.Role == Player.gameRole.Zombie);
 
         var cut = Render(@<TagModal ActiveGame="@testGame" ActivePlayer="@testPlayer" />);
@@ -84,7 +84,7 @@
     [Test]
     public void Test_TagFail_InvalidId()
     {
-        Game testGame = Mock.Of<TestGame>(g => g.IsActive == true);
+        Game testGame = Mock.Of<TestGame>(g => g.Status == Game.GameStatus.Active);
         Player testPlayer = Mock.Of<TestPlayer>(p => p.Role == Player.gameRole.Zombie);
 
         var cut = Render(@<TagModal ActiveGame="@testGame" ActivePlayer="@testPlayer" />);
@@ -108,7 +108,7 @@
     [Test]
     public void Test_TagFail_NonHuman()
     {
-        Game testGame = Mock.Of<TestGame>(g => g.IsActive == true);
+        Game testGame = Mock.Of<TestGame>(g => g.Status == Game.GameStatus.Active);
         Player testPlayer = Mock.Of<TestPlayer>(p => p.Role == Player.gameRole.Zombie);
 
         var cut = Render(@<TagModal ActiveGame="@testGame" ActivePlayer="@testPlayer" />);
@@ -132,7 +132,7 @@
     [Test]
     public void Test_TagSuccess()
     {
-        Game testGame = Mock.Of<TestGame>(g => g.IsActive == true);
+        Game testGame = Mock.Of<TestGame>(g => g.Status == Game.GameStatus.Active);
         Player testPlayer = Mock.Of<TestPlayer>(p => p.Role == Player.gameRole.Zombie);
 
         var cut = Render(@<TagModal ActiveGame="@testGame" ActivePlayer="@testPlayer" />);
@@ -156,7 +156,7 @@
     [Test]
     public void Test_InactiveGame()
     {
-        Game testGame = Mock.Of<TestGame>(g => g.IsActive == false);
+        Game testGame = Mock.Of<TestGame>(g => g.Status == Game.GameStatus.Paused);
         Player testPlayer = Mock.Of<TestPlayer>(p => p.Role == Player.gameRole.Zombie);
 
         var cut = Render(@<TagModal ActiveGame="@testGame" ActivePlayer="@testPlayer" />);
@@ -172,7 +172,7 @@
     [Test]
     public void Test_ActiveGame()
     {
-        Game testGame = Mock.Of<TestGame>(g => g.IsActive == true);
+        Game testGame = Mock.Of<TestGame>(g => g.Status == Game.GameStatus.Active);
         Player testPlayer = Mock.Of<TestPlayer>(p => p.Role == Player.gameRole.Zombie);
 
         var cut = Render(@<TagModal ActiveGame="@testGame" ActivePlayer="@testPlayer" />);
