@@ -17,20 +17,20 @@
         </button>
     </li>
     <li class="nav-item">
-        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#">
+        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#">
             <i class="fa-solid fa-users"></i>
             <span class="d-none d-md-inline">Players</span>
         </button>
     </li>
     <li class="nav-item">
-        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#">
+        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-log">
             <i class="fa-solid fa-list"></i>
             <span class="d-none d-md-inline">Log</span>
         </button>
     </li>
     <OrgAuthorizedModerator>
         <li class="nav-item">
-            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#">
                 <i class="fa-solid fa-shield"></i>
                 <span class="d-none d-md-inline">Moderation</span>
             </button>
@@ -47,6 +47,7 @@
     </div>
     <div id="tab-log" class="tab-pane fade" role="tabpanel">
         @*Log tab*@
+        <GameLogView ActiveGame="@ActiveGame" />
     </div>
     <OrgAuthorizedModerator>
         <div id="tab-mod" class="tab-pane fade" role="tabpanel">
