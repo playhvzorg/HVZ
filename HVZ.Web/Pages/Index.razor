@@ -67,7 +67,7 @@
         if (userId is not null)
         {
             user = await UserRepo.FindUserById(userId);
-            games = await GameRepo.GetActiveGamesWithUser(userId ?? "");
+            games = await GameRepo.GetCurrentGamesWithUser(userId ?? "");
         }
 
 

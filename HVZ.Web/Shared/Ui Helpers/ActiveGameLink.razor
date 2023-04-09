@@ -66,8 +66,16 @@
             // Log Error
             return string.Empty;
         }
-        // TODO: Update with game paused/not started
-        return FormatInstantAsDate(ActiveGame.CreatedAt);
+        if (ActiveGame.Status == Game.GameStatus.Active)
+        {
+            if (ActiveGame.StartedAt is null)
+            {
+                return string.Empty;
+            }
+            return FormatInstantAsDate((NodaTime.Instant)ActiveGame.StartedAt);
+        }
+        
+        return ActiveGame.Status.ToString();
     }
 
     string FormatInstantAsDate(NodaTime.Instant instant)

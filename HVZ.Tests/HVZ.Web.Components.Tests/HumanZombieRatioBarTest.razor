@@ -93,13 +93,14 @@
             creatorid: "01",
             orgid: "001",
             createdat: time,
-            isActive: true,
+            status: Game.GameStatus.Active,
             defaultrole: Player.gameRole.Human,
             players: new HashSet<Player>()
             {
                 tagger, receiver
             },
-            eventLog: new List<GameEventLog>()
+            eventLog: new List<GameEventLog>(),
+            maxOzTags: 100
         );
 
         game_afterTag = new(
@@ -108,13 +109,14 @@
             creatorid: "01",
             orgid: "001",
             createdat: time,
-            isActive: true,
+            status: Game.GameStatus.Active,
             defaultrole: Player.gameRole.Human,
             players: new HashSet<Player>()
             {
                 tagger, receiverTagged
             },
-            eventLog: new List<GameEventLog>()
+        eventLog: new List<GameEventLog>(),
+        maxOzTags: 100
         );
 
         game_afterJoin = new(
@@ -123,13 +125,14 @@
             creatorid: "01",
             orgid: "001",
             createdat: time,
-            isActive: true,
+            status: Game.GameStatus.Active,
             defaultrole: Player.gameRole.Human,
             players: new HashSet<Player>()
             {
                 tagger, receiver, GenericHumanPlayer()
             },
-            eventLog: new List<GameEventLog>()
+            eventLog: new List<GameEventLog>(),
+            maxOzTags: 100
         );
 
         game_afterRoleChange = new(
@@ -138,13 +141,14 @@
             creatorid: "01",
             orgid: "001",
             createdat: time,
-            isActive: true,
+            status: Game.GameStatus.Active,
             defaultrole: Player.gameRole.Human,
             players: new HashSet<Player>()
             {
                 tagger, receiverTagged
             },
-            eventLog: new List<GameEventLog>()
+        eventLog: new List<GameEventLog>(),
+        maxOzTags: 100
         );
 
         game_1H1Z = new(
@@ -153,13 +157,14 @@
             creatorid: "01",
             orgid: "001",
             createdat: time,
-            isActive: true,
+            status: Game.GameStatus.Active,
             defaultrole: Player.gameRole.Human,
             players: new HashSet<Player>()
             {
                 GenericHumanPlayer(), GenericZombiePlayer()
             },
-            eventLog: new List<GameEventLog>()
+        eventLog: new List<GameEventLog>(),
+        maxOzTags: 100
         );
 
         game_1H2Z = new(
@@ -168,13 +173,14 @@
             creatorid: "01",
             orgid: "001",
             createdat: time,
-            isActive: true,
+            status: Game.GameStatus.Active,
             defaultrole: Player.gameRole.Human,
             players: new HashSet<Player>()
             {
                 GenericHumanPlayer(), GenericZombiePlayer(), GenericZombiePlayer()
             },
-            eventLog: new List<GameEventLog>()
+        eventLog: new List<GameEventLog>(),
+        maxOzTags: 100
         );
 
         game_4H3Z = new(
@@ -183,7 +189,7 @@
             creatorid: "01",
             orgid: "001",
             createdat: time,
-            isActive: true,
+            status: Game.GameStatus.Active,
             defaultrole: Player.gameRole.Human,
             players: new HashSet<Player>()
             {
@@ -195,7 +201,8 @@
                 GenericZombiePlayer(),
                 GenericZombiePlayer()
             },
-            eventLog: new List<GameEventLog>()
+            eventLog: new List<GameEventLog>(),
+            maxOzTags: 100
         );
 
         game_1H1Z1O = new(
@@ -204,13 +211,14 @@
             creatorid: "01",
             orgid: "001",
             createdat: time,
-            isActive: true,
+            status: Game.GameStatus.Active,
             defaultrole: Player.gameRole.Human,
             players: new HashSet<Player>()
             {
                 GenericHumanPlayer(), GenericZombiePlayer(), GenericOzPlayer()
             },
-            eventLog: new List<GameEventLog>()
+            eventLog: new List<GameEventLog>(),
+            maxOzTags: 100
         );
 
         #endregion

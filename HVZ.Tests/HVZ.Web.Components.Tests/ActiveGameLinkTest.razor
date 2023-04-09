@@ -5,7 +5,7 @@
 @using NodaTime
 
 @code {
-    Game testGame = Mock.Of<TestGame>(g => g.Players == new HashSet<Player>() { Mock.Of<TestPlayer>() });
+    Game testGame = Mock.Of<TestGame>(g => g.Players == new HashSet<Player>() { Mock.Of<TestPlayer>() } && g.StartedAt == time && g.Status == Game.GameStatus.Active);
 
     [OneTimeSetUp]
     public void Setup()
@@ -69,6 +69,32 @@
 
         dateElement.MarkupMatches(
             @<p class:ignore id="start-date">Dec 12 2023</p>
+        );
+    }
+
+    [Test]
+    public void Test_DisplayNew()
+    {
+        Game newTestGame = Mock.Of<TestGame>(g => g.Players == new HashSet<Player>() { Mock.Of<TestPlayer>() } && g.Status == Game.GameStatus.New);
+        var cut = Render(@<ActiveGameLink ActiveGame="@newTestGame" UserId="@testUserId" />);
+
+        var dateElement = cut.Find("#start-date");
+        
+        dateElement.MarkupMatches(
+            @<p class:ignore id="start-date">New</p>
+        );
+    }
+
+    [Test]
+    public void Test_DisplayPaused()
+    {
+        Game pausedTestGame = Mock.Of<TestGame>(g => g.Players == new HashSet<Player>() { Mock.Of<TestPlayer>() } && g.Status == Game.GameStatus.Paused);
+        var cut = Render(@<ActiveGameLink ActiveGame="@pausedTestGame" UserId="@testUserId" />);
+
+        var dateElement = cut.Find("#start-date");
+
+        dateElement.MarkupMatches(
+            @<p class:ignore id="start-date">Paused</p>
         );
     }
 
