@@ -37,7 +37,7 @@
     {
         Organization testOrg = Mock.Of<TestOrg>();
         Game testGame = Mock.Of<TestGame>();
-        Player testPlayer = Mock.Of<TestPlayer>();
+        Player testPlayer = Mock.Of<TestPlayer>(p => p.Role == Player.gameRole.Zombie);
 
         var cut = Render(
             @<CascadingValue Value="@testOrg" Name="Org">
