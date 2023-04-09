@@ -6,7 +6,6 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.IdGenerators;
 using MongoDB.Driver;
 using NodaTime;
-using Microsoft.Extensions.Logging;
 namespace HVZ.Persistence.MongoDB.Repos;
 
 public class UserRepo : IUserRepo
