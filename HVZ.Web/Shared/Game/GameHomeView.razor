@@ -25,7 +25,10 @@
             </div>
         </div>
 
-        <TagModal ActiveGame="@ActiveGame" ActivePlayer="@ActivePlayer" />
+        @if (ActivePlayer.Role != Player.gameRole.Human)
+        {
+            <TagModal ActiveGame="@ActiveGame" ActivePlayer="@ActivePlayer" />
+        }
 
         @if (ActiveGame?.Status == Game.GameStatus.New)
         {
