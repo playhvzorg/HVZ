@@ -5,7 +5,7 @@
 <h3 class="mb-3">@ActiveGame?.Name
     @if (activePlayer is null)
     {
-        @*Join game button*@
+        <JoinGameButton ModalId="join-game-modal"/>
     }
 </h3>
 
@@ -58,7 +58,7 @@
 
 @if (activePlayer is null)
 {
-    @*Join game modal*@
+    <JoinGameModal ModalId="join-game-modal" ActiveGame="@ActiveGame" UserId="@UserId"/>
 }
 
 @code {
