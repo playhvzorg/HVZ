@@ -1,0 +1,85 @@
+﻿@inject IOrgRepo OrgRepo
+@inject IGameRepo GameRepo
+@inject ILogger<ActiveGameLink> Logger
+@if (ActiveGame is not null)
+{
+    <a href="/org/@org?.Url" style="text-decoration:none;" class="text-muted">
+        <div class="row mb-4">
+            <div class="d-flex">
+                <div class="flex-shrink-0">
+                    <Thumbnail OrgId="@ActiveGame.OrgId" Size=@ImageService.ImageSize.SMALL />
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-block px-2">
+                        <div class="float-end d-inline">
+                            <p id="start-date" class="small mb-0">@GetStatusDecorator()</p>
+                        </div>
+                        <div class="d-inline">
+                            <h5 id="org-name" class="mb-0 px-0" style="text-overflow:ellipsis;overflow:hidden;white-space:nowrap;font-size:medium">@org?.Name</h5>
+                        </div>
+                        <p id="game-name" class="my-0 small" style="text-overflow:ellipsis;overflow:hidden;white-space:nowrap;">@ActiveGame.Name</p>
+                    </div>
+                    <div class="mx-2" style="font-size:small">
+                        <span class="me-1" id="game-id">
+                            <i class="fa-solid fa-id-card"></i> @player?.GameId
+                        </span>
+                        <span class="me-1" id="game-role">
+                            <i class="fa-solid fa-user"></i> <GameRoleTracker Player="@player" GameId="@ActiveGame.Id" ShowOz=true />
+                        </span>
+                        <span class="me-1" id="game-tags">
+                            <i class="fa-solid fa-people-robbery"></i> <GameTagCounter Player="@player" GameId="@ActiveGame?.Id" />
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <HumanZombieRatioBar ActiveGame="@ActiveGame" />
+        </div>
+    </a>
+}
+
+@code {
+    [Parameter]
+    public Game? ActiveGame { get; set; }
+
+    [Parameter]
+    public string? UserId { get; set; }
+
+    Organization? org;
+    Player? player;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ActiveGame is null)
+        {
+            Logger.LogError("ActiveGame is null for game link");
+            return;
+        }
+
+        org = await OrgRepo.FindOrgById(ActiveGame.OrgId);
+        player = ActiveGame.Players.FirstOrDefault(p => p.UserId == UserId);
+    }
+
+    string GetStatusDecorator()
+    {
+        if (ActiveGame is null)
+        {
+            // Log Error
+            return string.Empty;
+        }
+        if (ActiveGame.Status == Game.GameStatus.Active)
+        {
+            if (ActiveGame.StartedAt is null)
+            {
+                return string.Empty;
+            }
+            return FormatInstantAsDate((NodaTime.Instant)ActiveGame.StartedAt);
+        }
+        
+        return ActiveGame.Status.ToString();
+    }
+
+    string FormatInstantAsDate(NodaTime.Instant instant)
+    {
+        return instant.ToString("MMM d yyyy", null);
+    }
+}

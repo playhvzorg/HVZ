@@ -1,15 +1,15 @@
 ﻿@inject IJSRuntime JS
 
-<button @onclick="async () => {ToggleTheme();}" class="btn btn-outline-@GetButtonStyle"><i class="fa-solid fa-@GetThemeIcon"></i></button>
+<button @onclick="async () => {ToggleTheme();}" class="btn btn-outline-@ButtonStyle"><i class="fa-solid fa-@ThemeIcon"></i></button>
 
 @code {
     bool prefersLightTheme = true;
 
-    string GetTheme => prefersLightTheme ? "light" : "dark";
+    public string Theme => prefersLightTheme ? "light" : "dark";
 
-    string GetButtonStyle => prefersLightTheme ? "dark" : "light";
+    string ButtonStyle => prefersLightTheme ? "dark" : "light";
 
-    string GetThemeIcon => prefersLightTheme ? "sun" : "moon";
+    string ThemeIcon => prefersLightTheme ? "sun" : "moon";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -26,13 +26,15 @@
             prefersLightTheme = true;
         }
 
+        StateHasChanged();
+
     }
 
     async void ToggleTheme()
     {
         prefersLightTheme = !prefersLightTheme;
-        await JS.InvokeVoidAsync("saveThemePreference", GetTheme);
-        await JS.InvokeVoidAsync("applyTheme", GetTheme);
+        await JS.InvokeVoidAsync("saveThemePreference", Theme);
+        await JS.InvokeVoidAsync("applyTheme", Theme);
         StateHasChanged();
     }
 }
