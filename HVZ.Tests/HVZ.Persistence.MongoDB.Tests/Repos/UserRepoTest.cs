@@ -1,9 +1,9 @@
-using NodaTime;
-using Moq;
 using HVZ.Persistence.Models;
 using HVZ.Persistence.MongoDB.Repos;
-using MongoDB.Driver;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
+using Moq;
+using NodaTime;
 namespace HVZ.Persistence.MongoDB.Tests;
 
 [Parallelizable(ParallelScope.All)]
@@ -126,5 +126,34 @@ public class UserRepoTest : MongoTestBase
         await userRepo.DeleteUser(createdUser.Id);
 
         Assert.ThrowsAsync<ArgumentException>(() => userRepo.GetUserById(createdUser.Id));
+    }
+
+    [Test]
+    public async Task test_setFullName()
+    {
+        UserRepo userRepo = CreateUserRepo();
+        string userName = "karl";
+        string updatedUserName = "User Name";
+        string userEmail = "karl@karl.com";
+        User createdUser = await userRepo.CreateUser(userName, userEmail);
+
+        await userRepo.SetUserFullName(createdUser.Id, updatedUserName);
+
+        User foundUser = await userRepo.GetUserById(createdUser.Id);
+
+        Assert.That(foundUser.FullName, Is.EqualTo(updatedUserName));
+    }
+
+    [Test]
+    public async Task test_getFullName()
+    {
+        UserRepo userRepo = CreateUserRepo();
+        string userName = "karl";
+        string userEmail = "karl@karl.com";
+        User createdUser = await userRepo.CreateUser(userName, userEmail);
+
+        string foundUserName = await userRepo.GetUserFullName(createdUser.Id);
+
+        Assert.That(foundUserName, Is.EqualTo(userName));
     }
 }
