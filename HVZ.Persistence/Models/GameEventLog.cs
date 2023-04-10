@@ -33,6 +33,8 @@ public record GameEventLog
                 return $"{this.Timestamp.ToString()} User {this.UserId} was set to {(Player.gameRole)this.AdditionalInfo["role"]} by {this.AdditionalInfo["modid"]}";
             case GameEvent.ActiveStatusChanged:
                 return $"{this.Timestamp.ToString()} Game set to {((Game.GameStatus)this.AdditionalInfo["state"])} by {this.UserId}";
+            case GameEvent.GameStarted:
+                return $"{this.Timestamp.ToString()} User {this.UserId} has started the game";
             default:
                 return $"{this.Timestamp.ToString()} Unrecognized event: {this.GameEvent.ToString()} user: {this.UserId} {this.AdditionalInfo.ToString()}";
         }
@@ -46,4 +48,5 @@ public enum GameEvent
     Tag,
     PlayerRoleChangedByMod,
     ActiveStatusChanged,
+    GameStarted
 }

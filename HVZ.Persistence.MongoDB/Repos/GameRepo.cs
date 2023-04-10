@@ -513,6 +513,19 @@ public class GameRepo : IGameRepo
                 new Dictionary<string, object> { { "state", args.Status } }));
     }
 
+    protected virtual async Task OnGameStarted(GameStatusChangedEvent args)
+    {
+        EventHandler<GameStatusChangedEvent>? handler = GameActiveStatusChanged;
+        if (handler != null)
+        {
+            handler(this, args);
+        }
+
+        await LogGameEvent(args.game.Id,
+        new(GameEvent.GameStarted, _clock.GetCurrentInstant(), args.updatorId,
+            new Dictionary<string, object>()));
+    }
+
     protected virtual async Task OnTag(TagEventArgs args)
     {
         EventHandler<TagEventArgs>? handler = TagLogged;
