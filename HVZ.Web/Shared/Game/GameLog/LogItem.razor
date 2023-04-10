@@ -8,7 +8,7 @@
                     <GameCreatedLog LogItem="@GameLogItem" />
                     break;
                 case GameEvent.ActiveStatusChanged:
-                    <p>Game status changed</p>
+                    <StatusChangedLog LogItem="@GameLogItem" />
                     break;
                 case GameEvent.Tag:
                     <TagLog LogItem="@GameLogItem" SeesOzDetails="@SeesOzDetails" />
@@ -18,6 +18,9 @@
                     break;
                 case GameEvent.PlayerJoined:
                     <JoinGameLog LogItem="@GameLogItem" />
+                    break;
+                case GameEvent.GameStarted:
+                    <GameStartedLog LogItem="@GameLogItem" />
                     break;
             }
         </div>
