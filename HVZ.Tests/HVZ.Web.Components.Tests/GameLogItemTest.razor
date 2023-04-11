@@ -23,7 +23,8 @@
     public void Test_GameCreatedLog()
     {
         var cut = RenderLogItem(
-            new GameEventLog(GameEvent.GameCreated, time, testUserId),
+            new GameEventLog(GameEvent.GameCreated, time, testUserId,
+                new Dictionary<string, object> { { "name", testGameName }}),
             true
         );
 
@@ -48,7 +49,7 @@
         var cut = RenderLogItem(
             new GameEventLog(GameEvent.Tag, time, testUserId,
                 new Dictionary<string, object> { 
-                    { "tagreceiver", testUserId },
+                    { "tagreciever", testUserId },
                     { "taggertagcount", 25},
                     { "oztagger", false }
                 }),
