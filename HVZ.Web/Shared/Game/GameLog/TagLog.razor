@@ -13,7 +13,7 @@
                     }
                     else
                     {
-                        <img src="https://ui-avatars.com/api/?name=Original+Zombie&size=64&background=0D8ABC&color=fff" class="rounded" style="width:22px;position:absolute;top:0px;" />
+                        <img src="https://ui-avatars.com/api/?name=Original+Zombie&size=64&background=0D8ABC&color=fff" class="rounded oz-image" style="width:22px;position:absolute;top:0px;" />
                     }
                 }
                 else
@@ -45,6 +45,10 @@
                 <b>@taggerUser?.FullName </b>
             }
             has tagged <b>@receiverUser?.FullName</b>
+            @if (ozTag && SeesOzDetails)
+            {
+                <span> as OZ</span>
+            }
         </h6>
         @if (ozTag && SeesOzDetails)
         {

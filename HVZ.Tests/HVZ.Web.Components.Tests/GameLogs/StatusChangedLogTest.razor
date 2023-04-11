@@ -1,0 +1,47 @@
+@inherits ComponentTestBase
+@using HVZ.Web.Shared.Game.GameLog
+@using HVZ.Web.Shared.Ui_Helpers
+
+@code
+{
+    [OneTimeSetUp]
+    public void Setup()
+    {
+        mockUserRepo.Setup(r => r.GetUserById(testUserId))
+            .ReturnsAsync(Mock.Of<TestUser>());
+        
+        RegisterServices();
+    }
+
+    GameEventLog GetStatusLog(Game.GameStatus status)
+        => new GameEventLog(GameEvent.ActiveStatusChanged, time, testUserId, 
+                new Dictionary<string, object> { { "state", status } });
+
+    [Test]
+    public void Test_PausedMarkupTest()
+    {
+        var cut = Render(@<StatusChangedLog LogItem="@GetStatusLog(Game.GameStatus.Paused)" />);
+
+        Assert.DoesNotThrow(() => cut.FindComponent<Thumbnail>());
+        
+        var header = cut.Find("h6");
+        var body = cut.Find("p");
+
+        header.MarkupMatches(@<h6 class:ignore>Game paused</h6>);
+        body.MarkupMatches(@<p class:ignore>@testUserFullName has paused the game</p>);
+    }
+
+    [Test]
+    public void Test_ResumedMarkupTest()
+    {
+        var cut = Render(@<StatusChangedLog LogItem="@GetStatusLog(Game.GameStatus.Active)" />);
+
+        Assert.DoesNotThrow(() => cut.FindComponent<Thumbnail>());
+
+        var header = cut.Find("h6");
+        var body = cut.Find("p");
+
+        header.MarkupMatches(@<h6 class:ignore>Game resumed</h6>);
+        body.MarkupMatches(@<p class:ignore>@testUserFullName has resumed the game</p>);
+    }
+}

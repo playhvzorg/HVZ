@@ -75,6 +75,21 @@
     }
 
     [Test]
+    public void Test_RoleChangedHideOz()
+    {
+        var cut = RenderLogItem(
+            new GameEventLog(GameEvent.PlayerRoleChangedByMod, time, testUserId,
+                new Dictionary<string, object> {
+                    { "modid", testUserId },
+                    { "role", Player.gameRole.Oz }
+                }),
+            false
+        );
+
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find("div"));
+    }
+
+    [Test]
     public void Test_PlayerJoinedLog()
     {
         var cut = RenderLogItem(
