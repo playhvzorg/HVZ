@@ -1,0 +1,92 @@
+@inherits ComponentTestBase
+@using HVZ.Web.Shared.Game.GameLog
+
+@code
+{
+    [OneTimeSetUp]
+    public void Setup()
+    {
+        RegisterServices();
+    }
+
+    IRenderedFragment RenderLogItem(GameEventLog logItem, bool seesOz)
+    {
+        return Render(
+            @<LogItem GameLogItem="@logItem" SeesOzDetails="@seesOz" />
+        );
+    }
+
+    [Test]
+    public void Test_GameCreatedLog()
+    {
+        var cut = RenderLogItem(
+            new GameEventLog(GameEvent.GameCreated, time, testUserId),
+            true
+        );
+
+        Assert.DoesNotThrow(() => cut.FindComponent<GameCreatedLog>());
+    }
+    
+    [Test]
+    public void Test_StatusChangedLog()
+    {
+        var cut = RenderLogItem(
+            new GameEventLog(GameEvent.ActiveStatusChanged, time, testUserId, 
+                new Dictionary<string, object> { { "state", Game.GameStatus.Active } }),
+            true
+        );
+
+        Assert.DoesNotThrow(() => cut.FindComponent<StatusChangedLog>());
+    }
+
+    [Test]
+    public void Test_TagLog()
+    {
+        var cut = RenderLogItem(
+            new GameEventLog(GameEvent.Tag, time, testUserId,
+                new Dictionary<string, object> { 
+                    { "tagreceiver", testUserId },
+                    { "taggertagcount", 25},
+                    { "oztagger", false }
+                }),
+            true
+        );
+
+        Assert.DoesNotThrow(() => cut.FindComponent<TagLog>());
+    }
+
+    [Test]
+    public void Test_RoleChangedLog()
+    {
+        var cut = RenderLogItem(
+            new GameEventLog(GameEvent.PlayerRoleChangedByMod, time, testUserId,
+                new Dictionary<string, object> {
+                    { "modid", testUserId },
+                    { "role", Player.gameRole.Zombie }
+                }),
+            true
+        );
+
+        Assert.DoesNotThrow(() => cut.FindComponent<RoleChangedLog>());
+    }
+
+    [Test]
+    public void Test_PlayerJoinedLog()
+    {
+        var cut = RenderLogItem(
+            new GameEventLog(GameEvent.PlayerJoined, time, testUserId), true
+        );
+
+        Assert.DoesNotThrow(() => cut.FindComponent<JoinGameLog>());
+    }
+
+    [Test]
+    public void Test_GameStarted()
+    {
+        var cut = RenderLogItem(
+            new GameEventLog(GameEvent.GameStarted, time, testUserId), true
+        );
+
+        Assert.DoesNotThrow(() => cut.FindComponent<GameStartedLog>());
+    }
+}
