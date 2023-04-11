@@ -6,6 +6,9 @@
     [OneTimeSetUp]
     public void Setup()
     {
+        mockUserRepo.Setup(r => r.GetUserById(testUserId))
+            .ReturnsAsync(Mock.Of<TestUser>());
+                
         RegisterServices();
     }
 
