@@ -3,44 +3,47 @@
 @implements IDisposable
 
 <h3 class="mb-3">@ActiveGame?.Name
-    @if (activePlayer is null)
+    @if (activePlayer is null && (ActiveGame?.IsCurrent ?? false))
     {
         <JoinGameButton ModalId="join-game-modal"/>
     }
 </h3>
 
-<ul class="nav nav-pills nav-fill m-0">
-    <li class="nav-item">
-        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#">
-            <i class="fa-solid fa-house-user"></i>
-            <span class="d-none d-md-inline">Home</span>
-        </button>
-    </li>
-    <li class="nav-item">
-        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#">
-            <i class="fa-solid fa-users"></i>
-            <span class="d-none d-md-inline">Players</span>
-        </button>
-    </li>
-    <li class="nav-item">
-        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-log">
-            <i class="fa-solid fa-list"></i>
-            <span class="d-none d-md-inline">Log</span>
-        </button>
-    </li>
-    <OrgAuthorizedModerator>
+<div class="container px-0">
+    <ul class="nav nav-pills nav-fill m-0">
         <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#">
-                <i class="fa-solid fa-shield"></i>
-                <span class="d-none d-md-inline">Moderation</span>
+            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-home">
+                <i class="fa-solid fa-house-user"></i>
+                <span class="d-none d-md-inline">Home</span>
             </button>
         </li>
-    </OrgAuthorizedModerator>
-</ul>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#">
+                <i class="fa-solid fa-users"></i>
+                <span class="d-none d-md-inline">Players</span>
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-log">
+                <i class="fa-solid fa-list"></i>
+                <span class="d-none d-md-inline">Log</span>
+            </button>
+        </li>
+        <OrgAuthorizedModerator>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#">
+                    <i class="fa-solid fa-shield"></i>
+                    <span class="d-none d-md-inline">Moderation</span>
+                </button>
+            </li>
+        </OrgAuthorizedModerator>
+    </ul>
+</div>
 
-<div id="tab-content" class="tab-content">
+
+<div id="tab-content" class="tab-content container px-0">
     <div id="tab-home" class="tab-pane fade show active" role="tabpanel">
-        @*Home tab*@
+        <GameHomeView ActiveGame="@ActiveGame" ActivePlayer="@activePlayer" UserId="@UserId" />
     </div>
     <div id="tab-players" class="tab-pane fade" role="tabpanel">
         @*Players tab*@
@@ -56,7 +59,7 @@
     </OrgAuthorizedModerator>
 </div>
 
-@if (activePlayer is null)
+@if (activePlayer is null && (ActiveGame?.IsCurrent ?? false))
 {
     <JoinGameModal ModalId="join-game-modal" ActiveGame="@ActiveGame" UserId="@UserId"/>
 }
@@ -66,7 +69,7 @@
     public Game? ActiveGame { get; set; }
 
     [Parameter]
-    public string UserId { get; set; } = null!;
+    public string? UserId { get; set; }
 
     Player? activePlayer;
 

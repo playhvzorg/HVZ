@@ -1,0 +1,74 @@
+﻿@using HVZ.Web.Shared.Ui_Helpers
+@inject IGameRepo GameRepo
+
+<div class="border border-1 border-secondary rounded p-2 m-auto mt-3" style="max-width:650px;">
+    @if (ActivePlayer is not null)
+    {
+        @*Player info card*@
+        <div class="d-flex" id="info-card">
+            <div class="flex-grow-0">
+                @if (UserId is not null)
+                {
+                    <Thumbnail UserId="@UserId" Size="ImageService.ImageSize.SMALL" />
+                }
+            </div>
+            <div class="flex-grow-1 mx-3">
+                <p class="mb-0">
+                    <i class="fa-solid fa-id-card"></i> ID: <span>@ActivePlayer.GameId</span>
+                </p>
+                <p class="mb-0">
+                    <i class="fa-solid fa-user"></i> Role: <GameRoleTracker ShowOz="true" Player="@ActivePlayer" GameId="@ActiveGame?.Id" />
+                </p>
+                <p class="mb-0">
+                    <i class="fa-solid fa-people-robbery"></i> Tags: <GameTagCounter Player="@ActivePlayer" GameId="@ActiveGame?.Id" />
+                </p>
+            </div>
+        </div>
+
+        @if (ActivePlayer.Role != Player.gameRole.Human)
+        {
+            <TagModal ActiveGame="@ActiveGame" ActivePlayer="@ActivePlayer" />
+        }
+
+        @if (ActiveGame?.Status == Game.GameStatus.New)
+        {
+            <JoinOzPoolButton ActiveGame="@ActiveGame" ActivePlayer="@ActivePlayer" />
+        }
+    }
+    else
+    {
+        <div class="m-auto" id="not-in-game">
+            <p class="text-center">You are not registered for this game</p>
+        </div>
+    }
+</div>
+
+@*Org info*@
+<div class="p-2 m-auto mt-5">
+    <h3>About @Org?.Name</h3>
+    <hr />
+    @if (Org is not null)
+    {
+        <MarkdownDisplay Source="@Org.Description" />
+    }
+    
+</div>
+
+@code {
+    [Parameter]
+    public Game ActiveGame { get; set; } = null!;
+
+    [Parameter]
+    public string UserId { get; set; } = null!;
+
+    [Parameter]
+    public Player? ActivePlayer { get; set; }
+
+    [CascadingParameter(Name = "Org")]
+    Organization? Org { get; set; }
+
+    protected override bool ShouldRender()
+    {
+        return ActivePlayer is not null;
+    }
+}

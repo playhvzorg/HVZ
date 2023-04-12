@@ -1,0 +1,80 @@
+﻿@inject IGameRepo GameRepo
+@implements IDisposable
+
+<button class="btn btn-secondary w-100 mt-2" data-bs-toggle="modal" data-bs-target="#oz-modal">
+    @OzPoolAction OZ pool
+</button>
+
+@*Modal*@
+<div class="modal fade" id="oz-modal">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    @OzPoolAction OZ pool?
+                </h5>
+            </div>
+            <div class="modal-body">
+                <p>You will be @(inOzPool ? "removed from" : "added to") the pool for potential <em>Original Zombies</em></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-toggle="modal">Cancel</button>
+                <button class="btn btn-primary" data-bs-toggle="modal" @onclick="JoinOrLeaveOzPool">@OzPoolAction</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Player ActivePlayer { get; set; } = null!;
+
+    [Parameter]
+    public Game ActiveGame { get; set; } = null!;
+
+    bool inOzPool;
+
+    string OzPoolAction => inOzPool ? "Leave" : "Join";
+
+    async Task JoinOrLeaveOzPool()
+    {
+        if (inOzPool)
+        {
+            await GameRepo.RemovePlayerFromOzPool(ActiveGame.Id, ActivePlayer.UserId);
+            return;
+        }
+        await GameRepo.AddPlayerToOzPool(ActiveGame.Id, ActivePlayer.UserId);
+    }
+
+    protected override void OnInitialized()
+    {
+        inOzPool = ActiveGame.OzPool.Contains(ActivePlayer.UserId);
+
+        GameRepo.PlayerJoinedOzPool += PlayerJoined;
+        GameRepo.PlayerLeftOzPool += PlayerLeft;
+    }
+
+    void PlayerJoined(object? sender, OzPoolUpdatedEventArgs args)
+    {
+        if (args.game.Id == ActiveGame.Id && args.playerId == ActivePlayer.UserId)
+        {
+            inOzPool = true;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    void PlayerLeft(object? sender, OzPoolUpdatedEventArgs args)
+    {
+        if (args.game.Id == ActiveGame.Id && args.playerId == ActivePlayer.UserId)
+        {
+            inOzPool = false;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public void Dispose()
+    {
+        GameRepo.PlayerJoinedOzPool -= PlayerJoined;
+        GameRepo.PlayerLeftOzPool -= PlayerLeft;
+    }
+}

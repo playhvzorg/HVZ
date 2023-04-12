@@ -1,0 +1,54 @@
+﻿@inherits ComponentTestBase
+@using HVZ.Web.Shared.Ui_Helpers
+
+@code {
+    [OneTimeSetUp]
+    public void Setup()
+    {
+        mockUserRepo.Setup(r => r.GetUserById(testUserId)).ReturnsAsync(Mock.Of<TestUser>());
+
+        ConfigureTestAuthorization();
+        RegisterServices();
+    }
+
+    [Test]
+    public void Test_NoActivePlayer()
+    {
+        Organization testOrg = Mock.Of<TestOrg>();
+        Game testGame = Mock.Of<TestGame>();
+
+        var cut = Render(
+            @<CascadingValue Value="@testOrg" Name="Org">
+                <GameHomeView ActiveGame="@testGame" ActivePlayer="@null" UserId="@testUserId" />
+            </CascadingValue>
+        );
+
+        var notInGameText = cut.Find("#not-in-game");
+
+        notInGameText.MarkupMatches(
+            @<div class:regex="(m-auto){1}" id:ignore>
+                <p class:regex="(text-center){1}">You are not registered for this game</p>
+            </div>
+        );
+    }
+
+    [Test]
+    public void Test_ActivePlayer()
+    {
+        Organization testOrg = Mock.Of<TestOrg>();
+        Game testGame = Mock.Of<TestGame>();
+        Player testPlayer = Mock.Of<TestPlayer>(p => p.Role == Player.gameRole.Zombie);
+
+        var cut = Render(
+            @<CascadingValue Value="@testOrg" Name="Org">
+                <GameHomeView ActiveGame="@testGame" ActivePlayer="@testPlayer" UserId="@testUserId" />
+        </CascadingValue>
+    );
+
+        var infoCard = cut.Find("#info-card");
+        Assert.DoesNotThrow(() => cut.FindComponent<Thumbnail>());
+        Assert.DoesNotThrow(() => cut.FindComponent<TagModal>());
+        Assert.DoesNotThrow(() => cut.FindComponent<GameRoleTracker>());
+        Assert.DoesNotThrow(() => cut.FindComponent<GameTagCounter>());
+    }
+}
