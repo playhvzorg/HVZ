@@ -48,7 +48,10 @@
 
     protected override void OnInitialized()
     {
-        inOzPool = ActiveGame.OzPool.Contains(ActivePlayer.UserId);
+        if (ActivePlayer is not null)
+        {
+            inOzPool = ActiveGame?.OzPool.Contains(ActivePlayer.UserId) ?? false;
+        }
 
         GameRepo.PlayerJoinedOzPool += PlayerJoined;
         GameRepo.PlayerLeftOzPool += PlayerLeft;

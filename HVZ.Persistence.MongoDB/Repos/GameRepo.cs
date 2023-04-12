@@ -175,7 +175,7 @@ public class GameRepo : IGameRepo
         Game game = await GetGameById(gameId);
         if (!game.IsCurrent)
             throw new ArgumentException($"Cannot register for Game {gameId} because registration has ended");
-        if (FindPlayerByUserId(gameId, userId).Result != null)
+        if (await FindPlayerByUserId(gameId, userId) != null)
             throw new ArgumentException($"User {userId} is already in Game {gameId}!");
 
         Player player = new Player(userId, await GeneratePlayerGameId(gameId), game.DefaultRole, 0,
