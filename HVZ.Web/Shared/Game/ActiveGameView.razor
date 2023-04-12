@@ -39,21 +39,23 @@
 </ul>
 @if (ActiveGame is not null)
 {
-    <div id="tab-content" class="tab-content">
-        <div id="tab-home" class="tab-pane fade show active" role="tabpanel">
-            <GameHomeView ActiveGame="@ActiveGame" ActivePlayer="@activePlayer" UserId="@UserId" />
-        </div>
-        <div id="tab-players" class="tab-pane fade" role="tabpanel">
-            <PlayerListView ActiveGame="@ActiveGame" UserId="@UserId" ActivePlayer="@activePlayer" />
-        </div>
-        <div id="tab-log" class="tab-pane fade" role="tabpanel">
-            @*Log tab*@
-        </div>
-        <OrgAuthorizedModerator>
-            <div id="tab-mod" class="tab-pane fade" role="tabpanel">
-                @*Game settings/moderation tab*@
+    <div class="container px-0">
+        <div id="tab-content" class="tab-content">
+            <div id="tab-home" class="tab-pane fade show active" role="tabpanel">
+                <GameHomeView ActiveGame="@ActiveGame" ActivePlayer="@activePlayer" UserId="@UserId" />
             </div>
-        </OrgAuthorizedModerator>
+            <div id="tab-players" class="tab-pane fade" role="tabpanel">
+                <PlayerListView ActiveGame="@ActiveGame" UserId="@UserId" ActivePlayer="@activePlayer" />
+            </div>
+            <div id="tab-log" class="tab-pane fade" role="tabpanel">
+                @*Log tab*@
+            </div>
+            <OrgAuthorizedModerator>
+                <div id="tab-mod" class="tab-pane fade" role="tabpanel">
+                    @*Game settings/moderation tab*@
+                </div>
+            </OrgAuthorizedModerator>
+        </div>
     </div>
 }
 
