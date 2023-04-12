@@ -48,6 +48,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         userId = authState?.User.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value ?? string.Empty;
         if (userId == string.Empty)

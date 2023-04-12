@@ -1,5 +1,6 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using HVZ.Web.Shared.Org_Authorization
+@using HVZ.Web.Shared.Game
 @inject IOrgRepo OrgRepo
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @page "/org/{url}"
@@ -13,7 +14,7 @@
         </OrgAuthorizedModerator>
     </div>
     <div>
-        <HVZ.Web.Shared.Game.GameView ActiveGameId="@organization?.ActiveGameId" />
+        <GameView ActiveGameId="@organization?.ActiveGameId" />
     </div>
 </OrgAuth>
 

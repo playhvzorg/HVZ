@@ -3,7 +3,7 @@
 @implements IDisposable
 
 <h3 class="mb-3">@ActiveGame?.Name
-    @if (activePlayer is null)
+    @if (activePlayer is null && (ActiveGame?.IsCurrent ?? false))
     {
         <JoinGameButton ModalId="join-game-modal"/>
     }
@@ -11,7 +11,7 @@
 
 <ul class="nav nav-pills nav-fill m-0">
     <li class="nav-item">
-        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#">
+        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-home">
             <i class="fa-solid fa-house-user"></i>
             <span class="d-none d-md-inline">Home</span>
         </button>
@@ -41,7 +41,7 @@
 {
     <div id="tab-content" class="tab-content">
         <div id="tab-home" class="tab-pane fade show active" role="tabpanel">
-            @*Home tab*@
+            <GameHomeView ActiveGame="@ActiveGame" ActivePlayer="@activePlayer" UserId="@UserId" />
         </div>
         <div id="tab-players" class="tab-pane fade" role="tabpanel">
             <PlayerListView ActiveGame="@ActiveGame" UserId="@UserId" ActivePlayer="@activePlayer" />
@@ -58,7 +58,7 @@
 }
 
 
-@if (activePlayer is null)
+@if (activePlayer is null && (ActiveGame?.IsCurrent ?? false))
 {
     <JoinGameModal ModalId="join-game-modal" ActiveGame="@ActiveGame" UserId="@UserId"/>
 }
@@ -68,7 +68,7 @@
     public Game? ActiveGame { get; set; }
 
     [Parameter]
-    public string UserId { get; set; } = null!;
+    public string? UserId { get; set; }
 
     Player? activePlayer;
 
