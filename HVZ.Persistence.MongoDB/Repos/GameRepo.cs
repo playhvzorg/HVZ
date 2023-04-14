@@ -48,6 +48,7 @@ public class GameRepo : IGameRepo
             cm.MapProperty(g => g.EventLog);
             cm.MapProperty(g => g.OzPool);
             cm.MapProperty(g => g.OzMaxTags);
+            cm.MapProperty(g => g.OzPassword);
         });
 
         BsonClassMap.RegisterClassMap<Player>(cm =>
@@ -175,7 +176,7 @@ public class GameRepo : IGameRepo
         Game game = await GetGameById(gameId);
         if (!game.IsCurrent)
             throw new ArgumentException($"Cannot register for Game {gameId} because registration has ended");
-        if (FindPlayerByUserId(gameId, userId).Result != null)
+        if (await FindPlayerByUserId(gameId, userId) != null)
             throw new ArgumentException($"User {userId} is already in Game {gameId}!");
 
         Player player = new Player(userId, await GeneratePlayerGameId(gameId), game.DefaultRole, 0,
@@ -433,6 +434,41 @@ public class GameRepo : IGameRepo
     {
         Game game = await GetGameById(gameId);
         return game.OzMaxTags;
+    }
+
+    public async Task<Game> SetOzPassword(string gameId, string? password, string instigatorId)
+    {
+        Game game = await Collection.FindOneAndUpdateAsync<Game>(g => g.Id == gameId,
+        Builders<Game>.Update.Set(g => g.OzPassword, password),
+        new FindOneAndUpdateOptions<Game, Game> { ReturnDocument = ReturnDocument.After });
+
+        _logger.LogTrace($"User {instigatorId} set the OZ Pool Password to {password}");
+        OnSettingsChanged(new(game, instigatorId));
+        return game;
+    }
+
+    public async Task<string?> GetOzPassword(string gameId)
+    {
+        Game game = await GetGameById(gameId);
+        return game.OzPassword;
+    }
+
+    public async Task<Game> SetDefaultRole(string gameId, Player.gameRole role, string instigatorId)
+    {
+        Game game = await Collection.FindOneAndUpdateAsync<Game>(g => g.Id == gameId,
+        Builders<Game>.Update.Set(g => g.DefaultRole, role),
+        new FindOneAndUpdateOptions<Game, Game> { ReturnDocument = ReturnDocument.After });
+
+        _logger.LogTrace($"User {instigatorId} set the default role to {role}");
+        OnSettingsChanged(new(game, instigatorId));
+        return game;
+    }
+
+    public async Task<Player.gameRole> GetDefaultRole(string gameId)
+    {
+        Game game = await GetGameById(gameId);
+
+        return game.DefaultRole;
     }
 
     private async Task<String> GeneratePlayerGameId(string gameId)

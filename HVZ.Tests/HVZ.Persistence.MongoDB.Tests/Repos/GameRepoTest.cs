@@ -1068,9 +1068,9 @@ public class GameRepoTest : MongoTestBase
         Assert.That(eventGame, Is.EqualTo(game));
 
         Assert.That(ozIds, Is.Not.Null);
-        Assert.That(ozIds.Length, Is.EqualTo(randomOzCount));
+        Assert.That(ozIds!.Length, Is.EqualTo(randomOzCount));
 
-        foreach (string id in ozIds)
+        foreach (string id in ozIds!)
         {
             Assert.That(playerIds.Contains(id), Is.True);
         }
@@ -1151,5 +1151,68 @@ public class GameRepoTest : MongoTestBase
         int gameTagCount = await gameRepo.GetOzTagCount(game.Id);
 
         Assert.That(gameTagCount, Is.EqualTo(game.OzMaxTags));
+    }
+
+    [Test]
+    public async Task test_setozpassword()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+        string ozpassword = "password";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+
+        Assert.That(game.OzPassword, Is.Null);
+        game = await gameRepo.SetOzPassword(game.Id, ozpassword, userid);
+        Assert.That(game.OzPassword, Is.EqualTo(ozpassword));
+    }
+
+    [Test]
+    public async Task test_getozpassword()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+        string ozpassword = "password";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        game = await gameRepo.SetOzPassword(game.Id, ozpassword, userid);
+
+        string? foundOzPassword = await gameRepo.GetOzPassword(game.Id);
+        Assert.That(foundOzPassword, Is.Not.Null);
+        Assert.That(foundOzPassword, Is.EqualTo(ozpassword));
+    }
+
+    [Test]
+    public async Task test_setdefaultrole()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+
+        Assert.That(game.DefaultRole, Is.EqualTo(Player.gameRole.Human));
+        game = await gameRepo.SetDefaultRole(game.Id, Player.gameRole.Zombie, userid);
+        Assert.That(game.DefaultRole, Is.EqualTo(Player.gameRole.Zombie));
+    }
+
+    [Test]
+    public async Task test_getdefaultrole()
+    {
+        GameRepo gameRepo = CreateGameRepo();
+        string gameName = "test";
+        string userid = "0";
+        string orgid = "123";
+
+        Game game = await gameRepo.CreateGame(gameName, userid, orgid);
+        game = await gameRepo.SetDefaultRole(game.Id, Player.gameRole.Zombie, userid);
+
+        Player.gameRole foundRole = await gameRepo.GetDefaultRole(game.Id);
+        Assert.That(foundRole, Is.EqualTo(Player.gameRole.Zombie));
     }
 }

@@ -31,7 +31,7 @@
         </li>
         <OrgAuthorizedModerator>
             <li class="nav-item">
-                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#">
+                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-mod">
                     <i class="fa-solid fa-shield"></i>
                     <span class="d-none d-md-inline">Moderation</span>
                 </button>
@@ -40,24 +40,27 @@
     </ul>
 </div>
 
-
-<div id="tab-content" class="tab-content container px-0">
-    <div id="tab-home" class="tab-pane fade show active" role="tabpanel">
-        <GameHomeView ActiveGame="@ActiveGame" ActivePlayer="@activePlayer" UserId="@UserId" />
-    </div>
-    <div id="tab-players" class="tab-pane fade" role="tabpanel">
-        @*Players tab*@
-    </div>
-    <div id="tab-log" class="tab-pane fade" role="tabpanel">
-        @*Log tab*@
-        <GameLogView ActiveGame="@ActiveGame" ActivePlayer="@activePlayer" />
-    </div>
-    <OrgAuthorizedModerator>
-        <div id="tab-mod" class="tab-pane fade" role="tabpanel">
-            @*Game settings/moderation tab*@
+@if (ActiveGame is not null && UserId is not null)
+{
+    <div id="tab-content" class="tab-content container px-0">
+        <div id="tab-home" class="tab-pane fade show active" role="tabpanel">
+            <GameHomeView ActiveGame="@ActiveGame" ActivePlayer="@activePlayer" UserId="@UserId" />
         </div>
-    </OrgAuthorizedModerator>
-</div>
+        <div id="tab-players" class="tab-pane fade" role="tabpanel">
+            @*Players tab*@
+        </div>
+        <div id="tab-log" class="tab-pane fade" role="tabpanel">
+            <GameLogView ActiveGame="@ActiveGame" ActivePlayer="@activePlayer" />
+        </div>
+        <OrgAuthorizedModerator>
+            <div id="tab-mod" class="tab-pane fade" role="tabpanel">
+                @*Game settings/moderation tab*@
+                <ModSettingsView ActiveGame="@ActiveGame" UserId="@UserId" />
+            </div>
+        </OrgAuthorizedModerator>
+    </div>
+}
+
 
 @if (activePlayer is null && (ActiveGame?.IsCurrent ?? false))
 {
@@ -78,6 +81,8 @@
         activePlayer = ActiveGame?.Players.FirstOrDefault(p => p.UserId == UserId);
 
         GameRepo.PlayerJoinedGame += PlayerJoined;
+        GameRepo.GameSettingsChanged += SettingsChanged;
+        GameRepo.GameActiveStatusChanged += GameStatusChanged;
     }
 
     void PlayerJoined(object? sender, PlayerUpdatedEventArgs args)
@@ -88,9 +93,29 @@
             InvokeAsync(StateHasChanged);
         }
     }
+    
+    void SettingsChanged(object? sender, GameUpdatedEventArgs args)
+    {
+        if (args.game.Id == ActiveGame?.Id)
+        {
+            ActiveGame = args.game;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    void GameStatusChanged(object? sender, GameStatusChangedEvent args)
+    {
+        if (args.game.Id == ActiveGame?.Id)
+        {
+            ActiveGame = args.game;
+            InvokeAsync(StateHasChanged);
+        }
+    }
 
     public void Dispose()
     {
         GameRepo.PlayerJoinedGame -= PlayerJoined;
+        GameRepo.GameSettingsChanged -= SettingsChanged;
+        GameRepo.GameActiveStatusChanged -= GameStatusChanged;
     }
 }
