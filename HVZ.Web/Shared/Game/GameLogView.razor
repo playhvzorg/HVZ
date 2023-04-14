@@ -31,9 +31,7 @@
         GameRepo.PlayerJoinedGame += PlayerUpdatedEvent;
         GameRepo.TagLogged += PlayerTaggedEvent;
         GameRepo.PlayerRoleChanged += PlayerRoleChangedByModEvent;
-
-        // When available:
-        //  Game started/paused/resumed/ended
+        GameRepo.GameActiveStatusChanged += GameStatusChagned;
     }
 
     void PlayerUpdatedEvent(object? sender, PlayerUpdatedEventArgs args)
@@ -41,6 +39,7 @@
         if (args.game.Id == ActiveGame.Id)
         {
             eventLog = args.game.EventLog;
+            InvokeAsync(StateHasChanged);
         }
     }
 
@@ -49,6 +48,7 @@
         if (args.game.Id == ActiveGame.Id)
         {
             eventLog = args.game.EventLog;
+            InvokeAsync(StateHasChanged);
         }
     }
 
@@ -57,6 +57,16 @@
         if (args.game.Id == ActiveGame.Id)
         {
             eventLog = args.game.EventLog;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    void GameStatusChagned(object? sender, GameStatusChangedEvent args)
+    {
+        if (args.game.Id == ActiveGame.Id)
+        {
+            eventLog = args.game.EventLog;
+            InvokeAsync(StateHasChanged);
         }
     }
 
@@ -65,5 +75,6 @@
         GameRepo.PlayerJoinedGame -= PlayerUpdatedEvent;
         GameRepo.TagLogged -= PlayerTaggedEvent;
         GameRepo.PlayerRoleChanged -= PlayerRoleChangedByModEvent;
+        GameRepo.GameActiveStatusChanged -= GameStatusChagned;
     }
 }

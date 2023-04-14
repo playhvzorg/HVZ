@@ -1,4 +1,5 @@
 @inject IGameRepo GameRepo
+@inject IOrgRepo OrgRepo
 @inject IJSRuntime JS
 
 @* Start game *@
@@ -130,7 +131,7 @@
 
     async Task EndGame()
     {
-        await GameRepo.EndGame(ActiveGame.Id, UserId);
+        await OrgRepo.EndGame(ActiveGame.OrgId, UserId);
     }
 
     async Task ToggleGamePaused()

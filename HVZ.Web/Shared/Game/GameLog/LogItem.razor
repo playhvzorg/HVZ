@@ -50,8 +50,9 @@
         if (roleChangedEvent)
         {
             bool ozRoleChangedEvent = (Player.gameRole)GameLogItem.AdditionalInfo["role"] == Player.gameRole.Oz;
+            bool ozMaxTags = (string)GameLogItem.AdditionalInfo["modid"] == "ozmaxtagsreached";
 
-            hideLogItem = ozRoleChangedEvent && !SeesOzDetails;
+            hideLogItem = (ozRoleChangedEvent || ozMaxTags) && !SeesOzDetails;
         }
     }
 }

@@ -2,20 +2,38 @@
 
 <div class="d-flex">
     <div class="flex-grow-0">
-        <div style="width:32px;position:relative;height:32px;">
+        @if (modUser is not null)
+        {
+            <div style="width:32px;position:relative;height:32px;">
+                @if (LogItem is not null)
+                {
+                    <Thumbnail UserId="@LogItem.UserId" Size="ImageService.ImageSize.SMALL" style="width:22px;position:absolute;top:0px;" />
+                }
+                @if (modId != string.Empty)
+                {
+                    <Thumbnail UserId="@modId" Size="ImageService.ImageSize.SMALL" style="width:22px;position:absolute;top:12px;left:10px;" />
+                }
+            </div>
+        }
+        else
+        {
             @if (LogItem is not null)
             {
-                <Thumbnail UserId="@LogItem.UserId" Size="ImageService.ImageSize.SMALL" style="width:22px;position:absolute;top:0px;" />
+                <Thumbnail UserId="@LogItem.UserId" Size="ImageService.ImageSize.SMALL" style="width:32px;" />
             }
-            @if (modId != string.Empty)
-            {
-                <Thumbnail UserId="@modId" Size="ImageService.ImageSize.SMALL" style="width:22px;position:absolute;top:12px;left:10px;" />
-            }
-        </div>
+        }
     </div>
     <div class="flex-grow-1 mx-1">
-        <h6 class="mb-0">Role changed</h6>
-        <p class="mb-0 small"><b>@user?.FullName</b> has been set to <em>@RoleDisplay</em> by <b>@modUser?.FullName</b></p>
+        @if (modUser is not null)
+        {
+            <h6 class="mb-0">Role changed</h6>
+            <p class="mb-0 small"><b>@user?.FullName</b> has been set to <em>@RoleDisplay</em> by <b>@modUser?.FullName</b></p>
+        }
+        else
+        {
+            <h6 class="mb-0">OZ has reached max tags</h6>
+            <p class="mb-0 small"><b>@user?.FullName</b> has achieved the max number of OZ tags and has chosen to play <em>@RoleDisplay</em></p>
+        }
     </div>
 </div>
 
@@ -35,6 +53,9 @@
         user = await UserRepo.GetUserById(LogItem.UserId);
         role = (Player.gameRole)LogItem.AdditionalInfo["role"];
         modId = (string)LogItem.AdditionalInfo["modid"];
-        modUser = await UserRepo.GetUserById(modId);
+        if (modId != "ozmaxtagsreached")
+        {
+            modUser = await UserRepo.GetUserById(modId);
+        }
     }
 }
