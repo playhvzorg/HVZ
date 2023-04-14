@@ -457,7 +457,7 @@ public class GameRepo : IGameRepo
     {
         Game game = await Collection.FindOneAndUpdateAsync<Game>(g => g.Id == gameId,
         Builders<Game>.Update.Set(g => g.DefaultRole, role),
-        new FindOneAndUpdateOptions<Game, Game> { ReturnDocument = ReturnDocument.After});
+        new FindOneAndUpdateOptions<Game, Game> { ReturnDocument = ReturnDocument.After });
 
         _logger.LogTrace($"User {instigatorId} set the default role to {role}");
         OnSettingsChanged(new(game, instigatorId));
