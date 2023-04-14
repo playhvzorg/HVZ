@@ -18,7 +18,7 @@
             </button>
         </li>
         <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-players">
                 <i class="fa-solid fa-users"></i>
                 <span class="d-none d-md-inline">Players</span>
             </button>
@@ -47,7 +47,7 @@
             <GameHomeView ActiveGame="@ActiveGame" ActivePlayer="@activePlayer" UserId="@UserId" />
         </div>
         <div id="tab-players" class="tab-pane fade" role="tabpanel">
-            @*Players tab*@
+            <PlayerListView ActiveGame="@ActiveGame" UserId="@UserId" ActivePlayer="@activePlayer" />
         </div>
         <div id="tab-log" class="tab-pane fade" role="tabpanel">
             <GameLogView ActiveGame="@ActiveGame" ActivePlayer="@activePlayer" />
