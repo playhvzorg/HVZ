@@ -1,4 +1,5 @@
 ﻿@inject IGameRepo GameRepo
+@inject IJSRuntime JS
 @implements IDisposable
 
 <button class="btn btn-secondary w-100 mt-2" data-bs-toggle="modal" data-bs-target="#oz-modal">
@@ -15,11 +16,36 @@
                 </h5>
             </div>
             <div class="modal-body">
-                <p>You will be @(inOzPool ? "removed from" : "added to") the pool for potential <em>Original Zombies</em></p>
+                @if (ActiveGame.OzPassword is not null && !inOzPool)
+                {
+                    <label for="password">OZ pool password</label>
+                    <input type="password" @bind="passwordInput" @bind:event="oninput" class="form-control" name="password">
+                }
+                else
+                {
+                    <p>You will be @(inOzPool ? "removed from" : "added to") the pool for potential <em>Original Zombies</em></p>
+                }
+                
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" data-bs-toggle="modal">Cancel</button>
-                <button class="btn btn-primary" data-bs-toggle="modal" @onclick="JoinOrLeaveOzPool">@OzPoolAction</button>
+                <button class="btn btn-primary @JoinButtonDisabledClass" data-bs-toggle="modal" @onclick="JoinOrLeaveOzPool">@OzPoolAction</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="oz-join-error-modal">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Error</h5>
+            </div>
+            <div class="modal-body">
+                <p class="text-danger">@joinError</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#oz-modal">Okay</button>
             </div>
         </div>
     </div>
@@ -33,8 +59,21 @@
     public Game ActiveGame { get; set; } = null!;
 
     bool inOzPool;
+    string? passwordInput;
+    string? joinError;
 
     string OzPoolAction => inOzPool ? "Leave" : "Join";
+
+    string? JoinButtonDisabledClass => GetJoinButtonClass();
+
+    string? GetJoinButtonClass()
+    {
+        if (!HasOzPassword) return null;
+
+        return (HasOzPassword && passwordInput is not null && passwordInput != string.Empty) || inOzPool ? null : "disabled";
+    }
+
+    bool HasOzPassword => ActiveGame?.OzPassword is not null;
 
     async Task JoinOrLeaveOzPool()
     {
@@ -42,6 +81,16 @@
         {
             await GameRepo.RemovePlayerFromOzPool(ActiveGame.Id, ActivePlayer.UserId);
             return;
+        }
+        if (ActiveGame.OzPassword is not null)
+        {
+            if (passwordInput != ActiveGame.OzPassword)
+            {
+                joinError = "Incorrect password";
+                await JS.InvokeVoidAsync("toggleModalById", "oz-join-error-modal");
+                return;
+            }
+
         }
         await GameRepo.AddPlayerToOzPool(ActiveGame.Id, ActivePlayer.UserId);
     }
@@ -55,6 +104,7 @@
 
         GameRepo.PlayerJoinedOzPool += PlayerJoined;
         GameRepo.PlayerLeftOzPool += PlayerLeft;
+        GameRepo.RandomOzsSet += RandomOzs;
     }
 
     void PlayerJoined(object? sender, OzPoolUpdatedEventArgs args)
@@ -75,9 +125,19 @@
         }
     }
 
+    void RandomOzs(object? sender, RandomOzEventArgs args)
+    {
+        if (args.randomOzIds.Contains(ActivePlayer.UserId))
+        {
+            inOzPool = false;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
     public void Dispose()
     {
         GameRepo.PlayerJoinedOzPool -= PlayerJoined;
         GameRepo.PlayerLeftOzPool -= PlayerLeft;
+        GameRepo.RandomOzsSet -= RandomOzs;
     }
 }

@@ -81,6 +81,8 @@
         activePlayer = ActiveGame?.Players.FirstOrDefault(p => p.UserId == UserId);
 
         GameRepo.PlayerJoinedGame += PlayerJoined;
+        GameRepo.GameSettingsChanged += SettingsChanged;
+        GameRepo.GameActiveStatusChanged += GameStatusChanged;
     }
 
     void PlayerJoined(object? sender, PlayerUpdatedEventArgs args)
@@ -91,9 +93,29 @@
             InvokeAsync(StateHasChanged);
         }
     }
+    
+    void SettingsChanged(object? sender, GameUpdatedEventArgs args)
+    {
+        if (args.game.Id == ActiveGame?.Id)
+        {
+            ActiveGame = args.game;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    void GameStatusChanged(object? sender, GameStatusChangedEvent args)
+    {
+        if (args.game.Id == ActiveGame?.Id)
+        {
+            ActiveGame = args.game;
+            InvokeAsync(StateHasChanged);
+        }
+    }
 
     public void Dispose()
     {
         GameRepo.PlayerJoinedGame -= PlayerJoined;
+        GameRepo.GameSettingsChanged -= SettingsChanged;
+        GameRepo.GameActiveStatusChanged -= GameStatusChanged;
     }
 }

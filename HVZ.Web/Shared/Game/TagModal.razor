@@ -1,55 +1,88 @@
 ﻿@inject IUserRepo UserRepo
 @inject IGameRepo GameRepo
+@implements IDisposable
 
-<button class="btn btn-primary w-100 @OpenModalEnabledClass mt-2" data-bs-toggle="modal" data-bs-target="#tag-modal" id="open-modal">
-    Tag
-</button>
-@if (ActiveGame?.IsActive ?? false)
+@if(!ReachedMaxTags)
 {
-    <div class="modal fade" id="tag-modal">
+    <button class="btn btn-primary w-100 @OpenModalEnabledClass mt-2" data-bs-toggle="modal" data-bs-target="#tag-modal" id="open-modal">
+        Tag
+    </button>
+    @if (ActiveGame?.IsActive ?? false)
+    {
+        <div class="modal fade" id="tag-modal">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            Tag
+                        </h5>
+                    </div>
+                    <div class="modal-body">
+                        <label for="id-input">ID</label>
+                        <input id="id-input" name="id-input" type="number" @bind="receiverId" @bind:event="oninput" class="form-control" placeholder="ID" />
+
+                        @if (tagErrorMsg is not null)
+                        {
+                            <div class="alert alert-danger d-flex mt-3">
+                                <div class="d-flex">
+                                    <div class="flex-grow-1" id="display-error-msg">
+                                        @tagErrorMsg
+                                    </div>
+                                    <div class="flex-grow-0">
+                                        <button class="btn-close" @onclick="ClearMessages"></button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        @if (tagSuccessMsg is not null)
+                        {
+                            <div class="alert alert-success d-flex mt-3">
+                                <div class="d-flex">
+                                    <div class="flex-grow-1" id="display-success-msg">
+                                        @tagSuccessMsg
+                                    </div>
+                                    <div class="flex-grow-0">
+                                        <button class="btn-close" @onclick="ClearMessages"></button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" data-bs-toggle="modal">Close</button>
+                        <button class="btn btn-primary @SubmitEnabledClass" @onclick="LogTag" id="tag-btn">Tag</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+else
+{
+    <div class="row">
+        <h5>Select a role</h5>
+        <div class="col-6 mx-0">
+            <button class="btn btn-secondary w-100" @onclick="SetTargetRoleZombie" data-bs-toggle="modal" data-bs-target="#role-modal">Zombie</button>
+        </div>
+        <div class="mx-0 col-6">
+            <button class="w-100 btn btn-secondary" @onclick="SetTargetRoleHuman" data-bs-toggle="modal" data-bs-target="#role-modal">Human</button>
+        </div>
+    </div>
+
+    <div class="modal fade" id="role-modal">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">
-                        Tag
-                    </h5>
+                    <h5 class="modal-title">Switch to @(targetGameRole.ToString().ToLower())?</h5>
                 </div>
                 <div class="modal-body">
-                    <label for="id-input">ID</label>
-                    <input id="id-input" name="id-input" type="number" @bind="receiverId" @bind:event="oninput" class="form-control" placeholder="ID" />
-
-                    @if (tagErrorMsg is not null)
-                    {
-                        <div class="alert alert-danger d-flex mt-3">
-                            <div class="d-flex">
-                                <div class="flex-grow-1" id="display-error-msg">
-                                    @tagErrorMsg
-                                </div>
-                                <div class="flex-grow-0">
-                                    <button class="btn-close" @onclick="ClearMessages"></button>
-                                </div>
-                            </div>
-                        </div>
-                    }
-
-                    @if (tagSuccessMsg is not null)
-                    {
-                        <div class="alert alert-success d-flex mt-3">
-                            <div class="d-flex">
-                                <div class="flex-grow-1" id="display-success-msg">
-                                    @tagSuccessMsg
-                                </div>
-                                <div class="flex-grow-0">
-                                    <button class="btn-close" @onclick="ClearMessages"></button>
-                                </div>
-                            </div>
-                        </div>
-                    }
-
+                    <p>Your game role will be set to @(targetGameRole.ToString().ToLower())</p>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-toggle="modal">Close</button>
-                    <button class="btn btn-primary @SubmitEnabledClass" @onclick="LogTag" id="tag-btn">Tag</button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal" data-bs-target="#role-modal">Cancel</button>
+                    <button class="btn btn-primary" data-bs-dismiss="modal" data-bs-target="#role-modal" @onclick="SetPlayerToTargetRole">Set to @(targetGameRole.ToString().ToLower())</button>
                 </div>
             </div>
         </div>
@@ -71,10 +104,33 @@
     string? SubmitEnabledClass => receiverId?.Length == 4 ? null : "disabled";
     string? OpenModalEnabledClass => ActiveGame?.IsActive ?? false ? null : "disabled";
 
+    bool ReachedMaxTags => ActivePlayer?.Role == Player.gameRole.Oz && ActivePlayer?.Tags >= ActiveGame?.OzMaxTags;
+
+    Player.gameRole targetGameRole;
+
+    void SetTargetRoleHuman() => targetGameRole = Player.gameRole.Human;
+
+    void SetTargetRoleZombie() => targetGameRole = Player.gameRole.Zombie;
+
+    protected override void OnInitialized()
+    {
+        GameRepo.TagLogged += TagLogged;
+    }
+
+    public void Dispose()
+    {
+        GameRepo.TagLogged -= TagLogged;
+    }
+
     void ClearMessages()
     {
         tagErrorMsg = null;
         tagSuccessMsg = null;
+    }
+
+    async Task SetPlayerToTargetRole()
+    {
+        await GameRepo.SetPlayerToRole(ActiveGame.Id, ActivePlayer.UserId, targetGameRole, "ozmaxtagsreached");
     }
 
     async void LogTag()
@@ -115,4 +171,23 @@
         receiverId = null;
         StateHasChanged();
     }
+
+    void TagLogged(object? sender, TagEventArgs args)
+    {
+        if (args.game.Id == ActiveGame.Id && args.Tagger.UserId == ActivePlayer.UserId)
+        {
+            ActivePlayer = args.Tagger;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    void RoleChanged(object? sender, PlayerRoleChangedEventArgs args)
+    {
+        if (args.game.Id == ActiveGame.Id && args.player.UserId == ActivePlayer.UserId)
+        {
+            ActivePlayer = args.player;
+        }
+    }
 }
+
+
