@@ -1,0 +1,152 @@
+﻿@inherits ComponentTestBase
+@using System.Security.Claims
+
+@code {
+    [OneTimeSetUp]
+    public void Setup()
+    {
+
+        ConfigureTestAuthorization();
+        RegisterServices();
+    }
+
+    [Test]
+    public void Test_NoConfirmedEmail()
+    {
+        mockUserManager.Setup(
+            r => r.GetUserAsync(It.IsAny<ClaimsPrincipal>())
+        ).ReturnsAsync( new ApplicationUser()
+        {
+            DatabaseId = testUserId,
+            EmailConfirmed = false,
+        });
+
+        Organization testOrg = Mock.Of<TestOrg>(
+            o => o.RequireProfilePictureForPlayer == false &&
+            o.RequireVerifiedEmailForPlayer == true
+        );
+
+        Game testGame = Mock.Of<TestGame>();
+
+        var cut = Render(
+            @<CascadingValue Value="@testOrg" Name="Org">
+                <JoinGameModal ModalId="" ActiveGame="@testGame" UserId="@testUserId" />
+            </CascadingValue>
+        );
+
+        var joinGameErrorsList = cut.Find("#join-error-list");
+
+        Assert.That(joinGameErrorsList.Children.Count, Is.EqualTo(1));
+
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find("#join-btn"));
+
+        var errorElement = cut.Find("li");
+
+        errorElement.MarkupMatches(
+            @<li>You must verify your email to join this game</li>
+        );
+    }
+
+    [Test]
+    public void Test_NoProfilePicture()
+    {
+        mockUserManager.Setup(
+            r => r.GetUserAsync(It.IsAny<ClaimsPrincipal>())
+        ).ReturnsAsync(new ApplicationUser()
+        {
+            DatabaseId = testUserId,
+            EmailConfirmed = true
+        });
+
+        mockImageService.Setup(i => i.HasUploadedUserImage(testUserId)).Returns(false);
+
+        Organization testOrg = Mock.Of<TestOrg>(
+            o => o.RequireProfilePictureForPlayer == true &&
+            o.RequireVerifiedEmailForPlayer == false
+        );
+
+        Game testGame = Mock.Of<TestGame>();
+
+        var cut = Render(
+            @<CascadingValue Value="@testOrg" Name="Org">
+                <JoinGameModal ModalId="" ActiveGame="@testGame" UserId="@testUserId" />
+            </CascadingValue>
+        );
+
+        var joinGameErrorsList = cut.Find("#join-error-list");
+
+        Assert.That(joinGameErrorsList.Children.Count, Is.EqualTo(1));
+
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find("#join-btn"));
+
+        var errorElement = cut.Find("li");
+
+        errorElement.MarkupMatches(
+            @<li>You must upload a profile image to join this game</li>
+        );
+    }
+
+    [Test]
+    public void Test_NoConfirmedEmailNoProfilePicture()
+    {
+        mockUserManager.Setup(
+            r => r.GetUserAsync(It.IsAny<ClaimsPrincipal>())
+        ).ReturnsAsync(new ApplicationUser()
+            {
+                DatabaseId = testUserId,
+                EmailConfirmed = false
+            });
+
+        mockImageService.Setup(i => i.HasUploadedUserImage(testUserId)).Returns(false);
+
+        Organization testOrg = Mock.Of<TestOrg>(
+            o => o.RequireProfilePictureForPlayer == true &&
+            o.RequireVerifiedEmailForPlayer == true
+        );
+
+        Game testGame = Mock.Of<TestGame>();
+
+        var cut = Render(
+            @<CascadingValue Value="@testOrg" Name="Org">
+                <JoinGameModal ModalId="" ActiveGame="@testGame" UserId="@testUserId" />
+            </CascadingValue>
+        );
+
+        var joinGameErrorsList = cut.Find("#join-error-list");
+
+        Assert.That(joinGameErrorsList.Children.Count, Is.EqualTo(2));
+
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find("#join-btn"));
+    }
+
+    [Test]
+    public void Test_MeetsMinimumRequirements()
+    {
+        mockUserManager.Setup(
+            r => r.GetUserAsync(It.IsAny<ClaimsPrincipal>())
+        ).ReturnsAsync(new ApplicationUser()
+            {
+                DatabaseId = testUserId,
+                EmailConfirmed = true
+            });
+
+        mockImageService.Setup(i => i.HasUploadedUserImage(testUserId)).Returns(true);
+
+        Organization testOrg = Mock.Of<TestOrg>(
+            o => o.RequireProfilePictureForPlayer == true &&
+            o.RequireVerifiedEmailForPlayer == true
+        );
+
+        Game testGame = Mock.Of<TestGame>();
+
+        var cut = Render(
+            @<CascadingValue Value="@testOrg" Name="Org">
+                <JoinGameModal ModalId="" ActiveGame="@testGame" UserId="@testUserId" />
+            </CascadingValue>
+        );
+
+        Assert.Throws<Bunit.ElementNotFoundException>(() => cut.Find("#join-error-list"));
+
+        Assert.DoesNotThrow((() => cut.Find("#join-btn")));
+    }
+}

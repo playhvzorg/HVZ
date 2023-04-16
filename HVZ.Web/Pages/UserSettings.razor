@@ -43,7 +43,7 @@
 
     @if(!verifiedEmail)
     {
-        <div class="alert alert-warning mt-3">Your email is not verified. <a @onclick="SendVerificationEmail" style="cursor:pointer" class="text-decoration-underline">Resend verification email</a></div>
+        <div class="alert alert-warning mt-3">Your email is not verified. <a @onclick="async() => { await SendVerificationEmail(); }" style="cursor:pointer" class="text-decoration-underline">Resend verification email</a></div>
     }
     <hr />
     <h4>Appearance</h4>
