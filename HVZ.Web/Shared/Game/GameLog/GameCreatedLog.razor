@@ -1,0 +1,27 @@
+﻿@inject IUserRepo UserRepo
+<div class="d-flex">
+    <div class="flex-grow-0">
+        @if (LogItem is not null)
+        {
+            <Thumbnail UserId="@LogItem.UserId" Size="ImageService.ImageSize.SMALL" style="width:32px;" />
+        }
+    </div>
+    <div class="flex-grow-1 mx-1">
+        <h6 class="mb-0">Game created</h6>
+        <p class="mb-0 small">@user?.FullName has created <em>@gameName</em></p>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public GameEventLog LogItem { get; set; } = null!;
+
+    User? user;
+    string? gameName;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        user = await UserRepo.GetUserById(LogItem.UserId);
+        gameName = (string)LogItem.AdditionalInfo["name"];
+    }
+}

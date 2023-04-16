@@ -4,7 +4,7 @@
 
 @if (IsAdmin)
 {
-    <button class="btn btn-primary w-100" id="btn-start-game">
+    <button class="btn btn-primary w-100" id="btn-start-game" data-bs-toggle="modal" data-bs-target="#start-game-modal">
         <i class="fa-solid fa-plus"></i> New game
     </button>
 
@@ -27,8 +27,8 @@
                     }
                 </div>
                 <div class="modal-footer">
-                    <button class="btn-btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button class="btn btn-primary" id="btn-new-game" @onclick="NewGame">Create</button>
+                    <button class="btn-btn-secondary" data-bs-toggle="modal">Cancel</button>
+                    <button class="btn btn-primary" id="btn-new-game" @onclick="NewGame" data-bs-toggle="modal">Create</button>
                 </div>
             </div>
         </div>
@@ -66,10 +66,10 @@
             return;
         }
 
-        await JS.InvokeVoidAsync("hideModalById", "start-game-modal");
+        @* await JS.InvokeVoidAsync("hideModalById", "start-game-modal"); *@
         try
         {
-            await OrgRepo.CreateGame(gameName, OrgId, userId, 3);
+            await OrgRepo.CreateGame(gameName, userId, OrgId, 3);
         }
         catch(ArgumentException e)
         {

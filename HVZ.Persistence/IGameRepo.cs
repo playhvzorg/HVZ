@@ -167,6 +167,26 @@ public interface IGameRepo
     public Task<int> GetOzTagCount(string gameId);
 
     /// <summary>
+    /// Set the password to join the OZ pool
+    /// </summary>
+    public Task<Game> SetOzPassword(string gameId, string? password, string instigatorId);
+
+    /// <summary>
+    /// Get the password the OZ pool
+    /// </summary>
+    public Task<string?> GetOzPassword(string gameId);
+
+    /// <summary>
+    /// Set the default role for players upon joining the game
+    /// </summary>
+    public Task<Game> SetDefaultRole(string gameId, Player.gameRole role, string instigatorId);
+
+    /// <summary>
+    /// Get the default role from the database
+    /// </summary>
+    public Task<Player.gameRole> GetDefaultRole(string gameId);
+
+    /// <summary>
     /// Event that fires when a new game is created
     /// </summary>
     public event EventHandler<GameUpdatedEventArgs> GameCreated;

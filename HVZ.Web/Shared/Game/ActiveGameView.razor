@@ -9,7 +9,11 @@
     }
 </h3>
 
+
 <div class="container px-0">
+    <div class="my-2">
+        <HumanZombieRatioBar ActiveGame="@ActiveGame" />
+    </div>
     <ul class="nav nav-pills nav-fill m-0">
         <li class="nav-item">
             <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-home">
@@ -18,20 +22,20 @@
             </button>
         </li>
         <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-players">
                 <i class="fa-solid fa-users"></i>
                 <span class="d-none d-md-inline">Players</span>
             </button>
         </li>
         <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-log">
                 <i class="fa-solid fa-list"></i>
                 <span class="d-none d-md-inline">Log</span>
             </button>
         </li>
         <OrgAuthorizedModerator>
             <li class="nav-item">
-                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#">
+                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-mod">
                     <i class="fa-solid fa-shield"></i>
                     <span class="d-none d-md-inline">Moderation</span>
                 </button>
@@ -40,23 +44,27 @@
     </ul>
 </div>
 
-
-<div id="tab-content" class="tab-content container px-0">
-    <div id="tab-home" class="tab-pane fade show active" role="tabpanel">
-        <GameHomeView ActiveGame="@ActiveGame" ActivePlayer="@activePlayer" UserId="@UserId" />
-    </div>
-    <div id="tab-players" class="tab-pane fade" role="tabpanel">
-        @*Players tab*@
-    </div>
-    <div id="tab-log" class="tab-pane fade" role="tabpanel">
-        @*Log tab*@
-    </div>
-    <OrgAuthorizedModerator>
-        <div id="tab-mod" class="tab-pane fade" role="tabpanel">
-            @*Game settings/moderation tab*@
+@if (ActiveGame is not null && UserId is not null)
+{
+    <div id="tab-content" class="tab-content container px-0">
+        <div id="tab-home" class="tab-pane fade show active" role="tabpanel">
+            <GameHomeView ActiveGame="@ActiveGame" ActivePlayer="@activePlayer" UserId="@UserId" />
         </div>
-    </OrgAuthorizedModerator>
-</div>
+        <div id="tab-players" class="tab-pane fade" role="tabpanel">
+            <PlayerListView ActiveGame="@ActiveGame" UserId="@UserId" ActivePlayer="@activePlayer" />
+        </div>
+        <div id="tab-log" class="tab-pane fade" role="tabpanel">
+            <GameLogView ActiveGame="@ActiveGame" ActivePlayer="@activePlayer" />
+        </div>
+        <OrgAuthorizedModerator>
+            <div id="tab-mod" class="tab-pane fade" role="tabpanel">
+                @*Game settings/moderation tab*@
+                <ModSettingsView ActiveGame="@ActiveGame" UserId="@UserId" />
+            </div>
+        </OrgAuthorizedModerator>
+    </div>
+}
+
 
 @if (activePlayer is null && (ActiveGame?.IsCurrent ?? false))
 {
@@ -77,6 +85,8 @@
         activePlayer = ActiveGame?.Players.FirstOrDefault(p => p.UserId == UserId);
 
         GameRepo.PlayerJoinedGame += PlayerJoined;
+        GameRepo.GameSettingsChanged += SettingsChanged;
+        GameRepo.GameActiveStatusChanged += GameStatusChanged;
     }
 
     void PlayerJoined(object? sender, PlayerUpdatedEventArgs args)
@@ -87,9 +97,29 @@
             InvokeAsync(StateHasChanged);
         }
     }
+    
+    void SettingsChanged(object? sender, GameUpdatedEventArgs args)
+    {
+        if (args.game.Id == ActiveGame?.Id)
+        {
+            ActiveGame = args.game;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    void GameStatusChanged(object? sender, GameStatusChangedEvent args)
+    {
+        if (args.game.Id == ActiveGame?.Id)
+        {
+            ActiveGame = args.game;
+            InvokeAsync(StateHasChanged);
+        }
+    }
 
     public void Dispose()
     {
         GameRepo.PlayerJoinedGame -= PlayerJoined;
+        GameRepo.GameSettingsChanged -= SettingsChanged;
+        GameRepo.GameActiveStatusChanged -= GameStatusChanged;
     }
 }

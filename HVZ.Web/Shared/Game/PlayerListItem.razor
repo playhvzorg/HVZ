@@ -1,0 +1,127 @@
+﻿@inject IGameRepo GameRepo
+@inject IOrgRepo OrgRepo
+@inject IUserRepo UserRepo
+@inject ImageService ImageService
+@implements IDisposable
+
+@using HVZ.Web.Shared.Org_Authorization
+
+<div class="border border-1 rounded">
+    <div class="d-flex" data-bs-toggle="collapse" data-bs-target="#collapse-@playerUser?.Id">
+        <div class="flex-grow-0">
+            <Thumbnail UserId="@Player.UserId" Size="ImageService.ImageSize.SMALL" />
+        </div>
+        <div class="flex-grow-1 mx-1">
+            <div style="display:flex; flex-direction:column; height: 100%; justify-content: space-evenly;">
+                <h6 class="mb-0 mx-2">@playerUser?.FullName</h6>
+                <OrgAuthorizedModerator>
+                    <p class="small mb-0 mx-2" id="email-@playerUser?.Id">@playerUser?.Email</p>
+                </OrgAuthorizedModerator>
+                <div class="d-flex" style="justify-content: space-evenly;">
+                    <p class="small mb-0">
+                        <i class="fa-solid fa-user"></i> <GameRoleTracker ShowOz="@SeesOz" Player="@Player" GameId="@ActiveGame.Id" />
+                    </p>
+                    <p class="small mb-0">|</p>
+                    <p class="small mb-0">
+                        <i class="fa-solid fa-people-robbery"></i> <GameTagCounter Player="@Player" GameId="@ActiveGame.Id" />
+                    </p>
+                    <OrgAuthorizedModerator>
+                        <p class="small mb-0">|</p>
+                        <p class="small mb-0" id="game-id-@playerUser?.Id">
+                            <i class="fa-solid fa-id-card"></i> @Player.GameId
+                        </p>
+                    </OrgAuthorizedModerator>
+                </div>
+            </div>
+        </div>
+    </div>
+    <OrgAuthorizedModerator>
+        <div class="collapse" id="collapse-@playerUser?.Id">
+            <div class="mt-2">
+                <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+                        Set role
+                    </button>
+                    <ul class="dropdown-menu">
+                        @if (Player?.Role != Player.gameRole.Human)
+                        {
+                            <li>
+                                <a class="dropdown-item" id="set-role-human-@playerUser?.Id"
+                                    @onclick="() => SetRole(Player.gameRole.Human)">Human</a>
+                            </li>
+                        }
+                        @if (Player?.Role != Player.gameRole.Zombie)
+                        {
+                            <li>
+                                <a class="dropdown-item" id="set-role-zombie-@playerUser?.Id"
+                                    @onclick="() => SetRole(Player.gameRole.Zombie)">Zombie</a>
+                            </li>
+                        }
+                        @if (Player?.Role != Player.gameRole.Oz)
+                        {
+                            <li>
+                                <a class="dropdown-item" id="set-role-oz-@playerUser?.Id"
+                                    @onclick="() => SetRole(Player.gameRole.Oz)">OZ</a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </OrgAuthorizedModerator>
+</div>
+
+@code {
+    [Parameter]
+    public Game ActiveGame { get; set; } = null!;
+
+    [Parameter]
+    public Player Player { get; set; } = null!;
+
+    [Parameter]
+    public bool SeesOz { get; set; }
+
+    [Parameter]
+    public string UserId { get; set; } = string.Empty; 
+
+    User playerUser = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Player is null)
+            throw new ArgumentNullException("Player cannot be null in PlayerListItem");
+
+        playerUser = await UserRepo.GetUserById(Player.UserId);
+
+        GameRepo.TagLogged += PlayerTagged;
+        GameRepo.PlayerRoleChanged += RoleChangedByMod;
+    }
+
+    void PlayerTagged(object? sender, TagEventArgs args)
+    {
+        UserRoleChanged(args.TagReciever, args.game.Id);
+    }
+
+    void RoleChangedByMod(object? sender, PlayerRoleChangedEventArgs args)
+    {
+        UserRoleChanged(args.player, args.game.Id);
+    }
+
+    void UserRoleChanged(Player player, string gameId)
+    {
+        if (player.GameId == Player?.GameId && gameId == ActiveGame?.Id)
+        {
+            Player = player;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    async Task SetRole(Player.gameRole role) 
+        => await GameRepo.SetPlayerToRole(ActiveGame.Id, Player.UserId, role, UserId);
+
+    public void Dispose()
+    {
+        GameRepo.TagLogged -= PlayerTagged;
+        GameRepo.PlayerRoleChanged -= RoleChangedByMod;
+    }
+}
