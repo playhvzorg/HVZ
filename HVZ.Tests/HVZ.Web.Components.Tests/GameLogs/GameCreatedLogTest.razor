@@ -1,0 +1,36 @@
+@inherits ComponentTestBase
+@using HVZ.Web.Shared.Game.GameLog
+@using HVZ.Web.Shared.Ui_Helpers
+
+@code
+{
+    GameEventLog logItem = new GameEventLog(GameEvent.GameCreated, time, testUserId, new Dictionary<string, object> { { "name", testGameName }});
+
+    [OneTimeSetUp]
+    public void Setup()
+    {
+        mockUserRepo.Setup(r => r.GetUserById(testUserId))
+            .ReturnsAsync(Mock.Of<TestUser>());
+        
+        RegisterServices();
+    }
+
+    [Test]
+    public void Test_GameCreatedMarkup()
+    {
+        var cut = Render(@<GameCreatedLog LogItem="@logItem" />);
+
+        Assert.DoesNotThrow(() => cut.FindComponent<Thumbnail>());
+
+        var heading = cut.Find("h6");
+        var body = cut.Find("p");
+
+        heading.MarkupMatches(
+            @<h6 class:ignore>Game created</h6>
+        );
+
+        body.MarkupMatches(
+            @<p class:ignore>@testUserFullName has created <em>@testGameName</em></p>
+        );
+    }
+}

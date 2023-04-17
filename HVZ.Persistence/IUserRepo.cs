@@ -42,4 +42,16 @@ public interface IUserRepo
     /// Delete a user with the given Id.
     /// </summary
     public Task DeleteUser(string id);
+
+    /// <summary>
+    /// Change the full name for the speicified user
+    /// </summary>
+    /// <returns>The updated user</returns>
+    public Task<User> SetUserFullName(string id, string fullname);
+
+    /// <summary>
+    /// Get the full name of the user
+    /// </summary>
+    /// <returns>The user's full name</returns>
+    public Task<string> GetUserFullName(string id);
 }

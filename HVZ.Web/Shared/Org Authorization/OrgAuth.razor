@@ -44,8 +44,7 @@
         
         if(OrgId != null && userId != null)
         {
-            if (Org == null)
-                Org = await OrgRepo.GetOrgById(OrgId);
+            Org = await OrgRepo.GetOrgById(OrgId);
 
             IsAdmin = await OrgRepo.IsAdminOfOrg(OrgId, userId);
             IsMod = IsAdmin || await OrgRepo.IsModOfOrg(OrgId, userId);

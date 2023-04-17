@@ -1,0 +1,58 @@
+﻿@if (!hideLogItem)
+{
+    <div class="d-md-flex border border-1 rounded p-2 m-1">
+        <div class="flex-grow-1">
+            @switch(GameLogItem.GameEvent)
+            {
+                case GameEvent.GameCreated:
+                    <GameCreatedLog LogItem="@GameLogItem" />
+                    break;
+                case GameEvent.ActiveStatusChanged:
+                    <StatusChangedLog LogItem="@GameLogItem" />
+                    break;
+                case GameEvent.Tag:
+                    <TagLog LogItem="@GameLogItem" SeesOzDetails="@SeesOzDetails" />
+                    break;
+                case GameEvent.PlayerRoleChangedByMod:
+                    <RoleChangedLog LogItem="@GameLogItem" />
+                    break;
+                case GameEvent.PlayerJoined:
+                    <JoinGameLog LogItem="@GameLogItem" />
+                    break;
+                case GameEvent.GameStarted:
+                    <GameStartedLog LogItem="@GameLogItem" />
+                    break;
+            }
+        </div>
+        <div class="flex-grow-0">
+            <p class="small mb-0">
+                @GameLogItem.Timestamp.ToString("MMM dd yyyy h:mm tt", null)
+            </p>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public GameEventLog GameLogItem { get; set; } = null!;
+
+    [Parameter]
+    public bool SeesOzDetails { get; set; }
+
+    bool hideLogItem;
+
+    protected override void OnInitialized()
+    {
+        if (GameLogItem is null)
+            throw new ArgumentNullException("GameLogItem cannot be null in LogItem");
+
+        bool roleChangedEvent = GameLogItem.GameEvent == GameEvent.PlayerRoleChangedByMod;
+        if (roleChangedEvent)
+        {
+            bool ozRoleChangedEvent = (Player.gameRole)GameLogItem.AdditionalInfo["role"] == Player.gameRole.Oz;
+            bool ozMaxTags = (string)GameLogItem.AdditionalInfo["modid"] == "ozmaxtagsreached";
+
+            hideLogItem = (ozRoleChangedEvent || ozMaxTags) && !SeesOzDetails;
+        }
+    }
+}

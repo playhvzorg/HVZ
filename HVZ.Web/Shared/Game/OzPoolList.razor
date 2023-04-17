@@ -1,0 +1,141 @@
+@inject IGameRepo GameRepo
+@inject IJSRuntime JS
+
+@implements IDisposable
+
+@if (ActiveGame is not null)
+{
+    <span class="small">@ozPool.Count players in OZ pool</span>
+    <div class="mt-3" style="height:150px;overflow:auto;">
+        <Virtualize Items="@ozPool" Context="user">
+            <OzPoolListItem Context="@user" UserId="@UserId" GameId="@ActiveGame?.Id" />
+        </Virtualize>
+    </div>
+
+    <button class="w-100 btn btn-primary mt-1" data-bs-toggle="modal" data-bs-target="#random-oz-modal">Random OZs <i class="fa-solid fa-dice"></i></button>
+
+    <div class="modal fade" id="random-oz-modal">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Set random OZs</h5>
+                </div>
+                <div class="modal-body">
+                    <p>Pick randomly from the OZ pool</p>
+                    <input @bind="numRandomOzs" type="number" class="form-control">
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal" data-bs-target="#random-oz-modal">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SetRandomOzs" data-bs-toggle="modal">Set</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="random-oz-error">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Error</h5>
+                </div>
+                <div class="modal-body">
+                    <p class="text-danger">@randomOzError</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#random-oz-modal">Okay</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="random-oz-success">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Success</h5>
+                </div>
+                <div class="modal-body">
+                    <p>Set @randomOzIds.Length OZs</p>
+                    @foreach(var id in randomOzIds)
+                    {
+                        <Thumbnail UserId="@id" Size="@ImageService.ImageSize.SMALL" />
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Okay</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code
+{
+    [Parameter]
+    public Game ActiveGame { get; set; } = null!;
+
+    [Parameter]
+    public string UserId { get; set; } = null!;
+
+    HashSet<string> ozPool = new HashSet<string>();
+
+    string[] randomOzIds = new string[0];
+    string? randomOzError;
+    int? numRandomOzs;
+
+    protected override void OnInitialized()
+    {
+        ozPool = ActiveGame.OzPool;
+
+        GameRepo.PlayerJoinedOzPool += OzPoolUpdated;
+        GameRepo.PlayerLeftOzPool += OzPoolUpdated;
+        GameRepo.RandomOzsSet += RandomOzsSuccess;
+    }
+
+    void OzPoolUpdated(object? sender, OzPoolUpdatedEventArgs args) 
+    {
+        if (args.game.Id == ActiveGame.Id)
+        {
+            ozPool = args.game.OzPool;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    void RandomOzsSuccess(object? sender, RandomOzEventArgs args)
+    {
+        randomOzIds = args.randomOzIds;
+        ozPool = args.game.OzPool;
+        InvokeAsync(StateHasChanged);
+    }
+
+    async Task SetRandomOzs()
+    {
+        int count = numRandomOzs ?? 0;
+
+        if (count <= 0)
+        {
+            randomOzError = "You can only select a positive number of OZs";
+            await JS.InvokeVoidAsync("toggleModalById", "random-oz-error");
+            return;
+        }
+
+        try
+        {
+            await GameRepo.AssignRandomOzs(ActiveGame.Id, count, UserId);
+        }
+        catch(ArgumentException e)
+        {
+            randomOzError = e.Message;
+            await JS.InvokeVoidAsync("showModalById", "random-oz-error");
+            return;
+        }
+
+    }
+
+    public void Dispose()
+    {
+        GameRepo.PlayerJoinedOzPool -= OzPoolUpdated;
+        GameRepo.PlayerLeftOzPool -= OzPoolUpdated;
+        GameRepo.RandomOzsSet -= RandomOzsSuccess;
+    }
+}
