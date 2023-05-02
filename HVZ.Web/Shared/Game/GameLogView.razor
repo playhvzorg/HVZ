@@ -47,8 +47,7 @@
     {
         if (e.GameEvent != GameEvent.ActiveStatusChanged) return false;
 
-        Player.gameRole targetRole = (Player.gameRole)e.AdditionalInfo["role"];
-        return targetRole == Player.gameRole.Oz;
+        return (Player.gameRole)e.AdditionalInfo["role"] is Player.gameRole.Oz;
     }
 
     void PlayerUpdatedEvent(object? sender, PlayerUpdatedEventArgs args)
