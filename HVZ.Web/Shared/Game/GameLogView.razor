@@ -26,12 +26,29 @@
 
     protected override void OnParametersSet()
     {
-        eventLog = ActiveGame.EventLog;
+        eventLog = GetEventLog();
 
         GameRepo.PlayerJoinedGame += PlayerUpdatedEvent;
         GameRepo.TagLogged += PlayerTaggedEvent;
         GameRepo.PlayerRoleChanged += PlayerRoleChangedByModEvent;
         GameRepo.GameActiveStatusChanged += GameStatusChagned;
+    }
+
+    List<GameEventLog> GetEventLog()
+    {
+        if (SeesOzDetails) return ActiveGame.EventLog;
+
+        return ActiveGame.EventLog.Where(
+            e => !EventIsOzStatusChange(e) || (EventIsOzStatusChange(e) && SeesOzDetails)
+        ).ToList();
+    }
+
+    bool EventIsOzStatusChange(GameEventLog e)
+    {
+        if (e.GameEvent != GameEvent.ActiveStatusChanged) return false;
+
+        Player.gameRole targetRole = (Player.gameRole)e.AdditionalInfo["role"];
+        return targetRole == Player.gameRole.Oz;
     }
 
     void PlayerUpdatedEvent(object? sender, PlayerUpdatedEventArgs args)
