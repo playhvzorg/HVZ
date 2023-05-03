@@ -1,5 +1,6 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using HVZ.Web.Shared.Org_Authorization
+@using HVZ.Web.Shared.Game
 @inject IOrgRepo OrgRepo
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @page "/org/{url}"
@@ -11,10 +12,9 @@
         <OrgAuthorizedModerator>
             <a class="d-inline ml-3 nav-item" href="/org/@Url/settings"><i class="fa-solid fa-wrench fa-lg"></i> <div class="d-none d-md-inline"> Settings</div></a>
         </OrgAuthorizedModerator>
-        <MarkdownDisplay Source="@description" />
     </div>
     <div>
-        Page Content
+        <GameView ActiveGameId="@organization?.ActiveGameId" />
     </div>
 </OrgAuth>
 

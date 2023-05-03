@@ -1,17 +1,16 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
 @using HVZ.Web.Services
+@using HVZ.Web.Shared.Ui_Helpers
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject EmailService Email
+@inject IUserRepo UserRepo
+@inject IGameRepo GameRepo
 @page "/"
 
 <PageTitle>PlayHVZ Home</PageTitle>
 
-<div class="container">
-    @*Home*@
-    <h1>Home</h1>
-    @*This lives here for now until we create a settings page*@
-    <HVZ.Web.Shared.Ui_Helpers.ThemeToggle />
+<div class="container-md mb-5">
     <CascadingAuthenticationState>
         <AuthorizeView>
             <NotAuthorized>
@@ -20,4 +19,57 @@
         </AuthorizeView>
     </CascadingAuthenticationState>
 
+    <div class="d-flex">
+        <div class="flex-grow-0 mx-2" style="max-width:100px; min-width:65px; width:10%">
+            @if (userId is not null)
+            {
+                <Thumbnail UserId="@userId" width="100%"/>
+            }
+        </div>
+        <div class="flex-grow-1">
+            <h3 class="my-0" style="font-size:large">@user?.FullName</h3>
+            <h5 class="text-muted my-0" style="font-size:small">@user?.Email</h5>
+            <h5 class="text-muted my-0" style="font-size:small">Joined: @user?.CreatedAt.ToString("MMM d yyyy", null)</h5>
+        </div>
+    </div>
+
+    <hr />
+
+    <div class="mt-3 m-auto" style="max-width:728px;">
+        @if (games.Count != 0)
+        {
+            <Virtualize Items="games" Context="game">
+                <ActiveGameLink ActiveGame="game" UserId="@userId" />
+            </Virtualize>
+        }
+        else
+        {
+            <p class="text-lg-center">Games you are participating in will appear here.</p>
+        }
+
+    </div>
+
 </div>
+
+@code
+{
+    private string? userId;
+    User? user;
+
+    List<Game> games = new List<Game>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+        userId = authState?.User.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value;
+
+        if (userId is not null)
+        {
+            user = await UserRepo.FindUserById(userId);
+            games = await GameRepo.GetCurrentGamesWithUser(userId ?? "");
+        }
+
+
+    }
+}

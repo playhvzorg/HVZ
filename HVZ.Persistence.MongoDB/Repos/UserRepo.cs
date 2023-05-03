@@ -1,11 +1,11 @@
-using MongoDB.Driver;
+using HVZ.Persistence.Models;
+using HVZ.Persistence.MongoDB.Serializers;
+using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.IdGenerators;
-using HVZ.Persistence.Models;
-using HVZ.Persistence.MongoDB.Serializers;
+using MongoDB.Driver;
 using NodaTime;
-using Microsoft.Extensions.Logging;
 namespace HVZ.Persistence.MongoDB.Repos;
 
 public class UserRepo : IUserRepo
@@ -63,7 +63,8 @@ public class UserRepo : IUserRepo
         User user = new(
             id: string.Empty,
             fullName: name,
-            email: email
+            email: email,
+            createdAt: _clock.GetCurrentInstant()
         );
         _logger.LogTrace($"Creating new user: name: {name} | email: {email}");
         await Collection.InsertOneAsync(user);
@@ -91,7 +92,9 @@ public class UserRepo : IUserRepo
     }
 
     public async Task<User?> FindUserByEmail(string email)
-        => email == string.Empty ? null : await Collection.Find(u => u.Email.ToLowerInvariant() == email.ToLowerInvariant()).FirstOrDefaultAsync();
+        => email == string.Empty
+            ? null
+            : await Collection.Find(u => u.Email.ToLowerInvariant() == email.ToLowerInvariant()).FirstOrDefaultAsync();
 
     public async Task<User> GetUserByEmail(string email)
     {
@@ -100,10 +103,27 @@ public class UserRepo : IUserRepo
             throw new ArgumentException($"User with email {email} not found!");
         return (User)user;
     }
+
     public async Task DeleteUser(string userId)
     {
         _logger.LogTrace($"Deleting user {userId}");
         await Collection.FindOneAndDeleteAsync(u => u.Id == userId);
     }
+    public async Task<User> SetUserFullName(string userId, string fullname)
+    {
+        var user = await GetUserById(userId);
 
+        _logger.LogTrace($"User {userId} changed their name from {user.FullName} to {fullname}");
+
+        return await Collection.FindOneAndUpdateAsync(u => u.Id == userId,
+            Builders<User>.Update.Set(u => u.FullName, fullname),
+            new() { ReturnDocument = ReturnDocument.After }
+            );
+    }
+
+    public async Task<string> GetUserFullName(string userId)
+    {
+        var user = await GetUserById(userId);
+        return user.FullName;
+    }
 }

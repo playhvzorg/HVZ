@@ -1,0 +1,45 @@
+@inherits ComponentTestBase
+
+@using HVZ.Web.Shared.Game.GameLog
+@using HVZ.Web.Shared.Ui_Helpers
+
+@code
+{
+    string testPlayerUserId = "9999";
+    string testPlayerFullName = "Test Player";
+
+    [OneTimeSetUp]
+    public void Setup()
+    {
+        mockUserRepo.Setup(r => r.GetUserById(testUserId))
+            .ReturnsAsync(Mock.Of<TestUser>());
+                
+        mockUserRepo.Setup(r => r.GetUserById(testPlayerUserId))
+            .ReturnsAsync(Mock.Of<TestUser>(
+                u => u.Id == testPlayerUserId && u.FullName == testPlayerFullName
+            )
+        );
+        
+        RegisterServices();
+    }
+
+    [Test]
+    public void Test_RoleChangedMarkup()
+    {
+        GameEventLog logItem = new GameEventLog(
+            GameEvent.PlayerRoleChangedByMod, time, testPlayerUserId,
+            new Dictionary<string, object> { 
+                { "role", Player.gameRole.Zombie },
+                { "modid", testUserId }
+            }
+        );
+
+        var cut = Render(@<RoleChangedLog LogItem="@logItem" />);
+
+        var header = cut.Find("h6");
+        var body = cut.Find("p");
+
+        header.MarkupMatches(@<h6 class:ignore>Role changed</h6>);
+        body.MarkupMatches(@<p class:ignore><b>@testPlayerFullName</b> has been set to <em>Zombie</em> by <b>@testUserFullName</b></p>);
+    }
+}

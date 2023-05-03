@@ -1,5 +1,4 @@
-﻿
-@inherits Bunit.TestContext
+﻿@inherits Bunit.TestContext
 
 @code {
     protected static readonly string testGameName = "Test Game";
@@ -17,6 +16,17 @@
     protected Mock<IGameRepo> mockGameRepo = new();
     protected Mock<IOrgRepo> mockOrgRepo = new();
     protected Mock<IUserRepo> mockUserRepo = new();
+    protected Mock<UserManager<ApplicationUser>> mockUserManager = new(
+        new Mock<IUserStore<ApplicationUser>>().Object,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+    );
     protected Mock<ImageService> mockImageService = new();
     protected TestAuthorizationContext? authContext;
 
@@ -26,6 +36,7 @@
         Services.AddSingleton<IOrgRepo>(mockOrgRepo.Object);
         Services.AddSingleton<IUserRepo>(mockUserRepo.Object);
         Services.AddSingleton<ImageService>(mockImageService.Object);
+        Services.AddSingleton<UserManager<ApplicationUser>>(mockUserManager.Object);
     }
 
     protected void ConfigureTestAuthorization()
@@ -42,10 +53,11 @@
                 creatorid: testUserId,
                 orgid: testOrgId,
                 createdat: time,
-                isActive: false,
+                status: Game.GameStatus.New,
                 defaultrole: Player.gameRole.Human,
                 players: new HashSet<Player>(),
-                eventLog: new List<GameEventLog>())
+                eventLog: new List<GameEventLog>(),
+                maxOzTags: 3)
         {
 
         }
@@ -71,7 +83,8 @@
             base(
                 id: testUserId,
                 fullName: testUserFullName,
-                email: testUserEmail)
+                email: testUserEmail,
+                createdAt: time)
         {
 
         }

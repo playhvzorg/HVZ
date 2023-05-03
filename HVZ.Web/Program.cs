@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Identity;
 using HVZ.Web.Data;
-using HVZ.DiscordIntegration;
 using HVZ.Persistence;
 using HVZ.Persistence.MongoDB.Repos;
 using HVZ.Web.Identity;
@@ -8,10 +7,6 @@ using HVZ.Web.Identity.Models;
 using HVZ.Web.Settings;
 using HVZ.Web.Services;
 using MongoDB.Driver;
-using NodaTime;
-using Discord.WebSocket;
-using Microsoft.AspNetCore.Authentication;
-using System.Security.Claims;
 
 namespace HVZ.Web;
 
@@ -58,6 +53,7 @@ internal static class Program
         var mongoDatabase = mongoClient.GetDatabase(
             mongoConfig?.DatabaseName
         );
+        builder.Services.AddSingleton<IMongoDatabase>(mongoDatabase);
 
         IGameRepo gameRepo = new GameRepo(mongoDatabase, NodaTime.SystemClock.Instance, logger);
         IUserRepo userRepo = new UserRepo(mongoDatabase, NodaTime.SystemClock.Instance, logger);
@@ -99,14 +95,7 @@ internal static class Program
 
         var discordIntegrationSettings = builder.Configuration.GetSection(nameof(DiscordIntegrationSettings))
             .Get<DiscordIntegrationSettings>();
-        bool discordIntegrationEnabled = discordIntegrationSettings is not null;
-        if (discordIntegrationEnabled)
-        {
-            var discordBot = DiscordBot.instance;
-            builder.Services.AddSingleton<DiscordSocketClient>();
-            builder.Services.AddSingleton<DiscordBot>(discordBot);
-            builder.Services.AddSingleton<DiscordIntegrationSettings>(discordIntegrationSettings!);
-        }
+        builder.Services.AddSingleton(discordIntegrationSettings!);
 
         #endregion
 
@@ -121,20 +110,7 @@ internal static class Program
 
         #endregion
 
-        builder.Services.AddSingleton<WeatherForecastService>();
-
         var app = builder.Build();
-
-        if (discordIntegrationEnabled)
-        {
-            DiscordBot? discordBot = (DiscordBot?)app.Services.GetService(typeof(DiscordBot));
-            if (discordBot is null)
-                throw new InvalidOperationException("Discord integration is enabled but the service is not configured");
-            if (discordIntegrationSettings?.Token is null)
-                throw new InvalidOperationException("Discord integration is enabled but the token is not configured");
-            discordBot.init(discordIntegrationSettings?.Token!, app.Services);
-            Task.Run(() => discordBot.Run());
-        }
 
         // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
