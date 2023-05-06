@@ -15,7 +15,7 @@
             new Mock<IUserStore<ApplicationUser>>().Object,
                 null, null, null, null, null, null, null, null);
     
-    User defaultUser = new User("0", "Default User", "default.user@mail.tld");
+    User defaultUser = new User("0", "Default User", "default.user@mail.tld", NodaTime.Instant.MinValue);
 
     readonly string orgId = "0";
 

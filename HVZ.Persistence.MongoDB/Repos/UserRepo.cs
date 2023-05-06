@@ -63,7 +63,8 @@ public class UserRepo : IUserRepo
         User user = new(
             id: string.Empty,
             fullName: name,
-            email: email
+            email: email,
+            createdAt: _clock.GetCurrentInstant()
         );
         _logger.LogTrace($"Creating new user: name: {name} | email: {email}");
         await Collection.InsertOneAsync(user);
