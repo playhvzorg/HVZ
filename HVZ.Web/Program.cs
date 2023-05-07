@@ -96,8 +96,10 @@ internal static class Program
         var discordIntegrationSettings = builder.Configuration.GetSection(nameof(DiscordIntegrationSettings))
             .Get<DiscordIntegrationSettings>();
         builder.Services.AddSingleton(discordIntegrationSettings!);
-        if(discordIntegrationSettings!.BotApiHostname is not null && discordIntegrationSettings.BotApiHostname is not "")
-            builder.Services.AddSingleton(new BotApiService(new HttpClient(), discordIntegrationSettings.BotApiHostname));
+        if (discordIntegrationSettings!.BotApiHostname is not null &&
+            discordIntegrationSettings.BotApiHostname is not "")
+            builder.Services.AddSingleton(
+                new BotApiService(new HttpClient(), discordIntegrationSettings.BotApiHostname));
 
         #endregion
 
