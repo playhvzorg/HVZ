@@ -1,7 +1,6 @@
 @using HVZ.Web.Services
 @using HVZ.Web.Shared.Users
 @inherits Bunit.TestContext
-
 @code
 {
     string orgId = "0";
@@ -14,7 +13,7 @@
     Mock<ImageService> mockImageSerice = new Mock<ImageService>();
 
     // Use in instances where information about the user is not relevant
-    User defaultUser = new User("0", "Default User", "default.user@mail.tld");
+    User defaultUser = new User("0", "Default User", "default.user@mail.tld", NodaTime.Instant.MinValue);
 
     [OneTimeSetUp]
     public void Setup()

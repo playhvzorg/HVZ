@@ -1,11 +1,10 @@
-using Microsoft.AspNetCore.Identity;
-using HVZ.Web.Data;
 using HVZ.Persistence;
 using HVZ.Persistence.MongoDB.Repos;
 using HVZ.Web.Identity;
 using HVZ.Web.Identity.Models;
-using HVZ.Web.Settings;
 using HVZ.Web.Services;
+using HVZ.Web.Settings;
+using Microsoft.AspNetCore.Identity;
 using MongoDB.Driver;
 
 namespace HVZ.Web;

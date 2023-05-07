@@ -97,6 +97,15 @@
         GameRepo.PlayerRoleChanged += RoleChangedByMod;
     }
 
+    // Not ideal but it will have to do for now
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            playerUser = await UserRepo.GetUserById(Player.UserId);
+        }
+    }
+
     void PlayerTagged(object? sender, TagEventArgs args)
     {
         UserRoleChanged(args.TagReciever, args.game.Id);
