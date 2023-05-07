@@ -456,4 +456,6 @@ $RECYCLE.BIN/
 # Ignore everything under /wwwroot/images
 */wwwroot/images/*
 
-*appsettings.Production.json
+# appsettings.json
+*appsettings.json
+*appsettings.*.json

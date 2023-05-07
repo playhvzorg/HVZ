@@ -1,6 +1,9 @@
 
 # Initial Setup
 
+## Create appsettings.json
+Copy appsettings.json.template to appsettings.json
+
 ## Use Gmail
 
 The default configuration is to use `smtp.gmail.com` as the smtp provider, if you are choosing to use a different smtp provider this section does not apply.
