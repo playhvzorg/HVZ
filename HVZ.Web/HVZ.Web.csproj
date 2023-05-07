@@ -9,6 +9,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Services\Templates\confirm_email.html" />
+    <None Remove="Services\Templates\email_template.html" />
+    <None Remove="Services\Templates\password_changed.html" />
+    <None Remove="Services\Templates\password_reset.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Services\Templates\confirm_email.html" />
+    <EmbeddedResource Include="Services\Templates\email_template.html" />
+    <EmbeddedResource Include="Services\Templates\password_changed.html" />
+    <EmbeddedResource Include="Services\Templates\password_reset.html" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AspNetCore.Identity.MongoDbCore" Version="3.1.2" />
     <PackageReference Include="Markdig" Version="0.31.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />

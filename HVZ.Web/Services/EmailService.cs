@@ -2,6 +2,7 @@ using HVZ.Web.Settings;
 using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Mail;
+using System.Reflection;
 
 namespace HVZ.Web.Services
 {
@@ -10,6 +11,7 @@ namespace HVZ.Web.Services
         private SmtpClient smtpClient;
         private MailAddress mailAddress;
         private string domainName;
+        private Dictionary<EmailType, string> templates;
 
         public EmailService(IOptions<EmailServiceOptions> options, IOptions<WebConfig> webConfig)
         {
@@ -26,41 +28,70 @@ namespace HVZ.Web.Services
             smtpClient.Credentials = new NetworkCredential(opts.EmailId, opts.Password);
             mailAddress = new MailAddress(opts.EmailId, opts.EmailAlias);
             smtpClient.EnableSsl = true;
+
+            // Load resources
+            templates = new Dictionary<EmailType, string>();
+            string emailTemplate = ReadTextResourceFromAssembly("HVZ.Web.Services.Templates.email_template.html");
+
+            templates.Add(EmailType.PasswordReset, ReadEmailWithTemplate(emailTemplate, "password_reset"));
+            templates.Add(EmailType.PasswordChange, ReadEmailWithTemplate(emailTemplate, "password_changed"));
+            templates.Add(EmailType.ConfirmEmail, ReadEmailWithTemplate(emailTemplate, "confirm_email"));
+
         }
-
-
 
         public async Task SendVerificationEmailAsync(string to, string name, string requestId)
         {
-            string htmlBody = await ReadEmailTemplateAsync("VerificationEmailTemplate.html");
+            string requestUrl = string.Format("{0}/Account/Verify?requestId={1}", domainName, requestId);
+            string htmlBody = string.Format(templates[EmailType.ConfirmEmail], name, requestUrl);
+            await SendHtmlEmailAsync(to, "PLayHVZ: Confirm Email Address", htmlBody);
+        }
 
+        public async Task SendPasswordChangeConfirmationEmailAsync(string to, string name)
+        {
+            string htmlBody = string.Format(templates[EmailType.PasswordChange], name);
+            await SendHtmlEmailAsync(to, "PlayHVZ: Password Changed", htmlBody);
+        }
+
+        public async Task SendPasswordResetEmailAsync(string to, string name, string requestId, string userId)
+        {
+            string requestUrl = string.Format("{0}/Account/Reset?requestId={1}&userId={2}", domainName, requestId, userId);
+            string htmlBody = string.Format(templates[EmailType.PasswordReset], name, requestUrl);
+            await SendHtmlEmailAsync(to, "PlayHVZ: Reset Password", htmlBody);
+        }
+
+        private async Task SendHtmlEmailAsync(string to, string subject, string body)
+        {
             MailMessage msg = new MailMessage();
-            msg.Subject = "PlayHVZ: Confirm email address";
-            msg.Body = String.Format(htmlBody, name, requestId, domainName);
-            msg.To.Add(new MailAddress(to));
+            msg.Subject = subject;
+            msg.Body = body;
+            msg.To.Add(to);
             msg.From = mailAddress;
             msg.IsBodyHtml = true;
 
-            smtpClient.SendAsync(msg, requestId);
+            await smtpClient.SendMailAsync(msg);
         }
 
-        public async Task SendPasswordChangeEmailAsync(string to, string name, string requestId, string userId)
+        private string ReadEmailWithTemplate(string template, string name)
         {
-            string htmlBody = await ReadEmailTemplateAsync("PasswordResetEmailTemplate.html");
-
-            MailMessage msg = new MailMessage();
-            msg.Subject = "PlayHVZ: Reset Password";
-            msg.Body = String.Format(htmlBody, name, requestId, domainName, userId);
-            msg.To.Add(new MailAddress(to));
-            msg.From = mailAddress;
-            msg.IsBodyHtml = true;
-
-            smtpClient.SendAsync(msg, requestId);
+            return string.Format(template, ReadTextResourceFromAssembly($"HVZ.Web.Services.Templates.{name}.html"));
         }
 
-        private async Task<string> ReadEmailTemplateAsync(string templateName)
+        // Solution from: https://stackoverflow.com/a/28558647
+        string ReadTextResourceFromAssembly(string name)
         {
-            return await File.ReadAllTextAsync($"Services/Templates/{templateName}");
+            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(name))
+            {
+                if (stream is null)
+                    throw new ArgumentException($"Resource '{name}' not found", "name");
+                return new StreamReader(stream).ReadToEnd();
+            }
+        }
+
+        private enum EmailType
+        {
+            ConfirmEmail,
+            PasswordReset,
+            PasswordChange
         }
     }
 }
