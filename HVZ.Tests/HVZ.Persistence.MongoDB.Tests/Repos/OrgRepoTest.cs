@@ -11,6 +11,7 @@ public class OrgRepotest : MongoTestBase
 {
     private OrgRepo orgRepo = null!;
     private Mock<IUserRepo> userRepoMock = null!;
+
     private Mock<IGameRepo> gameRepoMock = null!;
     //public OrgRepo CreateOrgRepo() =>
     //        new OrgRepo(CreateTemporaryDatabase(), Mock.Of<IClock>(), Mock.Of<IUserRepo>(), Mock.Of<IGameRepo>());
@@ -20,8 +21,8 @@ public class OrgRepotest : MongoTestBase
     {
         userRepoMock = new Mock<IUserRepo>();
         gameRepoMock = new Mock<IGameRepo>();
-        orgRepo = new OrgRepo(CreateTemporaryDatabase(), Mock.Of<IClock>(), userRepoMock.Object, gameRepoMock.Object, Mock.Of<ILogger>());
-
+        orgRepo = new OrgRepo(CreateTemporaryDatabase(), Mock.Of<IClock>(), userRepoMock.Object, gameRepoMock.Object,
+            Mock.Of<ILogger>());
     }
 
     [Test]
@@ -67,7 +68,6 @@ public class OrgRepotest : MongoTestBase
         Organization foundOrg = await orgRepo.GetOrgById(createdOrg.Id);
 
         Assert.ThrowsAsync<ArgumentException>(() => orgRepo.GetOrgById("000000000000000000000000"));
-
     }
 
     [Test]
@@ -140,7 +140,8 @@ public class OrgRepotest : MongoTestBase
         string userid = "0";
         string gameid = "1";
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
-        Game newGame = new("test", gameid, userid, org.Id, Instant.MinValue, Game.GameStatus.New, Player.gameRole.Human, new HashSet<Player>(), new(), 9999);
+        Game newGame = new ("test", gameid, userid, org.Id, Instant.MinValue, Game.GameStatus.New,
+            Player.gameRole.Human, new HashSet<Player>(), new (), 9999);
         gameRepoMock.Setup(repo => repo.GetGameById("1")).ReturnsAsync(newGame);
         await orgRepo.SetActiveGameOfOrg(org.Id, gameid);
 
@@ -159,7 +160,8 @@ public class OrgRepotest : MongoTestBase
         string gameid = "1";
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
 
-        Game newGame = new("test", gameid, userid, org.Id, Instant.MinValue, Game.GameStatus.New, Player.gameRole.Human, new HashSet<Player>(), new(), 9999);
+        Game newGame = new ("test", gameid, userid, org.Id, Instant.MinValue, Game.GameStatus.New,
+            Player.gameRole.Human, new HashSet<Player>(), new (), 9999);
         gameRepoMock.Setup(repo => repo.GetGameById("1")).ReturnsAsync(newGame);
         await orgRepo.SetActiveGameOfOrg(org.Id, gameid);
 
@@ -248,6 +250,7 @@ public class OrgRepotest : MongoTestBase
         org = await orgRepo.RemoveModerator(org.Id, userid1);
         Assert.That(org.Moderators.Contains(userid1), Is.False);
     }
+
     [Test]
     public async Task test_setorgowner()
     {
@@ -286,7 +289,7 @@ public class OrgRepotest : MongoTestBase
             status: Game.GameStatus.New,
             defaultrole: Player.gameRole.Human,
             players: new HashSet<Player>(),
-            eventLog: new(),
+            eventLog: new (),
             maxOzTags: 9999
         );
 
@@ -316,7 +319,7 @@ public class OrgRepotest : MongoTestBase
             status: Game.GameStatus.New,
             defaultrole: Player.gameRole.Human,
             players: new HashSet<Player>(),
-            new(),
+            new (),
             maxOzTags: 9999
         );
 
@@ -337,10 +340,7 @@ public class OrgRepotest : MongoTestBase
 
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
 
-        orgRepo.AdminsUpdated += delegate (object? sender, OrgUpdatedEventArgs args)
-        {
-            eventOrg = args.Org;
-        };
+        orgRepo.AdminsUpdated += delegate(object? sender, OrgUpdatedEventArgs args) { eventOrg = args.Org; };
 
         await orgRepo.AddAdmin(org.Id, newuserid);
         Assert.That(eventOrg, Is.Not.Null);
@@ -362,10 +362,7 @@ public class OrgRepotest : MongoTestBase
 
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
 
-        orgRepo.ModsUpdated += delegate (object? sender, OrgUpdatedEventArgs args)
-        {
-            eventOrg = args.Org;
-        };
+        orgRepo.ModsUpdated += delegate(object? sender, OrgUpdatedEventArgs args) { eventOrg = args.Org; };
 
         await orgRepo.AddModerator(org.Id, newuserid);
         Assert.That(eventOrg, Is.Not.Null);
@@ -421,10 +418,7 @@ public class OrgRepotest : MongoTestBase
 
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
 
-        orgRepo.SettingsUpdated += delegate (object? sender, OrgUpdatedEventArgs args)
-        {
-            eventOrg = args.Org;
-        };
+        orgRepo.SettingsUpdated += delegate(object? sender, OrgUpdatedEventArgs args) { eventOrg = args.Org; };
 
         await orgRepo.SetOrgDescription(org.Id, newdescription);
         Assert.That(eventOrg, Is.Not.Null);
@@ -472,10 +466,7 @@ public class OrgRepotest : MongoTestBase
 
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
 
-        orgRepo.SettingsUpdated += delegate (object? sender, OrgUpdatedEventArgs args)
-        {
-            eventOrg = args.Org;
-        };
+        orgRepo.SettingsUpdated += delegate(object? sender, OrgUpdatedEventArgs args) { eventOrg = args.Org; };
 
         await orgRepo.SetOrgName(org.Id, newname);
         Assert.That(eventOrg, Is.Not.Null);
@@ -525,10 +516,7 @@ public class OrgRepotest : MongoTestBase
 
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
 
-        orgRepo.SettingsUpdated += delegate (object? sender, OrgUpdatedEventArgs args)
-        {
-            eventOrg = args.Org;
-        };
+        orgRepo.SettingsUpdated += delegate(object? sender, OrgUpdatedEventArgs args) { eventOrg = args.Org; };
 
         await orgRepo.SetRequireVerifiedEmail(org.Id, true);
         Assert.That(eventOrg, Is.Not.Null);
@@ -578,12 +566,45 @@ public class OrgRepotest : MongoTestBase
 
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
 
-        orgRepo.SettingsUpdated += delegate (object? sender, OrgUpdatedEventArgs args)
-        {
-            eventOrg = args.Org;
-        };
+        orgRepo.SettingsUpdated += delegate(object? sender, OrgUpdatedEventArgs args) { eventOrg = args.Org; };
 
         await orgRepo.SetRequireProfilePicture(org.Id, true);
         Assert.That(eventOrg, Is.Not.Null);
+    }
+
+    [Test]
+    public async Task test_setorgdiscordserverid()
+    {
+        string orgname = "test";
+        string orgurl = "testurl";
+        string userid = "0";
+        string discordid = "12345";
+
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
+
+        Assert.That(org.DiscordServerId, Is.Null);
+
+        await orgRepo.SetOrgDiscordServerId(org.Id, discordid);
+
+        org = await orgRepo.GetOrgById(org.Id);
+
+        Assert.That(org.DiscordServerId, Is.EqualTo(discordid));
+    }
+
+    [Test]
+    public async Task test_getorgdiscordserverid()
+    {
+        string orgname = "test";
+        string orgurl = "testurl";
+        string userid = "0";
+        string discordid = "12345";
+
+        Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
+
+        Assert.ThrowsAsync<ArgumentException>(async () => await orgRepo.GetOrgDiscordServerId(org.Id));
+
+        await orgRepo.SetOrgDiscordServerId(org.Id, discordid);
+
+        Assert.That(await orgRepo.GetOrgDiscordServerId(org.Id), Is.EqualTo(discordid));
     }
 }

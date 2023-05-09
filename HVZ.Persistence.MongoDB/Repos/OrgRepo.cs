@@ -41,6 +41,7 @@ public class OrgRepo : IOrgRepo
                 .SetSerializer(InstantSerializer.Instance);
             cm.MapProperty(o => o.RequireProfilePictureForPlayer);
             cm.MapProperty(o => o.RequireVerifiedEmailForPlayer);
+            cm.MapProperty(o => o.DiscordServerId);
         });
     }
 
@@ -67,21 +68,23 @@ public class OrgRepo : IOrgRepo
             new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.Name)),
             new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.Url)),
             new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.Description)),
-            new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.RequireProfilePictureForPlayer)),
-            new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.RequireVerifiedEmailForPlayer))
+            new CreateIndexModel<Organization>(
+                Builders<Organization>.IndexKeys.Ascending(o => o.RequireProfilePictureForPlayer)),
+            new CreateIndexModel<Organization>(
+                Builders<Organization>.IndexKeys.Ascending(o => o.RequireVerifiedEmailForPlayer))
         });
     }
 
     public async Task<Organization> CreateOrg(string name, string url, string creatorUserId)
     {
         // await _userRepo.GetUserById(creatorUserId);
-        Organization org = new(
+        Organization org = new (
             id: string.Empty,
             name: name,
             ownerid: creatorUserId,
-            moderators: new(),
-            administrators: new() { creatorUserId },
-            games: new(),
+            moderators: new (),
+            administrators: new () { creatorUserId },
+            games: new (),
             activegameid: null,
             createdat: _clock.GetCurrentInstant(),
             url: url
@@ -98,7 +101,8 @@ public class OrgRepo : IOrgRepo
             throw new ArgumentException(
                 $"User {creatorId} is not an admin of org {orgId} and cannot create a game in this org.");
         if (await FindActiveGameOfOrg(orgId) is not null)
-            throw new ArgumentException($"There is already an active game in org {orgId}, not allowing creation of a new game");
+            throw new ArgumentException(
+                $"There is already an active game in org {orgId}, not allowing creation of a new game");
         Game game = await _gameRepo.CreateGame(name, creatorId, orgId, ozTagCount);
         await SetActiveGameOfOrg(orgId, game.Id);
         return game;
@@ -110,7 +114,8 @@ public class OrgRepo : IOrgRepo
         if (org.ActiveGameId is null)
             throw new ArgumentException($"There is no active game in {orgId}");
         if (await IsAdminOfOrg(orgId, instigatorId) is false)
-            throw new ArgumentException($"User {instigatorId} is not an admin of org {orgId} and cannot end the game in this org.");
+            throw new ArgumentException(
+                $"User {instigatorId} is not an admin of org {orgId} and cannot end the game in this org.");
 
         Game game = await _gameRepo.EndGame(org.ActiveGameId, instigatorId);
         await RemoveActiveGameOfOrg(orgId);
@@ -142,9 +147,12 @@ public class OrgRepo : IOrgRepo
     public async Task<Organization?> FindOrgByName(string name)
         => name == string.Empty ? null : await Collection.Find<Organization>(o => o.Name == name).FirstOrDefaultAsync();
 
-    public Task<Organization> GetOrgByName(string name)
+    public async Task<Organization> GetOrgByName(string name)
     {
-        throw new NotImplementedException();
+        Organization? org = await FindOrgByName(name);
+        if (org == null)
+            throw new ArgumentException($"Org with name {name} not found!");
+        return (Organization)org;
     }
 
     public async Task<Organization> SetActiveGameOfOrg(string orgId, string gameId)
@@ -155,7 +163,7 @@ public class OrgRepo : IOrgRepo
         else
             return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
                 Builders<Organization>.Update.Set(o => o.ActiveGameId, gameId),
-                new() { ReturnDocument = ReturnDocument.After });
+                new () { ReturnDocument = ReturnDocument.After });
     }
 
     public async Task<Organization> RemoveActiveGameOfOrg(string orgId)
@@ -166,7 +174,7 @@ public class OrgRepo : IOrgRepo
 
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.ActiveGameId, null),
-            new() { ReturnDocument = ReturnDocument.After });
+            new () { ReturnDocument = ReturnDocument.After });
     }
 
     public async Task<Game?> FindActiveGameOfOrg(string orgId)
@@ -188,11 +196,11 @@ public class OrgRepo : IOrgRepo
 
         org.Administrators.Add(userId);
         _logger.LogTrace($"User {userId} added to admin group of org {orgId}");
-        OnAdminsUpdated(new(org));
+        OnAdminsUpdated(new (org));
 
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Administrators, org.Administrators),
-            new() { ReturnDocument = ReturnDocument.After }
+            new () { ReturnDocument = ReturnDocument.After }
         );
     }
 
@@ -205,11 +213,11 @@ public class OrgRepo : IOrgRepo
 
         org.Administrators.Remove(userId);
         _logger.LogTrace($"User {userId} removed from admin group of org {orgId}");
-        OnAdminsUpdated(new(org));
+        OnAdminsUpdated(new (org));
 
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Administrators, org.Administrators),
-            new() { ReturnDocument = ReturnDocument.After }
+            new () { ReturnDocument = ReturnDocument.After }
         );
     }
 
@@ -226,7 +234,7 @@ public class OrgRepo : IOrgRepo
             throw new ArgumentException($"user {newOwnerId} is not an org administrator in org {orgId}");
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.OwnerId, newOwnerId),
-            new() { ReturnDocument = ReturnDocument.After }
+            new () { ReturnDocument = ReturnDocument.After }
         );
     }
 
@@ -237,11 +245,11 @@ public class OrgRepo : IOrgRepo
 
         org.Moderators.Add(userId);
         _logger.LogTrace($"User {userId} added to moderator group of org {orgId}");
-        OnModsUpdated(new(org));
+        OnModsUpdated(new (org));
 
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Moderators, org.Moderators),
-            new() { ReturnDocument = ReturnDocument.After }
+            new () { ReturnDocument = ReturnDocument.After }
         );
     }
 
@@ -251,11 +259,11 @@ public class OrgRepo : IOrgRepo
 
         org.Moderators.Remove(userId);
         _logger.LogTrace($"User {userId} removed from moderator group of org {orgId}");
-        OnModsUpdated(new(org));
+        OnModsUpdated(new (org));
 
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Moderators, org.Moderators),
-            new() { ReturnDocument = ReturnDocument.After }
+            new () { ReturnDocument = ReturnDocument.After }
         );
     }
 
@@ -277,11 +285,11 @@ public class OrgRepo : IOrgRepo
 
         _logger.LogTrace($"Name for org {orgId} has been changed to {name}");
 
-        OnSettingsUpdated(new(org));
+        OnSettingsUpdated(new (org));
 
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Name, name),
-            new() { ReturnDocument = ReturnDocument.After }
+            new () { ReturnDocument = ReturnDocument.After }
         );
     }
 
@@ -294,11 +302,11 @@ public class OrgRepo : IOrgRepo
 
         _logger.LogTrace($"Description for org {orgId} has been changed to {description}");
 
-        OnSettingsUpdated(new(org));
+        OnSettingsUpdated(new (org));
 
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Description, description),
-            new() { ReturnDocument = ReturnDocument.After }
+            new () { ReturnDocument = ReturnDocument.After }
         );
     }
 
@@ -311,12 +319,12 @@ public class OrgRepo : IOrgRepo
 
         _logger.LogTrace($"Require Verified Email for org {orgId} has been changed to {requireVerifiedEmail}");
 
-        OnSettingsUpdated(new(org));
+        OnSettingsUpdated(new (org));
 
 
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.RequireVerifiedEmailForPlayer, requireVerifiedEmail),
-            new() { ReturnDocument = ReturnDocument.After }
+            new () { ReturnDocument = ReturnDocument.After }
         );
     }
 
@@ -329,16 +337,36 @@ public class OrgRepo : IOrgRepo
 
         _logger.LogTrace($"Require Profile Picture for org {orgId} has been changed to {requireProfilePicture}");
 
-        OnSettingsUpdated(new(org));
+        OnSettingsUpdated(new (org));
 
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.RequireProfilePictureForPlayer, requireProfilePicture),
-            new() { ReturnDocument = ReturnDocument.After }
+            new () { ReturnDocument = ReturnDocument.After }
         );
     }
 
     public async Task<bool> GetRequireProfilePicture(string orgId)
         => (await GetOrgById(orgId)).RequireProfilePictureForPlayer;
+
+    public async Task SetOrgDiscordServerId(string orgId, string discordServerId)
+    {
+        Organization org = await GetOrgById(orgId);
+
+        org.DiscordServerId = discordServerId;
+
+        await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
+            Builders<Organization>.Update.Set(o => o.DiscordServerId, discordServerId),
+            new () { ReturnDocument = ReturnDocument.After }
+        );
+    }
+
+    public async Task<string> GetOrgDiscordServerId(string orgId)
+    {
+        Organization org = await GetOrgById(orgId);
+        if (org.DiscordServerId == null)
+            throw new ArgumentException($"org {orgId} does not have a linked discord server");
+        return org.DiscordServerId;
+    }
 
     protected virtual void OnAdminsUpdated(OrgUpdatedEventArgs o)
     {
