@@ -340,7 +340,7 @@ public class OrgRepotest : MongoTestBase
 
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
 
-        orgRepo.AdminsUpdated += delegate(object? sender, OrgUpdatedEventArgs args) { eventOrg = args.Org; };
+        orgRepo.AdminsUpdated += delegate (object? sender, OrgUpdatedEventArgs args) { eventOrg = args.Org; };
 
         await orgRepo.AddAdmin(org.Id, newuserid);
         Assert.That(eventOrg, Is.Not.Null);
@@ -362,7 +362,7 @@ public class OrgRepotest : MongoTestBase
 
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
 
-        orgRepo.ModsUpdated += delegate(object? sender, OrgUpdatedEventArgs args) { eventOrg = args.Org; };
+        orgRepo.ModsUpdated += delegate (object? sender, OrgUpdatedEventArgs args) { eventOrg = args.Org; };
 
         await orgRepo.AddModerator(org.Id, newuserid);
         Assert.That(eventOrg, Is.Not.Null);
@@ -418,7 +418,7 @@ public class OrgRepotest : MongoTestBase
 
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
 
-        orgRepo.SettingsUpdated += delegate(object? sender, OrgUpdatedEventArgs args) { eventOrg = args.Org; };
+        orgRepo.SettingsUpdated += delegate (object? sender, OrgUpdatedEventArgs args) { eventOrg = args.Org; };
 
         await orgRepo.SetOrgDescription(org.Id, newdescription);
         Assert.That(eventOrg, Is.Not.Null);
@@ -466,7 +466,7 @@ public class OrgRepotest : MongoTestBase
 
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
 
-        orgRepo.SettingsUpdated += delegate(object? sender, OrgUpdatedEventArgs args) { eventOrg = args.Org; };
+        orgRepo.SettingsUpdated += delegate (object? sender, OrgUpdatedEventArgs args) { eventOrg = args.Org; };
 
         await orgRepo.SetOrgName(org.Id, newname);
         Assert.That(eventOrg, Is.Not.Null);
@@ -516,7 +516,7 @@ public class OrgRepotest : MongoTestBase
 
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
 
-        orgRepo.SettingsUpdated += delegate(object? sender, OrgUpdatedEventArgs args) { eventOrg = args.Org; };
+        orgRepo.SettingsUpdated += delegate (object? sender, OrgUpdatedEventArgs args) { eventOrg = args.Org; };
 
         await orgRepo.SetRequireVerifiedEmail(org.Id, true);
         Assert.That(eventOrg, Is.Not.Null);
@@ -566,7 +566,7 @@ public class OrgRepotest : MongoTestBase
 
         Organization org = await orgRepo.CreateOrg(orgname, orgurl, userid);
 
-        orgRepo.SettingsUpdated += delegate(object? sender, OrgUpdatedEventArgs args) { eventOrg = args.Org; };
+        orgRepo.SettingsUpdated += delegate (object? sender, OrgUpdatedEventArgs args) { eventOrg = args.Org; };
 
         await orgRepo.SetRequireProfilePicture(org.Id, true);
         Assert.That(eventOrg, Is.Not.Null);
