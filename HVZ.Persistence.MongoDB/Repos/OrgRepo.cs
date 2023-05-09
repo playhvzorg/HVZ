@@ -78,13 +78,13 @@ public class OrgRepo : IOrgRepo
     public async Task<Organization> CreateOrg(string name, string url, string creatorUserId)
     {
         // await _userRepo.GetUserById(creatorUserId);
-        Organization org = new (
+        Organization org = new(
             id: string.Empty,
             name: name,
             ownerid: creatorUserId,
-            moderators: new (),
-            administrators: new () { creatorUserId },
-            games: new (),
+            moderators: new(),
+            administrators: new() { creatorUserId },
+            games: new(),
             activegameid: null,
             createdat: _clock.GetCurrentInstant(),
             url: url
@@ -163,7 +163,7 @@ public class OrgRepo : IOrgRepo
         else
             return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
                 Builders<Organization>.Update.Set(o => o.ActiveGameId, gameId),
-                new () { ReturnDocument = ReturnDocument.After });
+                new() { ReturnDocument = ReturnDocument.After });
     }
 
     public async Task<Organization> RemoveActiveGameOfOrg(string orgId)
@@ -174,7 +174,7 @@ public class OrgRepo : IOrgRepo
 
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.ActiveGameId, null),
-            new () { ReturnDocument = ReturnDocument.After });
+            new() { ReturnDocument = ReturnDocument.After });
     }
 
     public async Task<Game?> FindActiveGameOfOrg(string orgId)
@@ -196,11 +196,11 @@ public class OrgRepo : IOrgRepo
 
         org.Administrators.Add(userId);
         _logger.LogTrace($"User {userId} added to admin group of org {orgId}");
-        OnAdminsUpdated(new (org));
+        OnAdminsUpdated(new(org));
 
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Administrators, org.Administrators),
-            new () { ReturnDocument = ReturnDocument.After }
+            new() { ReturnDocument = ReturnDocument.After }
         );
     }
 
@@ -213,11 +213,11 @@ public class OrgRepo : IOrgRepo
 
         org.Administrators.Remove(userId);
         _logger.LogTrace($"User {userId} removed from admin group of org {orgId}");
-        OnAdminsUpdated(new (org));
+        OnAdminsUpdated(new(org));
 
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Administrators, org.Administrators),
-            new () { ReturnDocument = ReturnDocument.After }
+            new() { ReturnDocument = ReturnDocument.After }
         );
     }
 
@@ -234,7 +234,7 @@ public class OrgRepo : IOrgRepo
             throw new ArgumentException($"user {newOwnerId} is not an org administrator in org {orgId}");
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.OwnerId, newOwnerId),
-            new () { ReturnDocument = ReturnDocument.After }
+            new() { ReturnDocument = ReturnDocument.After }
         );
     }
 
@@ -245,11 +245,11 @@ public class OrgRepo : IOrgRepo
 
         org.Moderators.Add(userId);
         _logger.LogTrace($"User {userId} added to moderator group of org {orgId}");
-        OnModsUpdated(new (org));
+        OnModsUpdated(new(org));
 
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Moderators, org.Moderators),
-            new () { ReturnDocument = ReturnDocument.After }
+            new() { ReturnDocument = ReturnDocument.After }
         );
     }
 
@@ -259,11 +259,11 @@ public class OrgRepo : IOrgRepo
 
         org.Moderators.Remove(userId);
         _logger.LogTrace($"User {userId} removed from moderator group of org {orgId}");
-        OnModsUpdated(new (org));
+        OnModsUpdated(new(org));
 
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Moderators, org.Moderators),
-            new () { ReturnDocument = ReturnDocument.After }
+            new() { ReturnDocument = ReturnDocument.After }
         );
     }
 
@@ -285,11 +285,11 @@ public class OrgRepo : IOrgRepo
 
         _logger.LogTrace($"Name for org {orgId} has been changed to {name}");
 
-        OnSettingsUpdated(new (org));
+        OnSettingsUpdated(new(org));
 
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Name, name),
-            new () { ReturnDocument = ReturnDocument.After }
+            new() { ReturnDocument = ReturnDocument.After }
         );
     }
 
@@ -302,11 +302,11 @@ public class OrgRepo : IOrgRepo
 
         _logger.LogTrace($"Description for org {orgId} has been changed to {description}");
 
-        OnSettingsUpdated(new (org));
+        OnSettingsUpdated(new(org));
 
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.Description, description),
-            new () { ReturnDocument = ReturnDocument.After }
+            new() { ReturnDocument = ReturnDocument.After }
         );
     }
 
@@ -319,12 +319,12 @@ public class OrgRepo : IOrgRepo
 
         _logger.LogTrace($"Require Verified Email for org {orgId} has been changed to {requireVerifiedEmail}");
 
-        OnSettingsUpdated(new (org));
+        OnSettingsUpdated(new(org));
 
 
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.RequireVerifiedEmailForPlayer, requireVerifiedEmail),
-            new () { ReturnDocument = ReturnDocument.After }
+            new() { ReturnDocument = ReturnDocument.After }
         );
     }
 
@@ -337,11 +337,11 @@ public class OrgRepo : IOrgRepo
 
         _logger.LogTrace($"Require Profile Picture for org {orgId} has been changed to {requireProfilePicture}");
 
-        OnSettingsUpdated(new (org));
+        OnSettingsUpdated(new(org));
 
         return await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.RequireProfilePictureForPlayer, requireProfilePicture),
-            new () { ReturnDocument = ReturnDocument.After }
+            new() { ReturnDocument = ReturnDocument.After }
         );
     }
 
@@ -356,7 +356,7 @@ public class OrgRepo : IOrgRepo
 
         await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
             Builders<Organization>.Update.Set(o => o.DiscordServerId, discordServerId),
-            new () { ReturnDocument = ReturnDocument.After }
+            new() { ReturnDocument = ReturnDocument.After }
         );
     }
 
