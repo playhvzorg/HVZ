@@ -67,8 +67,10 @@ public class OrgRepo : IOrgRepo
             new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.Name)),
             new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.Url)),
             new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.Description)),
-            new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.RequireProfilePictureForPlayer)),
-            new CreateIndexModel<Organization>(Builders<Organization>.IndexKeys.Ascending(o => o.RequireVerifiedEmailForPlayer))
+            new CreateIndexModel<Organization>(
+                Builders<Organization>.IndexKeys.Ascending(o => o.RequireProfilePictureForPlayer)),
+            new CreateIndexModel<Organization>(
+                Builders<Organization>.IndexKeys.Ascending(o => o.RequireVerifiedEmailForPlayer))
         });
     }
 
@@ -98,7 +100,8 @@ public class OrgRepo : IOrgRepo
             throw new ArgumentException(
                 $"User {creatorId} is not an admin of org {orgId} and cannot create a game in this org.");
         if (await FindActiveGameOfOrg(orgId) is not null)
-            throw new ArgumentException($"There is already an active game in org {orgId}, not allowing creation of a new game");
+            throw new ArgumentException(
+                $"There is already an active game in org {orgId}, not allowing creation of a new game");
         Game game = await _gameRepo.CreateGame(name, creatorId, orgId, ozTagCount);
         await SetActiveGameOfOrg(orgId, game.Id);
         return game;
@@ -110,7 +113,8 @@ public class OrgRepo : IOrgRepo
         if (org.ActiveGameId is null)
             throw new ArgumentException($"There is no active game in {orgId}");
         if (await IsAdminOfOrg(orgId, instigatorId) is false)
-            throw new ArgumentException($"User {instigatorId} is not an admin of org {orgId} and cannot end the game in this org.");
+            throw new ArgumentException(
+                $"User {instigatorId} is not an admin of org {orgId} and cannot end the game in this org.");
 
         Game game = await _gameRepo.EndGame(org.ActiveGameId, instigatorId);
         await RemoveActiveGameOfOrg(orgId);
