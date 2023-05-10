@@ -8,5 +8,6 @@
   "WebConfig": {
     "DomainName": "https://localhost:5000/"
   },
-  "AllowedHosts": "*"
+  "AllowedHosts": "*",
+  "ApiKey": "1234567890"
 }

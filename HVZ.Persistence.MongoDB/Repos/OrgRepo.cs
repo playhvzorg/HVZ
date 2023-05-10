@@ -41,6 +41,7 @@ public class OrgRepo : IOrgRepo
                 .SetSerializer(InstantSerializer.Instance);
             cm.MapProperty(o => o.RequireProfilePictureForPlayer);
             cm.MapProperty(o => o.RequireVerifiedEmailForPlayer);
+            cm.MapProperty(o => o.DiscordServerId);
         });
     }
 
@@ -146,9 +147,12 @@ public class OrgRepo : IOrgRepo
     public async Task<Organization?> FindOrgByName(string name)
         => name == string.Empty ? null : await Collection.Find<Organization>(o => o.Name == name).FirstOrDefaultAsync();
 
-    public Task<Organization> GetOrgByName(string name)
+    public async Task<Organization> GetOrgByName(string name)
     {
-        throw new NotImplementedException();
+        Organization? org = await FindOrgByName(name);
+        if (org == null)
+            throw new ArgumentException($"Org with name {name} not found!");
+        return (Organization)org;
     }
 
     public async Task<Organization> SetActiveGameOfOrg(string orgId, string gameId)
@@ -343,6 +347,26 @@ public class OrgRepo : IOrgRepo
 
     public async Task<bool> GetRequireProfilePicture(string orgId)
         => (await GetOrgById(orgId)).RequireProfilePictureForPlayer;
+
+    public async Task SetOrgDiscordServerId(string orgId, string discordServerId)
+    {
+        Organization org = await GetOrgById(orgId);
+
+        org.DiscordServerId = discordServerId;
+
+        await Collection.FindOneAndUpdateAsync(o => o.Id == orgId,
+            Builders<Organization>.Update.Set(o => o.DiscordServerId, discordServerId),
+            new() { ReturnDocument = ReturnDocument.After }
+        );
+    }
+
+    public async Task<string> GetOrgDiscordServerId(string orgId)
+    {
+        Organization org = await GetOrgById(orgId);
+        if (org.DiscordServerId == null)
+            throw new ArgumentException($"org {orgId} does not have a linked discord server");
+        return org.DiscordServerId;
+    }
 
     protected virtual void OnAdminsUpdated(OrgUpdatedEventArgs o)
     {

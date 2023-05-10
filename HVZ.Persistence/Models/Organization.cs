@@ -1,11 +1,14 @@
 using NodaTime;
+
 namespace HVZ.Persistence.Models;
+
 public class Organization : IdEquatable<Organization>
 {
     /// <summary>
     /// Unique identifier of the org.
     /// </summary>
     public string Id { get; init; }
+
     protected override object EqualityId => Id;
 
     /// <summary>
@@ -63,7 +66,15 @@ public class Organization : IdEquatable<Organization>
     /// </summary>
     public bool RequireProfilePictureForPlayer { get; set; }
 
-    public Organization(string id, string name, string ownerid, HashSet<string> moderators, HashSet<string> administrators, HashSet<Game> games, string? activegameid, Instant createdat, string url, string description = "", bool requireVerifiedEmail = false, bool requireProfilePicture = false)
+    /// <summary>
+    /// Linked Discord server ID
+    /// </summary>
+    public string? DiscordServerId { get; set; }
+
+    public Organization(string id, string name, string ownerid, HashSet<string> moderators,
+        HashSet<string> administrators, HashSet<Game> games, string? activegameid, Instant createdat, string url,
+        string description = "", bool requireVerifiedEmail = false, bool requireProfilePicture = false,
+        string? discordServerId = null)
     {
         Id = id;
         Name = name;
@@ -77,5 +88,6 @@ public class Organization : IdEquatable<Organization>
         Description = description;
         RequireVerifiedEmailForPlayer = requireVerifiedEmail;
         RequireProfilePictureForPlayer = requireProfilePicture;
+        DiscordServerId = discordServerId;
     }
 }

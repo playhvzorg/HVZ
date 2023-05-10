@@ -11,7 +11,8 @@ namespace HVZ.Web.Services
         private SmtpClient smtpClient;
         private MailAddress mailAddress;
         private string domainName;
-        private Dictionary<EmailType, string> templates;
+        private Dictionary<EmailType, string> contentTemplates;
+        private string emailTemplate;
 
         public EmailService(IOptions<EmailServiceOptions> options, IOptions<WebConfig> webConfig)
         {
@@ -30,40 +31,41 @@ namespace HVZ.Web.Services
             smtpClient.EnableSsl = true;
 
             // Load resources
-            templates = new Dictionary<EmailType, string>();
-            string emailTemplate = ReadTextResourceFromAssembly("HVZ.Web.Services.Templates.email_template.html");
+            contentTemplates = new Dictionary<EmailType, string>();
+            emailTemplate = ReadTextResourceFromAssembly("HVZ.Web.Services.Templates.email_template.html");
 
-            templates.Add(EmailType.PasswordReset, ReadEmailWithTemplate(emailTemplate, "password_reset"));
-            templates.Add(EmailType.PasswordChange, ReadEmailWithTemplate(emailTemplate, "password_changed"));
-            templates.Add(EmailType.ConfirmEmail, ReadEmailWithTemplate(emailTemplate, "confirm_email"));
+            contentTemplates.Add(EmailType.PasswordReset, ReadHtmlTemplateFromAssembly("password_reset"));
+            contentTemplates.Add(EmailType.PasswordChange, ReadHtmlTemplateFromAssembly("password_changed"));
+            contentTemplates.Add(EmailType.ConfirmEmail, ReadHtmlTemplateFromAssembly("confirm_email"));
 
         }
 
         public async Task SendVerificationEmailAsync(string to, string name, string requestId)
         {
             string requestUrl = string.Format("{0}/Account/Verify?requestId={1}", domainName, requestId);
-            string htmlBody = string.Format(templates[EmailType.ConfirmEmail], name, requestUrl);
+            string htmlBody = string.Format(contentTemplates[EmailType.ConfirmEmail], name, requestUrl);
             await SendHtmlEmailAsync(to, "PLayHVZ: Confirm Email Address", htmlBody);
         }
 
         public async Task SendPasswordChangeConfirmationEmailAsync(string to, string name)
         {
-            string htmlBody = string.Format(templates[EmailType.PasswordChange], name);
+            string htmlBody = string.Format(contentTemplates[EmailType.PasswordChange], name);
             await SendHtmlEmailAsync(to, "PlayHVZ: Password Changed", htmlBody);
         }
 
         public async Task SendPasswordResetEmailAsync(string to, string name, string requestId, string userId)
         {
             string requestUrl = string.Format("{0}/Account/Reset?requestId={1}&userId={2}", domainName, requestId, userId);
-            string htmlBody = string.Format(templates[EmailType.PasswordReset], name, requestUrl);
+            string htmlBody = string.Format(contentTemplates[EmailType.PasswordReset], name, requestUrl);
             await SendHtmlEmailAsync(to, "PlayHVZ: Reset Password", htmlBody);
         }
 
         private async Task SendHtmlEmailAsync(string to, string subject, string body)
         {
+            string formattedBody = emailTemplate.Replace("%BODY%", body);
             MailMessage msg = new MailMessage();
             msg.Subject = subject;
-            msg.Body = body;
+            msg.Body = formattedBody;
             msg.To.Add(to);
             msg.From = mailAddress;
             msg.IsBodyHtml = true;
@@ -73,7 +75,12 @@ namespace HVZ.Web.Services
 
         private string ReadEmailWithTemplate(string template, string name)
         {
-            return string.Format(template, ReadTextResourceFromAssembly($"HVZ.Web.Services.Templates.{name}.html"));
+            return template.Replace("%BODY%", ReadTextResourceFromAssembly($"HVZ.Web.Services.Templates.{name}.html"));
+        }
+
+        string ReadHtmlTemplateFromAssembly(string templateName)
+        {
+            return ReadTextResourceFromAssembly($"HVZ.Web.Services.Templates.{templateName}.html");
         }
 
         // Solution from: https://stackoverflow.com/a/28558647

@@ -1,5 +1,7 @@
 namespace HVZ.Persistence;
+
 using HVZ.Persistence.Models;
+
 public interface IOrgRepo
 {
     public Task<Organization> CreateOrg(string name, string url, string creatorUserId);
@@ -48,12 +50,14 @@ public interface IOrgRepo
     /// Creates a game that belongs to an org.
     /// </summary>
     public Task<Game> CreateGame(string name, string orgId, string creatorId, int ozTagCount);
+
     /// <summary>
     /// End the active game of an org
     /// </summary>
     /// <returns>The game that was ended. Throws exception if the org has no active game</returns>
     /// <exception cref="ArgumentException">If the org has no active game</exception>
     public Task<Game> EndGame(string orgId, string instigatorId);
+
     /// <summary>
     /// Find the game that the org is currently playing. Returns null if there is no active game.
     /// </summary>
@@ -154,6 +158,18 @@ public interface IOrgRepo
     /// <param name="orgId"></param>
     /// <returns>Whether players must have uploaded a profile picture before joining a game.</returns>
     public Task<bool> GetRequireProfilePicture(string orgId);
+
+    /// <summary>
+    /// Get the discord server id for the given org.
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException">Thrown when the given org does not have a linked discord server or does not exist</exception>
+    public Task<string> GetOrgDiscordServerId(string orgId);
+
+    /// <summary>
+    /// Set the discord server id for the given org.
+    /// </summary>
+    public Task SetOrgDiscordServerId(string orgId, string discordServerId);
 
     /// <summary>
     /// Event that fires whenever someone is added to or removed from an org's Administrators
