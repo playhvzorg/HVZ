@@ -44,7 +44,7 @@ public class RestApiController : ControllerBase
             string discordServerId = json["discordServerId"]?.Value<string>()!;
             string orgName = json["orgName"]?.Value<string>()!;
 
-            var user = (await _userManager.GetUsersForClaimAsync(new Claim("discordId", discordUserId)))
+            var user = (await _userManager.GetUsersForClaimAsync(new Claim("DiscordId", discordUserId)))
                 .FirstOrDefault();
 
             if (user is null)
