@@ -48,27 +48,33 @@ public class RestApiController : ControllerBase
                 .FirstOrDefault();
 
             if (user is null)
-                return BadRequest($"User not found with discordid {discordUserId}");
+                return BadRequest("No account linked to given discordid");
 
             try
             {
                 Organization org = await _orgRepo.GetOrgByName(orgName);
-                await _orgRepo.SetOrgDiscordServerId(org.Id, discordServerId);
+                if (await _orgRepo.IsAdminOfOrg(org.Id, user.DatabaseId))
+                {
+                    await _orgRepo.SetOrgDiscordServerId(org.Id, discordServerId);
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest($"User is not admin of org");
+                }
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
-                return BadRequest(e.Message);
+                return BadRequest("No org found");
             }
-
-            return Ok();
         }
         catch (NullReferenceException)
         {
-            return BadRequest();
+            return BadRequest("Invalid JSON");
         }
         catch (JsonReaderException)
         {
-            return BadRequest();
+            return BadRequest("Invalid JSON");
         }
     }
 }
