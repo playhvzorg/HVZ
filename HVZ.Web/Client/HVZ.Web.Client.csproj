@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\HVZ.Razor\HVZ.Razor.csproj" />
     <ProjectReference Include="..\Shared\HVZ.Web.Shared.csproj" />
   </ItemGroup>
 
