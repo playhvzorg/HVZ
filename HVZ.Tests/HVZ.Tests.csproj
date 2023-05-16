@@ -23,7 +23,6 @@
   <ItemGroup>
     <ProjectReference Include="..\HVZ.Persistence.MongoDB\HVZ.Persistence.MongoDB.csproj" />
     <ProjectReference Include="..\HVZ.Persistence\HVZ.Persistence.csproj" />
-    <ProjectReference Include="..\HVZ.Web\HVZ.Web.csproj" />
   </ItemGroup>
 
 </Project>
