@@ -9,13 +9,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HVZ.Persistence.MongoDB", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HVZ.Tests", "HVZ.Tests\HVZ.Tests.csproj", "{66120091-6BF5-4998-88CF-2B70DE8033C4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HVZ.Web.Server", "HVZ.Web\Server\HVZ.Web.Server.csproj", "{42E52A01-BDDB-4C5C-9085-68E7075F3F4C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HVZ.Web.Server", "HVZ.Web\Server\HVZ.Web.Server.csproj", "{42E52A01-BDDB-4C5C-9085-68E7075F3F4C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HVZ.Web.Client", "HVZ.Web\Client\HVZ.Web.Client.csproj", "{341B3891-5552-4B04-B9DE-4A703AC99BCB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HVZ.Web.Client", "HVZ.Web\Client\HVZ.Web.Client.csproj", "{341B3891-5552-4B04-B9DE-4A703AC99BCB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HVZ.Web.Shared", "HVZ.Web\Shared\HVZ.Web.Shared.csproj", "{AAE02425-AB18-4AB7-91C8-CB73945F62A4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HVZ.Web.Shared", "HVZ.Web\Shared\HVZ.Web.Shared.csproj", "{AAE02425-AB18-4AB7-91C8-CB73945F62A4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HVZ.Razor", "HVZ.Razor\HVZ.Razor.csproj", "{5F839A7E-E80E-4E75-98F3-AF0C6C5BDF66}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HVZ.Razor", "HVZ.Razor\HVZ.Razor.csproj", "{5F839A7E-E80E-4E75-98F3-AF0C6C5BDF66}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

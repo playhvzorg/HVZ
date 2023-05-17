@@ -1,0 +1,71 @@
+﻿<div class="modal fade" id="@Id">
+    <div class="modal-dialog @DialogCenteredClass @SizeClass">
+        <div class="modal-content">
+            @if (Header is not null)
+            {
+                <div class="modal-header">
+                    @Header
+                </div>
+            }
+            @if (Body is not null)
+            {
+                <div class="modal-body">
+                    @Body
+                </div>
+            }
+            @if (Footer is not null)
+            {
+                <div class="modal-footer">
+                    @Footer
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public RenderFragment? Header { get; set; }
+
+    [Parameter]
+    public RenderFragment? Body { get; set; }
+
+    [Parameter]
+    public RenderFragment? Footer { get; set; }
+
+    [Parameter, EditorRequired]
+    public string Id { get; set; } = string.Empty;
+
+    [Parameter]
+    public bool Centered { get; set; }
+
+    [Parameter]
+    public Size ModalSize { get; set; } = Size.Default;
+
+    string? DialogCenteredClass => Centered ? "modal-dialog-centered" : null;
+
+    string? SizeClass => GetSizeClass();
+
+    string? GetSizeClass()
+    {
+        switch (ModalSize)
+        {
+            case Size.Small:
+                return "modal-sm";
+            case Size.Large:
+                return "modal-lg";
+            case Size.XLarge:
+                return "modal-xl";
+            default:
+                return null;
+        }
+    }
+
+    public enum Size
+    {
+        Small,
+        Default,
+        Large,
+        XLarge
+    }
+}
