@@ -32,7 +32,6 @@ namespace HVZ.Web.Client.Services
             return result;
         }
 
-
         public async Task<LoginResult> Login(LoginModel loginModel)
         {
             var response = await _httpClient.PostAsJsonAsync("api/login", loginModel);
@@ -53,7 +52,6 @@ namespace HVZ.Web.Client.Services
 
             return result;
         }
-
 
         public async Task Logout()
         {

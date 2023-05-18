@@ -18,6 +18,9 @@ namespace HVZ.Web.Client.Interfaces
         /// <returns><see cref="LoginResult"/> with either success or error</returns>
         public Task<LoginResult> Login(LoginModel loginModel);
 
+        /// <summary>
+        /// Logout the current loggedin user
+        /// </summary>
         public Task Logout();
     }
 }
