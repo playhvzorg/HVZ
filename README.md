@@ -29,3 +29,19 @@ Configure your DiscordIntegrationSettings. The recommended way is to use `dotnet
 If you choose to store your credentials unsecurely in `appsettings.json`, DO NOT CHECK THEM INTO GIT. 
 
 Once all of the `DiscordIntegrationSettings` are set, the bot will be active along with the webserver.
+
+## Libman
+
+Client-side JS libraries are handled with [libman](https://learn.microsoft.com/en-us/aspnet/core/client-side/libman/?view=aspnetcore-7.0)
+
+### Install libman CLI
+
+```bash
+dotnet tool install -g Microsoft.Web.LibraryManager.Cli
+```
+
+### Restore packages
+
+```bash
+libman restore
+```

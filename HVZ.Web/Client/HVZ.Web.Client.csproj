@@ -10,15 +10,23 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.3" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Web.LibraryManager.Build" Version="2.1.175" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\HVZ.Razor\HVZ.Razor.csproj" />
     <ProjectReference Include="..\Shared\HVZ.Web.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="libman.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

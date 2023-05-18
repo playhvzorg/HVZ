@@ -15,8 +15,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HVZ.Web.Client", "HVZ.Web\C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HVZ.Web.Shared", "HVZ.Web\Shared\HVZ.Web.Shared.csproj", "{AAE02425-AB18-4AB7-91C8-CB73945F62A4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HVZ.Razor", "HVZ.Razor\HVZ.Razor.csproj", "{5F839A7E-E80E-4E75-98F3-AF0C6C5BDF66}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -99,18 +97,6 @@ Global
 		{AAE02425-AB18-4AB7-91C8-CB73945F62A4}.Release|x64.Build.0 = Release|Any CPU
 		{AAE02425-AB18-4AB7-91C8-CB73945F62A4}.Release|x86.ActiveCfg = Release|Any CPU
 		{AAE02425-AB18-4AB7-91C8-CB73945F62A4}.Release|x86.Build.0 = Release|Any CPU
-		{5F839A7E-E80E-4E75-98F3-AF0C6C5BDF66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5F839A7E-E80E-4E75-98F3-AF0C6C5BDF66}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5F839A7E-E80E-4E75-98F3-AF0C6C5BDF66}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{5F839A7E-E80E-4E75-98F3-AF0C6C5BDF66}.Debug|x64.Build.0 = Debug|Any CPU
-		{5F839A7E-E80E-4E75-98F3-AF0C6C5BDF66}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{5F839A7E-E80E-4E75-98F3-AF0C6C5BDF66}.Debug|x86.Build.0 = Debug|Any CPU
-		{5F839A7E-E80E-4E75-98F3-AF0C6C5BDF66}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5F839A7E-E80E-4E75-98F3-AF0C6C5BDF66}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5F839A7E-E80E-4E75-98F3-AF0C6C5BDF66}.Release|x64.ActiveCfg = Release|Any CPU
-		{5F839A7E-E80E-4E75-98F3-AF0C6C5BDF66}.Release|x64.Build.0 = Release|Any CPU
-		{5F839A7E-E80E-4E75-98F3-AF0C6C5BDF66}.Release|x86.ActiveCfg = Release|Any CPU
-		{5F839A7E-E80E-4E75-98F3-AF0C6C5BDF66}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

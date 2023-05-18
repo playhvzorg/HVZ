@@ -34,6 +34,12 @@
   "WebConfig": {
     "DomainName": "https://www.playhvz.org"
   },
+  "JwtConfig": {
+    "JwtSecurityKey": "RANDOM_KEY_MUST_NOT_BE_SHARED",
+    "JwtIssuer": "https://localhost",
+    "JwtAudience": "https://localhost",
+    "JwtExpiryInDays":  1
+  },
   "AllowedHosts": "*"
 
 }
