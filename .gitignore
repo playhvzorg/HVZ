@@ -460,5 +460,5 @@ $RECYCLE.BIN/
 *appsettings.json
 *appsettings.*.json
 
-# clientside libraries
+# client-side libraries
 */wwwroot/lib/*
