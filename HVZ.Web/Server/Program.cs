@@ -5,6 +5,7 @@ using HVZ.Web.Server.Identity;
 using HVZ.Web.Server.Services.Settings;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
 using System.Text;
 
@@ -109,12 +110,29 @@ builder.Services.AddAuthentication().AddJwtBearer(options =>
 // TODO
 #endregion
 
+#region API Documentation
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Version = "v1",
+        Title = "PlayHVZ API",
+        Description = "RESTful web API for participaing in and managing HVZ games",
+        TermsOfService = new Uri("https://playhvz.org/terms"),
+    });
+});
+
+#endregion
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseWebAssemblyDebugging();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 else
 {
