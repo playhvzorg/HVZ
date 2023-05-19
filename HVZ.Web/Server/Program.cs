@@ -1,9 +1,11 @@
 using AspNetCore.Identity.MongoDbCore.Models;
 using HVZ.Persistence;
 using HVZ.Persistence.MongoDB.Repos;
+using HVZ.Web.Server.Hubs;
 using HVZ.Web.Server.Identity;
 using HVZ.Web.Server.Services.Settings;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
@@ -129,6 +131,17 @@ builder.Services.AddSwaggerGen(options =>
 
 #endregion
 
+#region SignalR
+
+builder.Services.AddSignalR();
+builder.Services.AddResponseCompression(opts =>
+{
+    opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+        new[] { "application/octet-stream" });
+});
+
+#endregion
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -158,5 +171,9 @@ app.UseAuthorization();
 app.MapRazorPages();
 app.MapControllers();
 app.MapFallbackToFile("index.html");
+
+app.UseResponseCompression();
+app.MapHub<GameHub>("/gamehub");
+app.MapHub<OrgHub>("/orghub");
 
 app.Run();
