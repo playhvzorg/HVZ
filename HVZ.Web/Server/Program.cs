@@ -89,6 +89,10 @@ if (jwtConfig is null)
     throw new ArgumentNullException("JwtConfig must be defined in appsettings.json");
 }
 
+builder.Services.Configure<JwtConfig>(
+    builder.Configuration.GetSection(
+        nameof(JwtConfig)));
+
 builder.Services.AddAuthentication().AddJwtBearer(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
