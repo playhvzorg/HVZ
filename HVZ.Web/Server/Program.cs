@@ -3,12 +3,14 @@ using HVZ.Persistence;
 using HVZ.Persistence.MongoDB.Repos;
 using HVZ.Web.Server.Hubs;
 using HVZ.Web.Server.Identity;
+using HVZ.Web.Server.JsonConverters;
 using HVZ.Web.Server.Services.Settings;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
+using Newtonsoft.Json;
 using System.Reflection;
 using System.Text;
 
@@ -16,7 +18,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddNewtonsoftJson(opts =>
+    {
+        opts.SerializerSettings.Converters = new List<JsonConverter>
+        {
+            new InstantConverter()
+        };
+    });
 builder.Services.AddRazorPages();
 
 #region Generic Options
