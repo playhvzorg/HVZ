@@ -19,8 +19,16 @@ namespace HVZ.Web.Server.Controllers
             _userRepo = userRepo;
         }
 
-        // Stuff
+        /// <summary>
+        /// Creates a new user account
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns><see cref="RegisterResult"/> containing the result of the operation</returns>
+        /// <response code="200">Returns the <see cref="RegisterResult"/> object</response>
+        /// <response code="401">Missing input parameter or error creating new user</response>
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Post([FromBody] RegisterModel model)
         {
             // Error if any of the fields are null
@@ -51,7 +59,7 @@ namespace HVZ.Web.Server.Controllers
             {
                 var errors = result.Errors.Select(x => x.Description);
                 await _userRepo.DeleteUser(hvzUser.Id);
-                return Ok(new RegisterResult { Succeeded = false, Errors = errors });
+                return BadRequest(new RegisterResult { Succeeded = false, Errors = errors });
             }
 
             return Ok(new RegisterResult { Succeeded = true });

@@ -12,6 +12,7 @@ namespace HVZ.Web.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Produces("application/json")]
     public class LoginController : ControllerBase
     {
         private readonly SignInManager<ApplicationUser> _signinManager;
@@ -23,7 +24,16 @@ namespace HVZ.Web.Server.Controllers
             _jwtConfig = jwtConfig;
         }
 
+        /// <summary>
+        /// Login an existing user
+        /// </summary>
+        /// <param name="login"></param>
+        /// <returns><see cref="LoginResult"/></returns>
+        /// <response code="200">Returns a LoginResult object</response>
+        /// <response code="400">Missing parameters or username/password is invalid</response>
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Login([FromBody] LoginModel login)
         {
             if (login.Email is null || login.Password is null)
