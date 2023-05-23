@@ -1,5 +1,6 @@
 using AspNetCore.Identity.MongoDbCore.Models;
 using HVZ.Persistence;
+using HVZ.Persistence.Models;
 using HVZ.Persistence.MongoDB.Repos;
 using HVZ.Web.Server.Hubs;
 using HVZ.Web.Server.Identity;
@@ -23,7 +24,10 @@ builder.Services.AddControllersWithViews()
     {
         opts.SerializerSettings.Converters = new List<JsonConverter>
         {
-            new InstantConverter()
+            new InstantConverter(),
+            new EnumConverter<Player.gameRole>(),
+            new EnumConverter<Game.GameStatus>(),
+            new EnumConverter<GameEvent>(),
         };
     });
 builder.Services.AddRazorPages();
@@ -98,9 +102,7 @@ if (jwtConfig is null)
     throw new ArgumentNullException("JwtConfig must be defined in appsettings.json");
 }
 
-builder.Services.Configure<JwtConfig>(
-    builder.Configuration.GetSection(
-        nameof(JwtConfig)));
+builder.Services.AddSingleton(jwtConfig);
 
 builder.Services.AddAuthentication().AddJwtBearer(options =>
 {

@@ -23,6 +23,9 @@
   <ItemGroup>
     <ProjectReference Include="..\HVZ.Persistence.MongoDB\HVZ.Persistence.MongoDB.csproj" />
     <ProjectReference Include="..\HVZ.Persistence\HVZ.Persistence.csproj" />
+    <ProjectReference Include="..\HVZ.Web\Client\HVZ.Web.Client.csproj" />
+    <ProjectReference Include="..\HVZ.Web\Server\HVZ.Web.Server.csproj" />
+    <ProjectReference Include="..\HVZ.Web\Shared\HVZ.Web.Shared.csproj" />
   </ItemGroup>
 
 </Project>
