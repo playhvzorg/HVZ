@@ -127,13 +127,21 @@ namespace HVZ.Tests.HVZ.Web.Server.Controllers.Tests
                 })
         };
 
-        [OneTimeSetUp]
-        public void OneTimeSetup()
+        private readonly HashSet<string> testOzPool = new HashSet<string>()
+        {
+            TestData.testUserId,
+            TestData.testAdminId,
+            TestData.testModId
+        };
+
+        [SetUp]
+        public void Setup()
         {
             _mockGameRepo.Setup(r => r.FindGameById(TestData.testGameId))
                 .ReturnsAsync(Mock.Of<TestGame>(g =>
                     g.EventLog == testEventLog &&
-                    g.Players == testPlayerList));
+                    g.Players == testPlayerList &&
+                    g.OzPool == testOzPool));
 
             _mockOrgRepo.Setup(r => r.IsModOfOrg(TestData.testOrgId, TestData.testModId))
                 .ReturnsAsync(true);
@@ -658,6 +666,557 @@ namespace HVZ.Tests.HVZ.Web.Server.Controllers.Tests
             var playersList = (IEnumerable<PlayerData>)ok.Value!;
             Assert.That(playersList.Where(p => p.Role == Player.gameRole.Human).Count, Is.EqualTo(1));
             Assert.That(playersList.Where(p => p.Tags == 0).Count, Is.EqualTo(1));
+        }
+
+        #endregion
+
+        #region Start Game Tests
+
+        [Test]
+        public async Task Test_StartGame_InvalidId_NotFound()
+        {
+            _context.Setup(c => c.User).Returns(AuthenticatedUser);
+
+            var result = await _gameController.StartGame(TestData.testOrgId);
+
+            var notFound = result.Result as NotFoundObjectResult;
+            Assert.That(notFound, Is.Not.Null);
+
+            var notFoundResult = notFound.Value as PostResult;
+            Assert.That(notFoundResult, Is.Not.Null);
+            Assert.That(notFoundResult.Succeeded, Is.False);
+            Assert.That(notFoundResult.Error, Is.Not.Null);
+        }
+
+        [Test]
+        public async Task Test_StartGame_Unauthenticated_Forbid()
+        {
+            _context.Setup(c => c.User).Returns(UnauthenticatedUser);
+
+            var result = await _gameController.StartGame(TestData.testGameId);
+
+            var forbid = result.Result as ForbidResult;
+            Assert.That(forbid, Is.Not.Null);
+        }
+
+        [Test]
+        public async Task Test_StartGame_AuthenticatedUser_Unauthorized()
+        {
+            _context.Setup(c => c.User).Returns(AuthenticatedUser);
+
+            var result = await _gameController.StartGame(TestData.testGameId);
+
+            var unauthorized = result.Result as UnauthorizedObjectResult;
+            Assert.That(unauthorized, Is.Not.Null);
+
+            var unauthorizedResult = unauthorized.Value as PostResult;
+            Assert.That(unauthorizedResult, Is.Not.Null);
+            Assert.That(unauthorizedResult.Succeeded, Is.False);
+            Assert.That(unauthorizedResult.Error, Is.Not.Null);
+
+        }
+
+        [Test]
+        public async Task Test_StartGame_AuthenticatedMod_GameStarted_BadRequest()
+        {
+            _context.Setup(c => c.User).Returns(AuthenticatedMod);
+
+            _mockGameRepo.Setup(r => r.FindGameById(TestData.testGameId))
+                .ReturnsAsync(Mock.Of<TestGame>(g => g.Status == Game.GameStatus.Active));
+
+            var result = await _gameController.StartGame(TestData.testGameId);
+
+            var badRequest = result.Result as BadRequestObjectResult;
+            Assert.That(badRequest, Is.Not.Null);
+
+            var badRequestResult = badRequest.Value as PostResult;
+            Assert.That(badRequestResult, Is.Not.Null);
+            Assert.That(badRequestResult.Succeeded, Is.False);
+            Assert.That(badRequestResult.Error, Is.Not.Null);
+        }
+
+        [Test]
+        public async Task Test_StartGame_AuthenticatedMod_Ok()
+        {
+            _context.Setup(c => c.User).Returns(AuthenticatedMod);
+
+            _mockGameRepo.Setup(r => r.FindGameById(TestData.testGameId))
+                .ReturnsAsync(Mock.Of<TestGame>(g => g.Status == Game.GameStatus.New));
+
+            var result = await _gameController.StartGame(TestData.testGameId);
+
+            var ok = result.Result as OkObjectResult;
+            Assert.That(ok, Is.Not.Null);
+
+            var okResult = ok.Value as PostResult;
+            Assert.That(okResult, Is.Not.Null);
+            Assert.That(okResult.Succeeded, Is.True);
+        }
+
+        #endregion
+
+        #region Pause Game Tests
+
+        [Test]
+        public async Task Test_PauseGame_InvalidId_NotFound()
+        {
+            _context.Setup(c => c.User).Returns(AuthenticatedUser);
+
+            var result = await _gameController.PauseGame(TestData.testOrgId);
+
+            var notFound = result.Result as NotFoundObjectResult;
+            Assert.That(notFound, Is.Not.Null);
+
+            var notFoundResult = notFound.Value as PostResult;
+            Assert.That(notFoundResult, Is.Not.Null);
+            Assert.That(notFoundResult.Succeeded, Is.False);
+            Assert.That(notFoundResult.Error, Is.Not.Null);
+        }
+
+        [Test]
+        public async Task Test_PauseGame_Unauthenticated_Forbid()
+        {
+            _context.Setup(c => c.User).Returns(UnauthenticatedUser);
+
+            var result = await _gameController.PauseGame(TestData.testGameId);
+
+            var forbid = result.Result as ForbidResult;
+            Assert.That(forbid, Is.Not.Null);
+        }
+
+        [Test]
+        public async Task Test_PauseGame_AuthenticatedUser_Unauthorized()
+        {
+            _context.Setup(c => c.User).Returns(AuthenticatedUser);
+
+            var result = await _gameController.PauseGame(TestData.testGameId);
+
+            var unauthorized = result.Result as UnauthorizedObjectResult;
+            Assert.That(unauthorized, Is.Not.Null);
+
+            var unauthorizedResult = unauthorized.Value as PostResult;
+            Assert.That(unauthorizedResult, Is.Not.Null);
+            Assert.That(unauthorizedResult.Succeeded, Is.False);
+            Assert.That(unauthorizedResult.Error, Is.Not.Null);
+
+        }
+
+        [TestCase(Game.GameStatus.New)]
+        [TestCase(Game.GameStatus.Paused)]
+        [TestCase(Game.GameStatus.Ended)]
+        public async Task Test_PauseGame_AuthenticatedMod_GameNotActive_BadRequest(Game.GameStatus status)
+        {
+            _context.Setup(c => c.User).Returns(AuthenticatedMod);
+
+            _mockGameRepo.Setup(r => r.FindGameById(TestData.testGameId))
+                .ReturnsAsync(Mock.Of<TestGame>(g => g.Status == status));
+
+            var result = await _gameController.PauseGame(TestData.testGameId);
+
+            var badRequest = result.Result as BadRequestObjectResult;
+            Assert.That(badRequest, Is.Not.Null);
+
+            var badRequestResult = badRequest.Value as PostResult;
+            Assert.That(badRequestResult, Is.Not.Null);
+            Assert.That(badRequestResult.Succeeded, Is.False);
+            Assert.That(badRequestResult.Error, Is.Not.Null);
+        }
+
+        [Test]
+        public async Task Test_PauseGame_AuthenticatedMod_Ok()
+        {
+            _context.Setup(c => c.User).Returns(AuthenticatedMod);
+
+            _mockGameRepo.Setup(r => r.FindGameById(TestData.testGameId))
+                .ReturnsAsync(Mock.Of<TestGame>(g => g.Status == Game.GameStatus.Active));
+
+            var result = await _gameController.PauseGame(TestData.testGameId);
+
+            var ok = result.Result as OkObjectResult;
+            Assert.That(ok, Is.Not.Null);
+
+            var okResult = ok.Value as PostResult;
+            Assert.That(okResult, Is.Not.Null);
+            Assert.That(okResult.Succeeded, Is.True);
+        }
+
+        #endregion
+
+        #region Resume Game Tests
+
+        [Test]
+        public async Task Test_ResumeGame_InvalidId_NotFound()
+        {
+            _context.Setup(c => c.User).Returns(AuthenticatedUser);
+
+            var result = await _gameController.ResumeGame(TestData.testOrgId);
+
+            var notFound = result.Result as NotFoundObjectResult;
+            Assert.That(notFound, Is.Not.Null);
+
+            var notFoundResult = notFound.Value as PostResult;
+            Assert.That(notFoundResult, Is.Not.Null);
+            Assert.That(notFoundResult.Succeeded, Is.False);
+            Assert.That(notFoundResult.Error, Is.Not.Null);
+        }
+
+        [Test]
+        public async Task Test_ResumeGame_Unauthenticated_Forbid()
+        {
+            _context.Setup(c => c.User).Returns(UnauthenticatedUser);
+
+            var result = await _gameController.ResumeGame(TestData.testGameId);
+
+            var forbid = result.Result as ForbidResult;
+            Assert.That(forbid, Is.Not.Null);
+        }
+
+        [Test]
+        public async Task Test_ResumeGame_AuthenticatedUser_Unauthorized()
+        {
+            _context.Setup(c => c.User).Returns(AuthenticatedUser);
+
+            var result = await _gameController.ResumeGame(TestData.testGameId);
+
+            var unauthorized = result.Result as UnauthorizedObjectResult;
+            Assert.That(unauthorized, Is.Not.Null);
+
+            var unauthorizedResult = unauthorized.Value as PostResult;
+            Assert.That(unauthorizedResult, Is.Not.Null);
+            Assert.That(unauthorizedResult.Succeeded, Is.False);
+            Assert.That(unauthorizedResult.Error, Is.Not.Null);
+        }
+
+        [TestCase(Game.GameStatus.New)]
+        [TestCase(Game.GameStatus.Active)]
+        [TestCase(Game.GameStatus.Ended)]
+        public async Task Test_ResumeGame_AuthenticatedMod_GameNotPaused_BadRequest(Game.GameStatus status)
+        {
+            _context.Setup(c => c.User).Returns(AuthenticatedMod);
+
+            _mockGameRepo.Setup(r => r.FindGameById(TestData.testGameId))
+                .ReturnsAsync(Mock.Of<TestGame>(g => g.Status == status));
+
+            var result = await _gameController.ResumeGame(TestData.testGameId);
+
+            var badRequest = result.Result as BadRequestObjectResult;
+            Assert.That(badRequest, Is.Not.Null);
+
+            var badRequestResult = badRequest.Value as PostResult;
+            Assert.That(badRequestResult, Is.Not.Null);
+            Assert.That(badRequestResult.Succeeded, Is.False);
+            Assert.That(badRequestResult.Error, Is.Not.Null);
+        }
+
+        [Test]
+        public async Task Test_ResumeGame_AuthenticatedMod_Ok()
+        {
+            _context.Setup(c => c.User).Returns(AuthenticatedMod);
+
+            _mockGameRepo.Setup(r => r.FindGameById(TestData.testGameId))
+                .ReturnsAsync(Mock.Of<TestGame>(g => g.Status == Game.GameStatus.Paused));
+
+            var result = await _gameController.ResumeGame(TestData.testGameId);
+
+            var ok = result.Result as OkObjectResult;
+            Assert.That(ok, Is.Not.Null);
+
+            var okResult = ok.Value as PostResult;
+            Assert.That(okResult, Is.Not.Null);
+            Assert.That(okResult.Succeeded, Is.True);
+        }
+
+        #endregion
+
+        #region Join OZ Pool Tests
+
+        [Test]
+        public async Task Test_JoinOzPool_InvalidId_NotFound()
+        {
+            _context.Setup(c => c.User).Returns(AuthenticatedUser);
+
+            var result = await _gameController.JoinOzPool(TestData.testOrgId);
+
+            var notFound = result.Result as NotFoundObjectResult;
+            Assert.That(notFound, Is.Not.Null);
+
+            var notFoundResult = notFound.Value as PostResult;
+            Assert.That(notFoundResult, Is.Not.Null);
+            Assert.That(notFoundResult.Succeeded, Is.False);
+            Assert.That(notFoundResult.Error, Is.Not.Null);
+        }
+
+        [Test]
+        public async Task Test_JoinOzPool_Unauthenticated_Forbid()
+        {
+            _context.Setup(c => c.User).Returns(UnauthenticatedUser);
+
+            var result = await _gameController.JoinOzPool(TestData.testOrgId);
+
+            var forbid = result.Result as ForbidResult;
+            Assert.That(forbid, Is.Not.Null);
+        }
+
+        [Test]
+        public async Task Test_JoinOzPool_Authenticated_NotInGame_Unauthorized()
+        {
+            _context.Setup(c => c.User).Returns(AuthenticatedUser);
+
+            _mockGameRepo.Setup(r => r.FindPlayerByUserId(TestData.testGameId, TestData.testUserId))
+                .ReturnsAsync((Player?)null);
+
+            var result = await _gameController.JoinOzPool(TestData.testGameId);
+
+            var unauthorized = result.Result as UnauthorizedObjectResult;
+            Assert.That(unauthorized, Is.Not.Null);
+
+            var unauthorizedResult = unauthorized.Value as PostResult;
+            Assert.That(unauthorizedResult, Is.Not.Null);
+            Assert.That(unauthorizedResult.Succeeded, Is.False);
+            Assert.That(unauthorizedResult.Error, Is.Not.Null);
+        }
+
+        [Test]
+        public async Task Test_JoinOzPool_Authenticated_InOzPool_BadRequest()
+        {
+            _context.Setup(c => c.User).Returns(AuthenticatedUser);
+
+            _mockGameRepo.Setup(r => r.FindPlayerByUserId(TestData.testGameId, TestData.testUserId))
+                .ReturnsAsync(Mock.Of<TestPlayer>(p => p.UserId == TestData.testUserId));
+
+            _mockGameRepo.Setup(r => r.FindGameById(TestData.testGameId))
+                .ReturnsAsync(Mock.Of<TestGame>(g => g.OzPool == new HashSet<string> { TestData.testUserId }));
+
+            var result = await _gameController.JoinOzPool(TestData.testGameId);
+
+            var badRequest = result.Result as BadRequestObjectResult;
+            Assert.That(badRequest, Is.Not.Null);
+
+            var badRequestResult = badRequest.Value as PostResult;
+            Assert.That(badRequestResult, Is.Not.Null);
+            Assert.That(badRequestResult.Succeeded, Is.False);
+            Assert.That(badRequestResult.Error, Is.Not.Null);
+        }
+
+        [Test]
+        public async Task Test_JoinOzPool_Authenticated_Ok()
+        {
+            _context.Setup(c => c.User).Returns(AuthenticatedUser);
+
+            _mockGameRepo.Setup(r => r.FindPlayerByUserId(TestData.testGameId, TestData.testUserId))
+                .ReturnsAsync(Mock.Of<TestPlayer>(p => p.UserId == TestData.testUserId));
+
+            _mockGameRepo.Setup(r => r.FindGameById(TestData.testGameId))
+                .ReturnsAsync(Mock.Of<TestGame>(g => g.OzPool == new HashSet<string> { }));
+
+            var result = await _gameController.JoinOzPool(TestData.testGameId);
+
+            var ok = result.Result as OkObjectResult;
+            Assert.That(ok, Is.Not.Null);
+
+            var okResult = ok.Value as PostResult;
+            Assert.That(okResult, Is.Not.Null);
+            Assert.That(okResult.Succeeded, Is.True);
+        }
+
+        #endregion
+
+        #region Leave OZ Pool Tests
+
+        [Test]
+        public async Task Test_LeaveOzPool_InvalidId_NotFound()
+        {
+            _context.Setup(c => c.User).Returns(AuthenticatedUser);
+
+            var result = await _gameController.LeaveOzPool(TestData.testOrgId);
+
+            var notFound = result.Result as NotFoundObjectResult;
+            Assert.That(notFound, Is.Not.Null);
+
+            var notFoundResult = notFound.Value as PostResult;
+            Assert.That(notFoundResult, Is.Not.Null);
+            Assert.That(notFoundResult.Succeeded, Is.False);
+            Assert.That(notFoundResult.Error, Is.Not.Null);
+        }
+
+        [Test]
+        public async Task Test_LeaveOzPool_Unauthenticated_Forbid()
+        {
+            _context.Setup(c => c.User).Returns(UnauthenticatedUser);
+
+            var result = await _gameController.LeaveOzPool(TestData.testOrgId);
+
+            var forbid = result.Result as ForbidResult;
+            Assert.That(forbid, Is.Not.Null);
+        }
+
+        [Test]
+        public async Task Test_LeaveOzPool_Authenticated_NotInGame_Unauthorized()
+        {
+            _context.Setup(c => c.User).Returns(AuthenticatedUser);
+
+            _mockGameRepo.Setup(r => r.FindPlayerByUserId(TestData.testGameId, TestData.testUserId))
+                .ReturnsAsync((Player?)null);
+
+            var result = await _gameController.LeaveOzPool(TestData.testGameId);
+
+            var unauthorized = result.Result as UnauthorizedObjectResult;
+            Assert.That(unauthorized, Is.Not.Null);
+
+            var unauthorizedResult = unauthorized.Value as PostResult;
+            Assert.That(unauthorizedResult, Is.Not.Null);
+            Assert.That(unauthorizedResult.Succeeded, Is.False);
+            Assert.That(unauthorizedResult.Error, Is.Not.Null);
+        }
+
+        [Test]
+        public async Task Test_LeaveOzPool_Authenticated_NotInPool_BadRequest()
+        {
+            _context.Setup(c => c.User).Returns(AuthenticatedUser);
+
+            _mockGameRepo.Setup(r => r.FindPlayerByUserId(TestData.testGameId, TestData.testUserId))
+                .ReturnsAsync(Mock.Of<TestPlayer>(p => p.UserId == TestData.testUserId));
+
+            _mockGameRepo.Setup(r => r.FindGameById(TestData.testGameId))
+                .ReturnsAsync(Mock.Of<TestGame>(g => g.OzPool == new HashSet<string> { }));
+
+            var result = await _gameController.LeaveOzPool(TestData.testGameId);
+
+            var badRequest = result.Result as BadRequestObjectResult;
+            Assert.That(badRequest, Is.Not.Null);
+
+            var badRequestResult = badRequest.Value as PostResult;
+            Assert.That(badRequestResult, Is.Not.Null);
+            Assert.That(badRequestResult.Succeeded, Is.False);
+            Assert.That(badRequestResult.Error, Is.Not.Null);
+        }
+
+        [Test]
+        public async Task Test_LeaveOzPool_Authenticated_Ok()
+        {
+
+            _context.Setup(c => c.User).Returns(AuthenticatedUser);
+
+            _mockGameRepo.Setup(r => r.FindPlayerByUserId(TestData.testGameId, TestData.testUserId))
+                .ReturnsAsync(Mock.Of<TestPlayer>(p => p.UserId == TestData.testUserId));
+
+            _mockGameRepo.Setup(r => r.FindGameById(TestData.testGameId))
+                .ReturnsAsync(Mock.Of<TestGame>(g => g.OzPool == new HashSet<string> { TestData.testUserId }));
+
+            var result = await _gameController.LeaveOzPool(TestData.testGameId);
+
+            var ok = result.Result as OkObjectResult;
+            Assert.That(ok, Is.Not.Null);
+
+            var okResult = ok.Value as PostResult;
+            Assert.That(okResult, Is.Not.Null);
+            Assert.That(okResult.Succeeded, Is.True);
+        }
+
+        #endregion
+
+        #region Random OZs Tests
+
+        [Test]
+        public async Task Test_RandomOzs_InvalidId_NotFound()
+        {
+            var result = await _gameController.SetRandomOzs(TestData.testOrgId,
+                new RandomOzModel { NumRandomOzs = 1 });
+
+            var notFound = result.Result as NotFoundObjectResult;
+            Assert.That(notFound, Is.Not.Null);
+
+            var notFoundResult = notFound.Value as RandomOzResult;
+            Assert.That(notFoundResult, Is.Not.Null);
+            Assert.That(notFoundResult.Succeeded, Is.False);
+            Assert.That(notFoundResult.Error, Is.Not.Null);
+        }
+
+        [Test]
+        public async Task Test_RandomOzs_Unauthenticated_Forbid()
+        {
+            _context.Setup(c => c.User).Returns(UnauthenticatedUser);
+
+            var result = await _gameController.SetRandomOzs(TestData.testGameId,
+                new RandomOzModel { NumRandomOzs = 1 });
+
+            var forbid = result.Result as ForbidResult;
+            Assert.That(forbid, Is.Not.Null);
+        }
+
+        [Test]
+        public async Task Test_RandomOzs_AuthenticatedUser_Unauthorized()
+        {
+            _context.Setup(c => c.User).Returns(AuthenticatedUser);
+
+            var result = await _gameController.SetRandomOzs(TestData.testGameId,
+                new RandomOzModel { NumRandomOzs = 1 });
+
+            var unauthorized = result.Result as UnauthorizedObjectResult;
+            Assert.That(unauthorized, Is.Not.Null);
+
+            var unauthorizedResult = unauthorized.Value as RandomOzResult;
+            Assert.That(unauthorizedResult, Is.Not.Null);
+            Assert.That(unauthorizedResult.Succeeded, Is.False);
+            Assert.That(unauthorizedResult.Error, Is.Not.Null);
+        }
+
+        [TestCase(0)]
+        [TestCase(-1)]
+        [TestCase(-999)]
+        public async Task Test_RandomOzs_AuthenticatedMod_NegativeNumber_BadRequest(int num)
+        {
+            _context.Setup(c => c.User).Returns(AuthenticatedMod);
+
+            var result = await _gameController.SetRandomOzs(TestData.testGameId,
+                new RandomOzModel { NumRandomOzs = num });
+
+            var badRequest = result.Result as BadRequestObjectResult;
+            Assert.That(badRequest, Is.Not.Null);
+
+            var badRequestResult = badRequest.Value as RandomOzResult;
+            Assert.That(badRequestResult, Is.Not.Null);
+            Assert.That(badRequestResult.Succeeded, Is.False);
+            Assert.That(badRequestResult.Error, Is.Not.Null);
+        }
+
+        [Test]
+        public async Task Test_RandomOzs_AuthenticatedMod_TooManyOzs_BadRequest()
+        {
+            _context.Setup(c => c.User).Returns(AuthenticatedMod);
+
+            var result = await _gameController.SetRandomOzs(TestData.testGameId,
+                new RandomOzModel { NumRandomOzs = testOzPool.Count + 1 });
+
+            var badRequest = result.Result as BadRequestObjectResult;
+            Assert.That(badRequest, Is.Not.Null);
+
+            var badRequestResult = badRequest.Value as RandomOzResult;
+            Assert.That(badRequestResult, Is.Not.Null);
+            Assert.That(badRequestResult.Succeeded, Is.False);
+            Assert.That(badRequestResult.Error, Is.Not.Null);
+        }
+
+        [Test]
+        public async Task Test_RandomOzs_AuthenticatedMod_ValidInput_Ok()
+        {
+            _mockGameRepo.Setup(r => r.AssignRandomOzs(TestData.testGameId, 2, It.IsAny<string>()))
+                .ReturnsAsync(Mock.Of<TestGame>(
+                    g => g.OzPool == new HashSet<string> { TestData.testAdminId }));
+
+            _context.Setup(c => c.User).Returns(AuthenticatedMod);
+
+            var result = await _gameController.SetRandomOzs(TestData.testGameId,
+                new RandomOzModel { NumRandomOzs = 2 });
+
+            var ok = result.Result as OkObjectResult;
+            Assert.That(ok, Is.Not.Null);
+
+            var okResult = ok.Value as RandomOzResult;
+            Assert.That(okResult, Is.Not.Null);
+            Assert.That(okResult.Succeeded, Is.True);
+            Assert.That(okResult.RandomOzs, Is.Not.Null);
+            Assert.That(okResult.RandomOzs.Count, Is.EqualTo(2));
         }
 
         #endregion

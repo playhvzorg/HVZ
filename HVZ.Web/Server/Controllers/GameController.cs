@@ -441,11 +441,15 @@ namespace HVZ.Web.Server.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<RandomOzResult>> SetRandomOzs(string id, [FromBody] RandomOzModel request)
         {
+            Game? game = await _gameRepo.FindGameById(id);
+            if (game is null) return NotFound(new RandomOzResult
+            {
+                Succeeded = false,
+                Error = $"Could not find Game with ID: {id}"
+            });
+
             if (!UserIsAuthenticated(HttpContext))
                 return Forbid();
-
-            Game? game = await _gameRepo.FindGameById(id);
-            if (game is null) return NotFound($"Could not find Game with ID: {id}");
 
             string userId = GetDatabaseId(User);
 
@@ -568,11 +572,15 @@ namespace HVZ.Web.Server.Controllers
                 return Forbid();
 
             Game? game = await _gameRepo.FindGameById(id);
-            if (game is null) return NotFound($"Could not find Game with ID: {id}");
+            if (game is null) return NotFound(new PostResult
+            {
+                Succeeded = false,
+                Error = $"Could not find Game with ID: {id}"
+            });
 
             string userId = GetDatabaseId(User);
 
-            Player? player = await _gameRepo.FindPlayerByGameId(id, userId);
+            Player? player = await _gameRepo.FindPlayerByUserId(id, userId);
             if (player is null)
                 return Unauthorized(new PostResult
                 {
@@ -614,11 +622,15 @@ namespace HVZ.Web.Server.Controllers
                 return Forbid();
 
             Game? game = await _gameRepo.FindGameById(id);
-            if (game is null) return NotFound($"Could not find Game with ID: {id}");
+            if (game is null) return NotFound(new PostResult
+            {
+                Succeeded = false,
+                Error = $"Could not find Game with ID: {id}"
+            });
 
             string userId = GetDatabaseId(User);
 
-            Player? player = await _gameRepo.FindPlayerByGameId(id, userId);
+            Player? player = await _gameRepo.FindPlayerByUserId(id, userId);
             if (player is null)
                 return Unauthorized(new PostResult
                 {
@@ -627,7 +639,7 @@ namespace HVZ.Web.Server.Controllers
                 });
 
             if (!game.OzPool.Contains(userId))
-                return Unauthorized(new PostResult
+                return BadRequest(new PostResult
                 {
                     Succeeded = false,
                     Error = "Not in OZ pool"
@@ -663,7 +675,11 @@ namespace HVZ.Web.Server.Controllers
                 return Forbid();
 
             Game? game = await _gameRepo.FindGameById(id);
-            if (game is null) return NotFound($"Could not find Game with ID: {id}");
+            if (game is null) return NotFound(new PostResult
+            {
+                Succeeded = false,
+                Error = $"Could not find game with ID {id}"
+            });
 
             string userId = GetDatabaseId(User);
 
@@ -711,7 +727,11 @@ namespace HVZ.Web.Server.Controllers
                 return Forbid();
 
             Game? game = await _gameRepo.FindGameById(id);
-            if (game is null) return NotFound($"Could not find Game with ID: {id}");
+            if (game is null) return NotFound(new PostResult
+            {
+                Succeeded = false,
+                Error = $"Could not find Game with ID: {id}"
+            });
 
             string userId = GetDatabaseId(User);
 
@@ -758,8 +778,13 @@ namespace HVZ.Web.Server.Controllers
             if (!UserIsAuthenticated(HttpContext))
                 return Forbid();
 
+
             Game? game = await _gameRepo.FindGameById(id);
-            if (game is null) return NotFound($"Could not find Game with ID: {id}");
+            if (game is null) return NotFound(new PostResult
+            {
+                Succeeded = false,
+                Error = $"Could not find Game with ID: {id}"
+            });
 
             string userId = GetDatabaseId(User);
 
@@ -779,7 +804,7 @@ namespace HVZ.Web.Server.Controllers
 
             await _gameRepo.ResumeGame(id, userId);
 
-            return Ok();
+            return Ok(new PostResult { Succeeded = true });
         }
 
         // TODO: Org Controller
