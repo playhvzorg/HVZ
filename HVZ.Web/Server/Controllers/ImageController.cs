@@ -73,6 +73,15 @@ namespace HVZ.Web.Server.Controllers
             return imagePath is not null ? new PhysicalFileResult(imagePath, "image/jpeg") : NotFound();
         }
 
+        [HttpGet("user/hasimage")]
+        public ActionResult<bool> HasProfileImage()
+        {
+            string? userId = User.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value;
+            if (userId is null)
+                return Unauthorized();
+            return _imageService.GetImagePath(userId, "user") is not null;
+        }
+
         [HttpPost("user/upload")]
         [Authorize]
         public async Task<ActionResult> SetUserImage([FromForm] IFormFile file)
