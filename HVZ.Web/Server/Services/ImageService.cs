@@ -67,18 +67,11 @@ namespace HVZ.Web.Server.Services
                 Directory.CreateDirectory(path);
             }
 
-            //using var managedImageStream = new SKManagedStream(imageStream);
-
-
-            // Crop the image as a 256x256 square with High filter quality
-            //using var image = SKBitmap.Decode(managedImageStream);
-            //using var codec = SKCodec.Create(SKImage.FromBitmap(image).Encode(SKEncodedImageFormat.Jpeg, 100));
-
             SKEncodedOrigin origin;
             using var image = LoadBitmap(imageStream, out origin);
 
             using var cropped = await CropSquareAsync(image);
-            using var rotated = await ExifHeaderRotate(cropped, origin);
+            using var rotated = CorrectImageRotation(cropped, origin);
             cropped.Dispose();
             await using FileStream fs = new FileStream(
                 Path.Combine(path, $"{fileName}.jpeg"),
@@ -132,17 +125,12 @@ namespace HVZ.Web.Server.Services
         /// <remarks>
         /// Assumes the image is already cropped to a square
         /// </remarks>
-        /// <param name="src"></param>
-        /// <param name="origin"></param>
-        /// <returns></returns>
-        private async Task<SKBitmap> ExifHeaderRotate(SKBitmap src, SKEncodedOrigin origin)
+        private SKBitmap CorrectImageRotation(SKBitmap src, SKEncodedOrigin origin)
         {
             if (src.Width != src.Height)
             {
                 throw new ArgumentException("src height must be equal to src width");
             }
-
-            //if (origin == SKEncodedOrigin.TopLeft) return src;
 
             var bitmap = new SKBitmap(src.Width, src.Height);
 
@@ -152,63 +140,69 @@ namespace HVZ.Web.Server.Services
 
             Console.WriteLine(SKEncodedOrigin.Default == SKEncodedOrigin.TopLeft);
 
-            // This is fast but ugly
+            // This is fast but ugly - just don't look at it...
+            // Transfer pixels based on the rotation header
+            // Prevents images captured by a cellphone from being saved in the wrong orientation
             unsafe
             {
                 uint* srcPtr = (uint*)srcPixelAddr.ToPointer();
 
                 switch (origin)
                 {
-                    case SKEncodedOrigin.Default:
-                        for (int x = 0; x < src.Width; x++)
-                            for (int y = 0; y < src.Height; y++)
-                                pixelBuffer[x, y] = *srcPtr++;
+                    case SKEncodedOrigin.Default: // Image is properly rotated
+                        TransferPixels(src.Width, src.Height, (x, y) =>
+                        {
+                            pixelBuffer[x, y] = *srcPtr++;
+                        });
                         break;
 
-                    case SKEncodedOrigin.LeftBottom:
-
-                        for (int x = 0; x < src.Width; x++)
-                            for (int y = 0; y < src.Height; y++)
-                                pixelBuffer[y, src.Width - 1 - x] = *srcPtr++;
-
+                    case SKEncodedOrigin.LeftBottom: // Rotated 90° counter-clockwise.
+                        TransferPixels(src.Width, src.Height, (x, y) =>
+                        {
+                            pixelBuffer[y, src.Width - 1 - x] = *srcPtr++;
+                        });
                         break;
-                    case SKEncodedOrigin.RightTop:
 
-                        for (int x = 0; x < src.Width; x++)
-                            for (int y = 0; y < src.Height; y++)
-                                pixelBuffer[src.Height - 1 - y, x] = *srcPtr++;
-
+                    case SKEncodedOrigin.RightTop: // Rotated 90° clockwise.
+                        TransferPixels(src.Width, src.Height, (x, y) =>
+                        {
+                            pixelBuffer[src.Height - 1 - y, x] = *srcPtr++;
+                        });
                         break;
-                    case SKEncodedOrigin.RightBottom:
 
-                        for (int x = 0; x < src.Width; x++)
-                            for (int y = 0; y < src.Height; y++)
-                                pixelBuffer[src.Height - 1 - y, src.Width - 1 - x] = *srcPtr++;
-
+                    case SKEncodedOrigin.RightBottom: // Reflected across x-axis. Rotated 90° clockwise.
+                        TransferPixels(src.Width, src.Height, (x, y) =>
+                        {
+                            pixelBuffer[src.Height - 1 - y, src.Width - 1 - x] = *srcPtr++;
+                        });
                         break;
-                    case SKEncodedOrigin.LeftTop:
 
-                        for (int x = 0; x < src.Width; x++)
-                            for (int y = 0; y < src.Height; y++)
-                                pixelBuffer[y, x] = *srcPtr++;
+                    case SKEncodedOrigin.LeftTop: // Reflected across x-axis. Rotated 90° counter-clockwise.
+                        TransferPixels(src.Width, src.Height, (x, y) =>
+                        {
+                            pixelBuffer[y, x] = *srcPtr++;
+                        });
                         break;
-                    case SKEncodedOrigin.BottomLeft:
 
-                        for (int x = 0; x < src.Width; x++)
-                            for (int y = 0; y < src.Height; y++)
-                                pixelBuffer[x, src.Height - 1 - y] = *srcPtr++;
+                    case SKEncodedOrigin.BottomLeft: // Reflected across x-axis.
+                        TransferPixels(src.Width, src.Height, (x, y) =>
+                        {
+                            pixelBuffer[x, src.Height - 1 - y] = *srcPtr++;
+                        });
                         break;
-                    case SKEncodedOrigin.BottomRight:
 
-                        for (int x = 0; x < src.Width; x++)
-                            for (int y = 0; y < src.Height; y++)
-                                pixelBuffer[src.Width - 1 - x, src.Height - 1 - y] = *srcPtr++;
+                    case SKEncodedOrigin.BottomRight: // Rotated 180°.
+                        TransferPixels(src.Width, src.Height, (x, y) =>
+                        {
+                            pixelBuffer[src.Width - 1 - x, src.Height - 1 - y] = *srcPtr++;
+                        });
                         break;
-                    case SKEncodedOrigin.TopRight:
 
-                        for (int x = 0; x < src.Width; x++)
-                            for (int y = 0; y < src.Height; y++)
-                                pixelBuffer[src.Width - 1 - x, y] = *srcPtr++;
+                    case SKEncodedOrigin.TopRight: // Reflected across y-axis.
+                        TransferPixels(src.Width, src.Height, (x, y) =>
+                        {
+                            pixelBuffer[src.Width - 1 - x, y] = *srcPtr++;
+                        });
                         break;
                 }
 
@@ -223,9 +217,11 @@ namespace HVZ.Web.Server.Services
             return bitmap;
         }
 
-        unsafe uint* GetPixelFromPtr(uint* src, int x, int y, int width)
+        private void TransferPixels(int width, int height, Action<int, int> action)
         {
-            return src + width * x + y;
+            for (int x = 0; x < width; x++)
+                for (int y = 0; y < height; y++)
+                    action(x, y);
         }
 
         public string? GetImagePath(string fileName, string subdir)
