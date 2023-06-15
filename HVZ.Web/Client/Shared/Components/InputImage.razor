@@ -1,0 +1,115 @@
+﻿@inject IJSRuntime JS
+
+<MudBadge Icon="@Icons.Material.Filled.Image" Color="Color.Tertiary" Overlap="true" Bordered="true" Class="p-0">
+    <MudFileUpload T="IBrowserFile" @ref="fileUpload" FilesChanged="UploadFile" Style="margin:0px!important" Accept="image/*">
+        <ButtonTemplate >
+            <MudButton for="@context" HtmlTag="label" Style="padding:0px!important">
+                <MudImage Src="@imageUrl" Class="rounded-lg" id="preview-img" ObjectFit="ObjectFit.Cover" Height="@PreviewImageSize" Width="@PreviewImageSize" />
+                @if (imageUrl is null)
+                {
+                @ChildContent
+                }
+            </MudButton>
+        </ButtonTemplate>
+    </MudFileUpload>
+</MudBadge>
+
+<Dialog @ref="errorDialog">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Error uploading photo</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText Color="Color.Error">@validationError</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => errorDialog?.Close())">Close</MudButton>
+    </DialogActions>
+</Dialog>
+
+@code {
+    [Parameter]
+    public int PreviewSize { get; set; } = 160;
+
+    [Parameter]
+    public EventCallback<IBrowserFile> OnFileChanged { get; set; }
+
+    [Parameter, EditorRequired]
+    public required RenderFragment ChildContent { get; set; }
+    string? imageUrl;
+    string? validationError;
+
+    Dialog? errorDialog;
+    MudFileUpload<IBrowserFile>? fileUpload;
+    IBrowserFile? stagedFile;
+
+    int PreviewImageSize => imageUrl is null ? 0 : PreviewSize;
+
+    IJSUnmarshalledObjectReference? module;
+
+    [Parameter]
+    public IBrowserFile? Value
+    {
+        get => stagedFile;
+        set
+        {
+            if (stagedFile == value) return;
+
+            stagedFile = value;
+            ValueChanged.InvokeAsync(value);
+            Task.Run(async () =>
+            {
+                imageUrl = await GetImageUrl(value);
+                await InvokeAsync(StateHasChanged);
+            });
+        }
+    }
+
+    [Parameter]
+    public EventCallback<IBrowserFile?> ValueChanged { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            module = await JS.InvokeAsync<IJSUnmarshalledObjectReference>("import", "./Shared/Components/InputImage.razor.js");
+        }
+    }
+
+    async Task<string?> GetImageUrl(IBrowserFile? file)
+    {
+        if (file is null) return null;
+
+        byte[] fileData = new byte[file.Size];
+        using var stream = file.OpenReadStream(999999999);
+        await stream.ReadAsync(fileData, 0, (int)file.Size);
+        string contentType = file.ContentType;
+        string contentName = file.Name;
+
+        var result = await Task.Run(() => module?.Invoke<string>("createObjectURL", fileData, contentName, contentType));
+
+        return result ?? "Failed to create URL";
+    }
+
+    private void UploadFile(IBrowserFile file)
+    {
+        validationError = null;
+        string fileContentType = file.ContentType;
+        if (fileContentType.Split("/")[0] != "image")
+        {
+            Value = null;
+            validationError = "Content must be an image";
+            errorDialog?.Show();
+            return;
+        }
+
+        if (file.Size > 5242880)
+        {
+            Value = null;
+            validationError = "File too large: image cannot be larger than 5MB";
+            errorDialog?.Show();
+            return;
+        }
+
+        Value = file;
+    }
+}

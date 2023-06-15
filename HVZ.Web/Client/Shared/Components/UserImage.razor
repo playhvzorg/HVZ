@@ -1,0 +1,12 @@
+﻿<MudImage Height="@Size" Class="rounded-lg" Width="@Size" Src="@ImageSrc" onerror="@LoadError" />
+
+@code {
+    [Parameter, EditorRequired]
+    public required UserData? User { get; set; }
+
+    [Parameter]
+    public int Size { get; set; } = 80;
+
+    string ImageSrc => $"/image/user/{User?.UserId}";
+    string LoadError => $"this.src=\"{User?.DefaultAvatar}\"";
+}

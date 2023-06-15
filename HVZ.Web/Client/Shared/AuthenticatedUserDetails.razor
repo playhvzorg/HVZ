@@ -1,0 +1,52 @@
+﻿@inject IUserService UserService
+@inject IDialogService DialogService
+@inject NavigationManager NavManager
+@using HVZ.Web.Client.Shared.Components
+
+<MudMenu>
+    <ActivatorContent>
+        <MudAvatar>
+            <UserImage User="@user" />
+        </MudAvatar>
+        
+    </ActivatorContent>
+    <ChildContent>
+        <MudNavLink Href="/settings" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
+        <MudNavLink Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error" OnClick="OpenLogoutDialog" OnTouch="OpenLogoutDialog" >
+            <MudText Color="@Color.Error">Logout</MudText>
+        </MudNavLink>
+    </ChildContent>
+</MudMenu>
+
+@code {
+    UserData? user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userResult = await UserService.GetCurrentUser();
+        user = userResult switch
+        {
+            { IsSuccess: true } => userResult.Value,
+            _ => null
+        };
+
+        if (user is null)
+        {
+            Console.WriteLine("Snackbar error time >:)");
+        }
+    }
+
+    async Task OpenLogoutDialog() 
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            "Confirm logout", "You will be redirected back to the login screen", 
+            yesText:"Logout", 
+            cancelText:"Cancel", 
+            options: new() 
+            { 
+                DisableBackdropClick = true 
+            });
+        if (result is not null) NavManager.NavigateTo("/logout");
+    }
+
+}

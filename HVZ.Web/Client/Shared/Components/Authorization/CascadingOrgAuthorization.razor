@@ -1,0 +1,54 @@
+﻿@inject Interfaces.IOrgService OrgService
+@inject ISnackbar Snackbar
+
+<CascadingValue Value="@isModerator" Name="IsModerator">
+    <CascadingValue Value="@isAdmin" Name="IsAdmin">
+        <CascadingValue Value="@OrgId" Name="OrgId">
+            @if(!loading)
+            {
+                @ChildContent
+            }
+            else
+            {
+                <div class="d-flex justify-center">
+                    <MudProgressCircular Indeterminate="true" />
+                </div>
+            }
+        </CascadingValue>
+    </CascadingValue>
+</CascadingValue>
+
+@code {
+    bool isModerator;
+    bool isAdmin;
+
+    bool loading = true;
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string OrgId { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (OrgId is null) return; // Null ID is possible and expected, wait for a non null ID
+        var authorizationResult = await OrgService.GetAuthorization(OrgId);
+
+        var orgAuthorization = authorizationResult switch
+        {
+            { IsSuccess: true } => authorizationResult.Value,
+            _ => null
+        };
+
+        if (orgAuthorization is null)
+        {
+            Snackbar.Add($"Error getting org authorization: {authorizationResult.Errors.ToArray()[0].Message}");
+            return;
+        }
+
+        isAdmin = orgAuthorization.IsAdmin;
+        isModerator = isAdmin || orgAuthorization.IsModerator;
+        loading = false;
+    }
+}

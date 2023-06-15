@@ -1,0 +1,41 @@
+﻿@using NodaTime
+
+<MudCard Class="mt-2">
+    <MudCardHeader>
+        <CardHeaderAvatar>
+            <MudAvatarGroup>
+                @foreach(var user in Users)
+                {
+                    <MudAvatar Size="Size.Small">
+                        <UserImage User="@user" />
+                    </MudAvatar>
+                }
+            </MudAvatarGroup>
+        </CardHeaderAvatar>
+        <CardHeaderContent>
+            <MudText Typo="Typo.body1">@Title</MudText>
+            <MudText Typo="Typo.body2">@Body</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent Class="py-0">
+        <div class="d-flex">
+            <MudText Align="Align.End" Typo="Typo.caption" Style="width:100%;">
+                @TimeStamp.ToDateTimeUtc().ToLocalTime().ToString("MMM dd h:mm tt")
+            </MudText>
+        </div>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    [Parameter, EditorRequired]
+    public required UserData[] Users { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Instant TimeStamp { get; set; }
+
+    [Parameter]
+    public string? Title { get; set; }
+
+    [Parameter]
+    public string? Body { get; set; }
+}

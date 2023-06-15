@@ -1,0 +1,77 @@
+﻿@using HVZ.Web.Shared.Models;
+@inject Interfaces.IOrgService OrgService
+@inject ISnackbar Snackbar
+
+<MudButton Variant="Variant.Filled" FullWidth="true" Color="Color.Primary" OnClick="OnNewGame">New Game</MudButton>
+
+<Dialog @ref="dialog" Options="new DialogOptions() { FullWidth = true }">
+    <TitleContent>
+        <MudText Typo="Typo.h6">New Game</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @bind-IsValid="success">
+            <MudTextField @bind-Value="gameName" Label="Game Name" Required="true" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => dialog?.Close())">Cancel</MudButton>
+        @if (!loading)
+        {
+            <MudButton OnClick="SubmitNewGame" Color="Color.Primary" Disabled="@(!success)" Variant="Variant.Filled">New game</MudButton>
+        }
+        else
+        {
+            <MudButton Color="Color.Primary" Disabled="true" Variant="Variant.Filled">
+                <MudProgressCircular Indeterminate="true" Size="Size.Small" Class="mr-3"></MudProgressCircular> New game
+            </MudButton>
+        }
+    </DialogActions>
+</Dialog>
+
+@code {
+    string? gameName;
+    Dialog? dialog;
+
+    bool success = false;
+    bool loading = false;
+
+    [CascadingParameter(Name = "OrgId")]
+    public string? OrgId { get; set; }
+
+    void OnNewGame()
+    {
+        loading = false;
+        gameName = null;
+        dialog?.Show();
+    }
+
+    async Task SubmitNewGame()
+    {
+        loading = true;
+        if (gameName is null)
+        {
+            Snackbar.Add("Game Name is null", Severity.Error);
+            return;
+        }
+
+        var createGameResult = await OrgService.CreateGame("wrongid", 
+            new CreateGameRequest
+            {
+                Name = gameName
+            });
+
+        string? createdGameId = createGameResult switch
+        {
+            { IsSuccess: true } => createGameResult.Value,
+            _ => null
+        };
+
+        if (createdGameId is null)
+        {
+            Snackbar.Add($"Error creating game: {createGameResult.Errors.ToArray()[0].Message}", Severity.Error, (opts) => { opts.CloseAfterNavigation = true; });
+            return;
+        }
+
+        Snackbar.Add($"Created {gameName}", Severity.Success);
+    }
+}

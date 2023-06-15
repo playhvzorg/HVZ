@@ -22,7 +22,7 @@ namespace HVZ.Web.Client.Services
 
         public async Task<RegisterResult> Register(RegisterModel registerModel)
         {
-            var response = await _httpClient.PostAsJsonAsync("api/accounts", registerModel);
+            var response = await _httpClient.PostAsJsonAsync("api/accounts/create", registerModel);
             var result = await response.Content.ReadFromJsonAsync<RegisterResult>();
             if (result is null)
             {
@@ -34,8 +34,9 @@ namespace HVZ.Web.Client.Services
 
         public async Task<LoginResult> Login(LoginModel loginModel)
         {
-            var response = await _httpClient.PostAsJsonAsync("api/login", loginModel);
+            var response = await _httpClient.PostAsJsonAsync("api/accounts/login", loginModel);
             var result = await response.Content.ReadFromJsonAsync<LoginResult>();
+
             if (result is null)
             {
                 throw new ArgumentNullException(nameof(result), "Could not deserialize response");
@@ -57,6 +58,7 @@ namespace HVZ.Web.Client.Services
         {
             await _localStorage.RemoveItemAsync("authToken");
             ((ApiAuthenticationStateProvider)_authStateProvider).MarkUserAsLoggedOut();
+            await _httpClient.PostAsync("/accounts/logout", null);
             _httpClient.DefaultRequestHeaders.Authorization = null;
         }
     }

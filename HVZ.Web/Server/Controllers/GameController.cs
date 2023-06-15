@@ -1,6 +1,8 @@
 ﻿using HVZ.Persistence;
 using HVZ.Persistence.Models;
 using HVZ.Web.Shared.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -9,6 +11,7 @@ namespace HVZ.Web.Server.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Produces("application/json")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class GameController : ControllerBase
     {
         private readonly ILogger<GameController> _logger;
@@ -35,6 +38,7 @@ namespace HVZ.Web.Server.Controllers
         /// <response code="404">Could not find a game with the specified ID</response>
         [HttpGet("{id}/players")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<PlayerData>>> GetPlayers(string id)
         {
@@ -42,20 +46,16 @@ namespace HVZ.Web.Server.Controllers
             if (game is null)
                 return NotFound($"Could not find game with ID: {id}");
 
-            bool authenticated = UserIsAuthenticated(HttpContext);
             bool userIsMod = false;
             bool userIsOz = false;
+            string userId = GetDatabaseId(User);
 
-            if (authenticated)
+            userIsMod = await UserIsModerator(game.OrgId, userId);
+            Console.WriteLine(userIsMod);
+            Player? player = await _gameRepo.FindPlayerByUserId(id, userId);
+            if (player is not null)
             {
-                string userId = GetDatabaseId(User);
-
-                userIsMod = await UserIsModerator(game.OrgId, userId);
-                Player? player = await _gameRepo.FindPlayerByUserId(id, userId);
-                if (player is not null)
-                {
-                    userIsOz = player.Role == Player.gameRole.Oz;
-                }
+                userIsOz = player.Role == Player.gameRole.Oz;
             }
 
             IEnumerable<PlayerData> playerData = await Task.Run(async ()
@@ -73,6 +73,8 @@ namespace HVZ.Web.Server.Controllers
                         player.Role = Player.gameRole.Human;
                         player.Tags = 0;
                     }
+
+                    player.GameId = null!;
                 }
 
                 return playerData;
@@ -117,6 +119,7 @@ namespace HVZ.Web.Server.Controllers
         /// <response code="404">Could not find a game with the specified ID</response>
         [HttpGet("{id}/events")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<GameLogData>>> GetEventLog(string id)
         {
@@ -124,36 +127,28 @@ namespace HVZ.Web.Server.Controllers
             if (game is null)
                 return NotFound($"Could not find Game with ID: {id}");
 
-            bool authenticated = UserIsAuthenticated(HttpContext);
             bool userIsMod = false;
             bool userIsOz = false;
+            string userId = GetDatabaseId(User);
 
-            if (authenticated)
+            userIsMod = await UserIsModerator(game.OrgId, userId);
+            Player? player = await _gameRepo.FindPlayerByUserId(id, userId);
+            if (player is not null)
             {
-                string userId = GetDatabaseId(User);
-
-                userIsMod = await UserIsModerator(game.OrgId, userId);
-                Player? player = await _gameRepo.FindPlayerByUserId(id, userId);
-                if (player is not null)
-                {
-                    userIsOz = player.Role == Player.gameRole.Oz;
-                }
+                userIsOz = player.Role == Player.gameRole.Oz;
             }
 
             IEnumerable<GameLogData> logData = await Task.Run(async ()
                 => await FormatLogData(game.EventLog));
 
             if (userIsMod || userIsOz)
-                return Ok(logData);
+                return Ok(logData.ToList());
 
-            // return stripped version of game log
-            logData = await Task.Run(() =>
+            // Filter the log data
+            var filteredLogData = await Task.Run(() =>
             {
-                logData = logData.Where(l =>
-                    l.EventType != GameEvent.PlayerRoleChangedByMod ||
-                    (l.EventType == GameEvent.PlayerRoleChangedByMod &&
-                    (((RoleSetEventLogInfo)l.EventInfo!).Role != Player.gameRole.Oz) &&
-                    ((RoleSetEventLogInfo)l.EventInfo!).Instigator != null)
+                var data = logData.Where(log =>
+                    FilterLogData(log)
                 );
 
                 UserData ozUser = new UserData
@@ -163,22 +158,45 @@ namespace HVZ.Web.Server.Controllers
                     UserId = string.Empty
                 };
 
-                foreach (var item in logData)
+                foreach (var item in data)
                 {
-                    if (item.EventType == GameEvent.Tag)
+                    if (item.EventType is GameEvent.Tag)
                     {
-                        if (((TagEventLogInfo)item.EventInfo!).OzTagger)
+                        if ((item as TagEventLogData)?.OzTagger ?? true)
                         {
                             item.User = ozUser;
                         }
-                        continue;
                     }
                 }
 
-                return logData;
+                return data;
             });
 
-            return Ok(logData);
+            return Ok(filteredLogData.ToList());
+        }
+
+        private bool FilterLogData(GameLogData data)
+        {
+
+            if (data.EventType is not GameEvent.PlayerRoleChangedByMod) return true;
+
+            RoleSetEventLogData? logData = data as RoleSetEventLogData;
+            if (logData is null) return false;
+
+            return logData.Role is not Player.gameRole.Oz && logData.Instigator is not null;
+        }
+
+        private async Task<UserData?> GetUserDataFromId(string id)
+        {
+            // Null mod if the max tags is reached
+            if (id is "ozmaxtagsreached") return null;
+            User target = await _userRepo.GetUserById(id);
+            return new UserData
+            {
+                FullName = target.FullName,
+                Email = target.Email,
+                UserId = id
+            };
         }
 
         private async Task<IEnumerable<GameLogData>> FormatLogData(IEnumerable<GameEventLog> log)
@@ -194,58 +212,56 @@ namespace HVZ.Web.Server.Controllers
                     UserId = logEvent.UserId,
                 };
 
-                var logInfo = new GameLogData
+                GameLogData logInfo = logEvent switch
                 {
-                    EventType = logEvent.GameEvent,
-                    Timestamp = logEvent.Timestamp,
-                    User = userData,
+                    { GameEvent: GameEvent.GameCreated } => new GameCreatedLogData
+                    {
+                        Timestamp = logEvent.Timestamp,
+                        User = userData,
+                        GameName = (string)logEvent.AdditionalInfo["name"]
+                    },
+                    { GameEvent: GameEvent.GameStarted } => new GameStartedEventLogData
+                    {
+                        Timestamp = logEvent.Timestamp,
+                        User = userData
+                    },
+                    { GameEvent: GameEvent.Tag } => new TagEventLogData
+                    {
+                        Timestamp = logEvent.Timestamp,
+                        User = userData,
+                        TaggerTagCount = (int)logEvent.AdditionalInfo["taggertagcount"],
+                        TagReceiver = (await GetUserDataFromId((string)logEvent.AdditionalInfo["tagreciever"]))!,
+                        OzTagger = (bool)logEvent.AdditionalInfo["oztagger"]
+                    },
+                    { GameEvent: GameEvent.PlayerRoleChangedByMod } => new RoleSetEventLogData
+                    {
+                        Timestamp = logEvent.Timestamp,
+                        User = userData,
+                        Role = (Player.gameRole)logEvent.AdditionalInfo["role"],
+                        Instigator = await GetUserDataFromId((string)logEvent.AdditionalInfo["modid"])
+                    },
+                    { GameEvent: GameEvent.ActiveStatusChanged } => new ActiveStatusChangedEventLogData
+                    {
+                        Timestamp = logEvent.Timestamp,
+                        User = userData,
+                        Status = (Game.GameStatus)logEvent.AdditionalInfo["status"]
+                    },
+                    { GameEvent: GameEvent.PlayerJoined } => new PlayerJoinedEventLogData
+                    {
+                        Timestamp = logEvent.Timestamp,
+                        User = userData
+                    },
+                    { GameEvent: GameEvent.PlayerLeft } => new PlayerLeftEventLogData
+                    {
+                        Timestamp = logEvent.Timestamp,
+                        User = userData
+                    },
+                    _ => new PlayerJoinedEventLogData
+                    {
+                        Timestamp = logEvent.Timestamp,
+                        User = userData,
+                    }
                 };
-
-                switch (logEvent.GameEvent)
-                {
-                    case GameEvent.GameCreated:
-                        logInfo.EventInfo = new GameCreatedEventLogInfo
-                        {
-                            GameName = (string)logEvent.AdditionalInfo["name"]
-                        };
-                        break;
-                    case GameEvent.Tag:
-                        User taggedUser = await _userRepo.GetUserById((string)logEvent.AdditionalInfo["tagreciever"]);
-                        logInfo.EventInfo = new TagEventLogInfo
-                        {
-                            TagReceiver = new UserData
-                            {
-                                FullName = taggedUser.FullName,
-                                Email = taggedUser.Email,
-                                UserId = taggedUser.Id
-                            },
-                            TaggerTagCount = (int)logEvent.AdditionalInfo["taggertagcount"],
-                            OzTagger = (bool)logEvent.AdditionalInfo["oztagger"]
-                        };
-                        break;
-                    case GameEvent.PlayerRoleChangedByMod:
-                        User? mod = null;
-                        string instigatorId = (string)logEvent.AdditionalInfo["modid"];
-                        if (instigatorId != "ozmaxtagsreached")
-                            mod = await _userRepo.GetUserById(instigatorId);
-                        logInfo.EventInfo = new RoleSetEventLogInfo
-                        {
-                            Instigator = mod is not null ? new UserData
-                            {
-                                FullName = mod.FullName,
-                                Email = mod.Email,
-                                UserId = mod.Id
-                            } : null,
-                            Role = (Player.gameRole)logEvent.AdditionalInfo["role"]
-                        };
-                        break;
-                    case GameEvent.ActiveStatusChanged:
-                        logInfo.EventInfo = new ActiveStatusChangedEventLogInfo
-                        {
-                            Status = (Game.GameStatus)logEvent.AdditionalInfo["state"]
-                        };
-                        break;
-                }
 
                 logData.Add(logInfo);
             }
@@ -269,21 +285,15 @@ namespace HVZ.Web.Server.Controllers
         /// </remarks>
         /// <response code="200">Returns information about the logged tag</response>
         /// <response code="400">Missing parameter in tag</response>
-        /// <response code="401">User is not logged in</response>
-        /// <response code="403">Could not log tag; returns error message</response>
+        /// <response code="401">Could not log tag; returns error message</response>
         /// <response code="404">Could not find game or tag receiver</response>
         [HttpPost("{id}/tag")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<TagResult>> Tag(string id, [FromBody] TagModel tag)
         {
-            // TODO: Make this API request less ugly :(
-            if (!UserIsAuthenticated(HttpContext))
-                return Forbid();
-
             string userId = GetDatabaseId(this.User);
 
             Game? game = await _gameRepo.FindGameById(id);
@@ -361,6 +371,7 @@ namespace HVZ.Web.Server.Controllers
         /// <response code="404">Could not find game</response>
         [HttpGet("{id}/info")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<GameInfo>> GetGameInfo(string id)
         {
@@ -377,18 +388,13 @@ namespace HVZ.Web.Server.Controllers
         /// <returns></returns>
         /// <response code="200">Returns the game configuration</response>
         /// <response code="401">User does not have moderator permissions</response>
-        /// <response code="403">User is not authenticated</response>
         /// <response code="404">Could not find game</response>
         [HttpGet("{id}/config")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<GameConfig>> GetGameConfig(string id)
         {
-            if (!UserIsAuthenticated(HttpContext))
-                return Forbid();
-
             Game? game = await _gameRepo.FindGameById(id);
             if (game is null) return NotFound($"Could not find Game with ID: {id}");
 
@@ -431,13 +437,11 @@ namespace HVZ.Web.Server.Controllers
         /// <response code="200">Returns the randomly set OZs</response>
         /// <response code="400">Could not complete request</response>
         /// <response code="401">User is does not have moderator permissions</response>
-        /// <response code="403">User is not authenticated</response>
         /// <response code="404">Could not find game</response>
         [HttpPost("{id}/randomoz")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<RandomOzResult>> SetRandomOzs(string id, [FromBody] RandomOzModel request)
         {
@@ -447,9 +451,6 @@ namespace HVZ.Web.Server.Controllers
                 Succeeded = false,
                 Error = $"Could not find Game with ID: {id}"
             });
-
-            if (!UserIsAuthenticated(HttpContext))
-                return Forbid();
 
             string userId = GetDatabaseId(User);
 
@@ -504,18 +505,13 @@ namespace HVZ.Web.Server.Controllers
         /// <returns></returns>
         /// <response code="200">Returns the list of users in the OZ pool</response>
         /// <response code="401">User does not have moderator permissions</response>
-        /// <response code="403">User is not authenticated</response>
         /// <response code="404">Could not find game</response>
         [HttpGet("{id}/ozs/list")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<UserData>>> GetOzPool(string id)
         {
-            if (!UserIsAuthenticated(HttpContext))
-                return Forbid();
-
             Game? game = await _gameRepo.FindGameById(id);
             if (game is null) return NotFound($"Could not find Game with ID: {id}");
 
@@ -558,19 +554,14 @@ namespace HVZ.Web.Server.Controllers
         /// <response code="200">Returns success</response>
         /// <response code="400">User is already in OZ pool</response>
         /// <response code="401">User is not in the game</response>
-        /// <response code="403">User is not authenticated</response>
         /// <response code="404">Could not find game</response>
         [HttpPost("{id}/ozs/join")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<PostResult>> JoinOzPool(string id)
         {
-            if (!UserIsAuthenticated(HttpContext))
-                return Forbid();
-
             Game? game = await _gameRepo.FindGameById(id);
             if (game is null) return NotFound(new PostResult
             {
@@ -608,19 +599,14 @@ namespace HVZ.Web.Server.Controllers
         /// <response code="200">Returns success</response>
         /// <response code="400">User is not in OZ pool</response>
         /// <response code="401">User is not in the game</response>
-        /// <response code="403">User is not authenticated</response>
         /// <response code="404">Could not find game</response>
         [HttpPost("{id}/ozs/leave")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<PostResult>> LeaveOzPool(string id)
         {
-            if (!UserIsAuthenticated(HttpContext))
-                return Forbid();
-
             Game? game = await _gameRepo.FindGameById(id);
             if (game is null) return NotFound(new PostResult
             {
@@ -661,19 +647,14 @@ namespace HVZ.Web.Server.Controllers
         /// <response code="200">Returns success</response>
         /// <response code="400">Could not complete request: Game already started</response>
         /// <response code="401">User does not have moderator permissions</response>
-        /// <response code="403">User is not authenticated</response>
         /// <response code="404">Could not find game</response>
         [HttpPost("{id}/start")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<PostResult>> StartGame(string id)
         {
-            if (!UserIsAuthenticated(HttpContext))
-                return Forbid();
-
             Game? game = await _gameRepo.FindGameById(id);
             if (game is null) return NotFound(new PostResult
             {
@@ -713,19 +694,14 @@ namespace HVZ.Web.Server.Controllers
         /// <response code="200">Returns success</response>
         /// <response code="400">Could not complete request: Game game is not 'Active'</response>
         /// <response code="401">User does not have moderator permissions</response>
-        /// <response code="403">User is not authenticated</response>
         /// <response code="404">Could not find game</response>
         [HttpPost("{id}/pause")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<PostResult>> PauseGame(string id)
         {
-            if (!UserIsAuthenticated(HttpContext))
-                return Forbid();
-
             Game? game = await _gameRepo.FindGameById(id);
             if (game is null) return NotFound(new PostResult
             {
@@ -765,20 +741,14 @@ namespace HVZ.Web.Server.Controllers
         /// <response code="200">Returns success</response>
         /// <response code="400">Could not complete request: Game game is not 'Paused'</response>
         /// <response code="401">User does not have moderator permissions</response>
-        /// <response code="403">User is not authenticated</response>
         /// <response code="404">Could not find game</response>
         [HttpPost("{id}/resume")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<PostResult>> ResumeGame(string id)
         {
-            if (!UserIsAuthenticated(HttpContext))
-                return Forbid();
-
-
             Game? game = await _gameRepo.FindGameById(id);
             if (game is null) return NotFound(new PostResult
             {
@@ -807,46 +777,117 @@ namespace HVZ.Web.Server.Controllers
             return Ok(new PostResult { Succeeded = true });
         }
 
-        // TODO: Org Controller
-        ///// <summary>
-        ///// TODO
-        ///// </summary>
-        ///// <param name="id"></param>
-        ///// <returns></returns>
-        //[HttpPost("{id}/end")]
-        //public async Task<ActionResult<PostResult>> EndGame(string id)
-        //{
-        //    if (!UserIsAuthenticated(HttpContext))
-        //        return Forbid();
+        // TODO
+        [HttpPost("{id}/join")]
+        public async Task<ActionResult<PostResult>> JoinGame(string id)
+        {
+            Game? game = await _gameRepo.FindGameById(id);
+            if (game is null) return NotFound(new PostResult
+            {
+                Succeeded = false,
+                Error = $"Could not find Game with ID: {id}"
+            });
 
-        //    Game? game = await _gameRepo.FindGameById(id);
-        //    if (game is null) return NotFound($"Could not find Game with ID: {id}");
+            string userId = GetDatabaseId(User);
 
-        //    string userId = GetDatabaseId(User);
+            // Game is not current -> BadRequest
+            if (!game.IsCurrent) return BadRequest(new JoinGameResult
+            {
+                Succeeded = false,
+                Errors = new List<string> { $"Cannot join {game.Name} because it has ended" }
+            });
 
-        //    if (!await UserIsModerator(game.OrgId, userId))
-        //        return Unauthorized(new PostResult
-        //        {
-        //            Succeeded = false,
-        //            Error = "Missing required permissions"
-        //        });
+            // Player in game -> BadRequest
+            Player? player = await _gameRepo.FindPlayerByUserId(id, userId);
+            if (player is not null) return BadRequest(new JoinGameResult
+            {
+                Succeeded = false,
+                Errors = new List<string> { $"Already in {game.Name}" }
+            });
 
-        //    if (game.Status == Game.GameStatus.Ended)
+            // TODO: Check email verification
 
-        //    await _gameRepo.EndGame(userId, id);
-        //    return Ok();
-        //}
+            // TODO: Check profile image
+
+            try
+            {
+                await _gameRepo.AddPlayer(id, userId);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                return BadRequest(new JoinGameResult
+                {
+                    Succeeded = false,
+                    Errors = new List<string> { $"Unexpected error, unable to add player to {game.Name}" }
+                });
+            }
+
+            player = await _gameRepo.GetPlayerByGameId(id, userId);
+            User user = await _userRepo.GetUserById(userId);
+
+            return Ok(new JoinGameResult
+            {
+                Succeeded = true,
+                CreatedPlayer = new PlayerData
+                {
+                    GameId = player.GameId,
+                    Tags = player.Tags,
+                    Role = player.Role,
+                    User = new UserData
+                    {
+                        Email = user.Email,
+                        FullName = user.FullName,
+                        UserId = userId,
+                    }
+                }
+            });
+        }
+
+        [HttpGet("{id}/myinfo")]
+        public async Task<ActionResult<PlayerData>> Me(string id)
+        {
+            Game? game = await _gameRepo.FindGameById(id);
+            if (game is null) return NotFound();
+
+            string userId = GetDatabaseId(User);
+
+            Player? player = await _gameRepo.FindPlayerByUserId(id, userId);
+            if (player is null) return NoContent();
+
+            User user = await _userRepo.GetUserById(userId);
+
+            return Ok(new PlayerData
+            {
+                GameId = player.GameId,
+                Role = player.Role,
+                Tags = player.Tags,
+                User = new UserData
+                {
+                    Email = user.Email,
+                    FullName = user.FullName,
+                    UserId = user.Id
+                }
+            });
+        }
 
         private async Task<bool> UserIsModerator(string orgId, string userId)
-            => await _orgRepo.IsModOfOrg(orgId, userId);
+        {
+            return await _orgRepo.IsModOfOrg(orgId, userId);
+        }
 
         private bool UserIsAuthenticated(HttpContext context)
             => context.User.Identity?.IsAuthenticated ?? false;
 
         private string GetDatabaseId(ClaimsPrincipal user)
-            => user.Claims.FirstOrDefault(
+        {
+            return user.Claims.FirstOrDefault(
                 c => c.Type == "DatabaseId"
-            )?.Value ?? string.Empty;
+            )?.Value ?? "Can't find ID";
+        }
+        //=> user.Claims.FirstOrDefault(
+        //    c => c.Type == "DatabaseId"
+        //)?.Value ?? "Can't find ID";
 
         private async Task<bool> GameExists(string id)
             => await _gameRepo.FindGameById(id) is not null;

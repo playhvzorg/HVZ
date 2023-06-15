@@ -1,9 +1,76 @@
-﻿@page "/"
+﻿@inject HttpClient Http
+@inject IUserService UserService
+@inject ISnackbar Snackbar
+@using HVZ.Web.Shared.Models;
+@using Interfaces
+@using MudBlazor
 
-<PageTitle>Index</PageTitle>
+@page "/"
 
-<h1>Hello, world!</h1>
+<PageTitle>PlayHvZ Home</PageTitle>
 
-Welcome to your new app.
+<MudContainer>
+    @*Email alert if the user does not have a verified email*@
+    @if (verifiedEmail is not null && verifiedEmail is false)
+    {
+        <MudAlert Severity="Severity.Warning" Class="mb-5">You have not confirmed your email. <MudLink>Click here</MudLink> to resend verification email</MudAlert>
+    }
+    @if(!loading)
+    {
+        <MudPaper Class="pa-3">
+            <MudText Typo="Typo.h4">Welcome back, @userData?.FullName</MudText>
+            <MudText>@userData?.Email</MudText>
+        </MudPaper>
+        <MudPaper Class="pa-3 mt-5">
+            <MudText Typo="Typo.h5">Active Games</MudText>
+            <MudContainer>
+                <MudText Typo="Typo.subtitle2">You have no active games</MudText>
+            </MudContainer>
+        </MudPaper>
+    }
+    else
+    {
+        <MudPaper Class="pa-3">
+            <MudSkeleton Animation="Animation.Wave" SkeletonType="SkeletonType.Rectangle" Width="14rem" Height="2.125rem" Class="" />
+        </MudPaper>
+    }
+</MudContainer>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+@code {
+    bool loading = true;
+    UserData? userData;
+    bool? verifiedEmail;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userResult = await UserService.GetCurrentUser();
+
+        (userData, loading) = userResult switch
+        {
+            { IsSuccess: true } => (userResult.Value, false),
+            { IsFailed: true } => (null, true),
+            _ => (null, true)
+        };
+
+        if (userData is null)
+            Snackbar.Add($"Failed to fetch user info: {userResult.Errors.ToArray()[0].Message}", Severity.Error, (options) =>
+            {
+                options.CloseAfterNavigation = true;
+            });
+
+        var verifiedEmailResult = await UserService.EmailIsConfirmed();
+
+        verifiedEmail = verifiedEmailResult switch
+        {
+            { IsSuccess: true } => verifiedEmailResult.Value,
+            { IsFailed: true } => null,
+            _ => null
+        };
+
+        if (verifiedEmail is null)
+            Snackbar.Add($"Failed to fetch user info: {userResult.Errors.ToArray()[0].Message}", Severity.Error, (options) =>
+            {
+                options.CloseAfterNavigation = true;
+            });
+    }
+}

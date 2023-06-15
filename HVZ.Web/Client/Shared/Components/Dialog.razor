@@ -1,0 +1,40 @@
+﻿
+<MudDialog Options="@Options" @bind-IsVisible="isVisible">
+    <TitleContent>
+        @TitleContent
+    </TitleContent>
+    <DialogContent>
+        @DialogContent
+    </DialogContent>
+    <DialogActions>
+        @DialogActions
+    </DialogActions>
+</MudDialog>
+
+@code {
+
+    [Parameter]
+    public RenderFragment? DialogContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? DialogActions { get; set; }
+
+    [Parameter]
+    public RenderFragment? TitleContent { get; set; }
+
+
+    [Parameter]
+    public DialogOptions Options { get; set; } = new DialogOptions();
+
+    private bool isVisible = false;
+
+    public void Close() => isVisible = false;
+
+    public void Show() => isVisible = true;
+
+    public void OpenNext(Dialog? next)
+    {
+        Close();
+        next?.Show();
+    }
+}

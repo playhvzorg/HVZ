@@ -1,0 +1,34 @@
+﻿@inject Interfaces.IGameService GameService
+@using HVZ.Web.Shared.Models
+
+@if (logData is not null)
+{
+    @foreach (var logItem in logData)
+    {
+        <EventLogListItem GameLog="@logItem" />
+    }
+}
+
+@code {
+    IEnumerable<GameLogData>? logData;
+
+    [CascadingParameter(Name = "GameId")]
+    public required string GameId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var logResult = await GameService.GetGameLog(GameId);
+
+        logData = logResult switch
+        {
+            { IsSuccess: true } => logResult.Value,
+            _ => null
+        };
+
+        if (logData is null)
+        {
+            // TODO: Log to snackbar
+            return;
+        }
+    }
+}

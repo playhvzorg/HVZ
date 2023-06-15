@@ -1,5 +1,6 @@
 ﻿using HVZ.Persistence.Models;
 using NodaTime;
+using System.Text.Json.Serialization;
 
 namespace HVZ.Web.Shared.Models
 {
@@ -20,6 +21,17 @@ namespace HVZ.Web.Shared.Models
             EndedAt = game.EndedAt;
             IsActive = game.IsActive;
             IsCurrent = game.IsCurrent;
+        }
+
+        [JsonConstructor]
+        public GameInfo(string name, string id, Instant? startedAt, Instant? endedAt, bool isActive, bool isCurrent)
+        {
+            Name = name;
+            Id = id;
+            StartedAt = startedAt;
+            EndedAt = endedAt;
+            IsActive = isActive;
+            IsCurrent = isCurrent;
         }
     }
 }

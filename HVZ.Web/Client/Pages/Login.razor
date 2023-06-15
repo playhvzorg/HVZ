@@ -1,0 +1,20 @@
+﻿@page "/account/login"
+@layout UnauthorizedLayout
+@attribute [AllowAnonymous]
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
+    <MudPaper Class="px-5 pb-5">
+        <MudTabs Centered="true" Class="px-n5">
+            <MudTabPanel Text="Login" >
+                <LoginForm />
+            </MudTabPanel>
+            <MudTabPanel Text="Signup" >
+                <RegisterForm />
+            </MudTabPanel>
+        </MudTabs>
+    </MudPaper>
+</MudContainer>
+
+
+@code {
+}

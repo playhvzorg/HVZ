@@ -1,0 +1,127 @@
+﻿@inject Interfaces.IGameService GameService
+@inject ISnackbar Snackbar
+
+<div class="mt-2">
+    @if (!loading)
+    {
+        @if (player is not null)
+        {
+            <PlayerListItem Player="@player" />
+            @* If the player is an OZ or Zombie, tag button (disabled when game has not started) *@
+            @* If the game has not started, join/leave oz pool button *@
+            @* Leave game button *@
+
+            <MudButton Variant="Variant.Filled" FullWidth Color="Color.Error">Leave game</MudButton>
+        }
+        else
+        {
+            <MudPaper>
+                <MudText>You are not in the game</MudText>
+            </MudPaper>
+            <MudButton Variant="Variant.Filled" FullWidth Color="Color.Primary" OnClick="ShowJoinGameDialog">Join Game</MudButton>
+            <Dialog @ref="joinGameDialog">
+                <TitleContent>
+                    <MudText Typo="Typo.h6">Join game?</MudText>
+                </TitleContent>
+                <DialogContent>
+                    TODO: Show join requirements
+                </DialogContent>
+                <DialogActions>
+                    <MudButton OnClick="() => { joinGameDialog?.Close(); }">Cancel</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@joinGameLoading" OnClick="JoinGame">
+                        @if (@joinGameLoading)
+                        {
+                            <MudProgressCircular Indeterminate Size="Size.Small" Class="mr-2" />
+                        }
+                        Join</MudButton>
+                </DialogActions>
+            </Dialog>
+            <Dialog @ref="joinGameErrorsDialog">
+                <TitleContent>
+                    <MudText Typo="Typo.h6">Error joining game</MudText>
+                </TitleContent>
+                <DialogContent>
+                    @if (joinGameErrors is not null)
+                    {
+                        <MudList>
+                            @foreach(var error in joinGameErrors)
+                            {
+                                <MudListItem AdornmentColor="Color.Error">
+                                    <MudText Color="Color.Error">@error</MudText>
+                                </MudListItem>
+                            }
+                        </MudList>
+                    }
+                </DialogContent>
+                <DialogActions>
+                    <MudButton OnClick="() => { joinGameErrorsDialog?.OpenNext(joinGameDialog); }">Back</MudButton>
+                </DialogActions>
+            </Dialog>
+        }
+    }
+    else
+    {
+        @* TODO: Placeholder skeleton *@
+    }
+</div>
+
+
+@code {
+    [CascadingParameter(Name = "GameId")]
+    public required string GameId { get; set; }
+
+    PlayerData? player;
+
+    bool loading = true;
+    bool joinGameLoading = false;
+
+    Dialog? joinGameDialog;
+    Dialog? joinGameErrorsDialog;
+
+    List<string>? joinGameErrors;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var playerResult = await GameService.Me(GameId);
+
+        player = playerResult.Value;
+
+        if (playerResult.IsFailed)
+        {
+            // Add a snackbar error
+            Snackbar.Add($"Error getting player information: {playerResult.Errors.ToArray()[0].Message}", 
+            Severity.Error, 
+            configure: (opts) => 
+            { 
+                opts.CloseAfterNavigation = true; 
+            } );
+
+            return;
+        }
+
+        loading = false;
+    }
+
+    async Task JoinGame()
+    {
+        joinGameLoading = true;
+
+        var joinGameResult = await GameService.JoinGame(GameId);
+
+        player = joinGameResult switch
+        {
+            { IsSuccess: true } => joinGameResult.Value,
+            _ => null
+        };
+
+        if (player is null)
+            Snackbar.Add($"Error joining game: {joinGameResult.Errors.ToArray()[0].Message}");
+
+        joinGameDialog?.Close();
+
+        joinGameLoading = false;
+    }
+
+    void ShowJoinGameDialog()
+        => joinGameDialog?.Show();
+}

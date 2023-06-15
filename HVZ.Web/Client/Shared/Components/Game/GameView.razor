@@ -1,0 +1,53 @@
+﻿@using HVZ.Web.Shared.Models;
+@using HVZ.Web.Client.Shared.Components.Authorization
+@inject Interfaces.IGameService GameService
+@inject ISnackbar Snackbar
+
+@if (GameId is not null)
+{
+    <MudTabs Elevation="0" ApplyEffectsToContainer="false" MinimumTabWidth="60px" Centered="true">
+        <MudTabPanel Icon="@Icons.Material.Filled.Home">
+            <GameHomeView />
+        </MudTabPanel>
+        <MudTabPanel Icon="@Icons.Material.Filled.People">
+            <PlayerListView />
+        </MudTabPanel>
+        <MudTabPanel Icon="@Icons.Material.Filled.ListAlt">
+            <HVZ.Web.Client.Shared.Components.Game.Game_Log.GameLogView />
+        </MudTabPanel>
+        <AuthorizedModerator>
+            <MudTabPanel Icon="@Icons.Material.Filled.Settings">
+                <MudText>Mod settings</MudText>
+            </MudTabPanel>
+        </AuthorizedModerator>
+
+    </MudTabs>
+}
+
+@code {
+    [CascadingParameter(Name = "GameId")]
+    public required string GameId { get; set; }
+
+    List<PlayerData> players = null!;
+    PlayerData? player;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var playersResult = await GameService.GetPlayers(GameId);
+
+        players = playersResult switch
+        {
+            { IsSuccess: true } => (List<PlayerData>)playersResult.Value,
+            _ => null!
+        };
+
+        if (players is null)
+        {
+            Snackbar.Add($"Error getting players: {playersResult.Errors.ToArray()[0].Message}", Severity.Error, (opts) => { opts.CloseAfterNavigation = true; });
+        }
+
+        var playerResult = await GameService.Me(GameId);
+        player = playerResult.Value;
+
+    }
+}

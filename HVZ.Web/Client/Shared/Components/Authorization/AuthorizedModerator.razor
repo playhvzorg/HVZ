@@ -1,0 +1,14 @@
+﻿
+@if (IsMod)
+{
+    @ChildContent
+}
+
+@code {
+
+    [Parameter, EditorRequired]
+    public required RenderFragment ChildContent { get; set; }
+
+    [CascadingParameter(Name = "IsModerator")]
+    public bool IsMod { get; set; }
+}

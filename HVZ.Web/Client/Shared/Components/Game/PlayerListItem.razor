@@ -1,0 +1,33 @@
+﻿@using HVZ.Web.Shared.Models;
+@using HVZ.Web.Client.Shared.Components.Authorization
+
+<MudCard Class="mb-3">
+    <MudCardHeader Class="pb-2">
+        <CardHeaderAvatar>
+            @if (Player is not null)
+            {
+                <MudAvatar>
+                    <UserImage User="@Player.User" />
+                </MudAvatar>
+            }
+        </CardHeaderAvatar>
+        <CardHeaderContent>
+            <MudText Typo="Typo.body1">@Player.User.FullName</MudText>
+            <MudText Typo="Typo.body2">@Player.User.Email</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardActions Class="pt-0">
+        <MudChip Variant="Variant.Text" Icon="@Icons.Material.Filled.SportsKabaddi" Text="Tags"> @Player.Tags</MudChip>
+        <MudChip Variant="Variant.Text" Icon="@Icons.Material.Filled.Person" Text="Role"> @Player.Role.ToString()</MudChip>
+        @if (Player.GameId is not null)
+        {
+            <MudChip Variant="Variant.Text" Icon="@Icons.Material.Filled.Badge" Text="ID"> @Player.GameId</MudChip>
+        }
+    </MudCardActions>
+</MudCard>
+
+@code {
+    
+    [Parameter, EditorRequired]
+    public required PlayerData Player { get; set; }
+}

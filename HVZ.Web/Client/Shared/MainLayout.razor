@@ -1,17 +1,33 @@
 ﻿@inherits LayoutComponentBase
+@using MudBlazor
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<MudThemeProvider IsDarkMode="true"/>
+<MudDialogProvider />
+<MudSnackbarProvider />
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
+<MudLayout>
+    <MudAppBar Fixed="true" Elevation="1">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+        <MudText typeof="Typo.h6">PlayHVZ</MudText>
+        <MudSpacer />
+        @*<MudAvatar Image="https://ui-avatars.com/api/?name=Tim+Sweeny" />*@
+        <AuthenticatedUserDetails />
+    </MudAppBar>
+    <MudDrawer @bind-Open="@open" ClipMode="DrawerClipMode.Always" PreserveOpenState="false" Elevation="1" Variant="@DrawerVariant.Responsive">
+        <MudNavMenu>
+            <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+            <MudNavLink Href="/explore" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Search">Explore</MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-4">
             @Body
-        </article>
-    </main>
-</div>
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    bool open = false;
+
+    void ToggleDrawer() => open = !open;
+}

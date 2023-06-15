@@ -18,4 +18,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\HVZ.Persistence\HVZ.Persistence.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Models\SignalR\" />
+  </ItemGroup>
 </Project>

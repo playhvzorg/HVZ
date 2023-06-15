@@ -1,23 +1,16 @@
-﻿using Newtonsoft.Json;
+﻿//using Newtonsoft.Json;
 using NodaTime;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace HVZ.Web.Server.JsonConverters
 {
     public class InstantConverter : JsonConverter<Instant>
     {
-        public override Instant ReadJson(
-            JsonReader reader,
-            Type objectType,
-            Instant existingValue,
-            bool hasExistingValue,
-            JsonSerializer serializer
-        ) => Instant.FromDateTimeUtc(reader.ReadAsDateTime()!.Value);
+        public override Instant Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            => Instant.FromUnixTimeMilliseconds(reader.GetInt64());
 
-
-        public override void WriteJson(
-            JsonWriter writer,
-            Instant value,
-            JsonSerializer serializer
-        ) => writer.WriteValue(new DateTime(value.ToUnixTimeTicks()));
+        public override void Write(Utf8JsonWriter writer, Instant value, JsonSerializerOptions options)
+            => writer.WriteNumberValue(value.ToUnixTimeMilliseconds());
     }
 }

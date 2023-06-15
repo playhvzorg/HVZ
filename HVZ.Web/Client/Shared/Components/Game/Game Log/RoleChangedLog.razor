@@ -1,0 +1,27 @@
+﻿@inherits GameLogBase
+@using System.Text.Json
+
+<EventLogMessage
+    TimeStamp="@GameLog.Timestamp"
+    Title="@EventInfoTitle" 
+    Users="@Users"/>
+    
+
+@code {
+    bool InstigatorIsNull => ((RoleSetEventLogData)GameLog).Instigator is null;
+
+    UserData[] Users => InstigatorIsNull ?
+    new[]
+    {
+        GameLog.User
+    } :
+    new[]
+    {
+        GameLog.User,
+        ((RoleSetEventLogData)GameLog).Instigator!
+    };
+
+    string EventInfoTitle => InstigatorIsNull ?
+    "User has reached oz max tags and has set themselves to ..." :
+    $"{((RoleSetEventLogData)GameLog).Instigator?.FullName} has set {GameLog.User.FullName} to {((RoleSetEventLogData)GameLog).Role.ToString()}";
+}

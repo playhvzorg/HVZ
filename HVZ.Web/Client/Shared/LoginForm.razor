@@ -1,0 +1,67 @@
+﻿@using System.ComponentModel.DataAnnotations
+@using HVZ.Web.Shared.Models
+@inject Interfaces.IAuthService Auth
+@inject NavigationManager Nav
+
+<MudText Typo="Typo.h4">Login</MudText>
+
+<MudForm>
+    <MudText Color="Color.Error">@loginError</MudText>
+    <MudTextField 
+        @bind-Value="login.Email" 
+        T="string" 
+        Label="Email" 
+        Required="true" 
+        RequiredError="Email is required" 
+        Validation="@(new EmailAddressAttribute() { ErrorMessage = "Invalid email address"})" />
+    <MudTextField 
+        @bind-Value="login.Password" 
+        T="string" Label="Password" 
+        InputType="@PasswordInput" 
+        Adornment="Adornment.End" 
+        AdornmentIcon="@PasswordInputIcon" 
+        OnAdornmentClick="TogglePassowrdVisibility" 
+        Required="true" />
+    <MudSwitch T="bool" Color="Color.Primary" Label="Remember Me" Class="mt-3" />
+    <div class="d-flex flex-row-reverse">
+        <MudButton Class="ml-auto" Variant="Variant.Filled" Color="Color.Primary" Disabled="@Disabled" OnClick="OnLogin">@LoginButtonChildContent Login</MudButton>
+    </div>
+</MudForm>
+
+@code {
+    LoginModel login = new();
+
+    bool showPassword = false;
+    InputType PasswordInput => showPassword ? InputType.Text : InputType.Password;
+    string PasswordInputIcon => showPassword ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
+
+    bool Disabled => login.Email is null && login.Password is null;
+
+    string? loginError;
+
+    bool loading = false;
+    RenderFragment? LoginButtonChildContent => loading ?
+        @<MudProgressCircular Size="Size.Small" Color="Color.Default" Indeterminate="true" Class="mr-3" /> : // Small loading spinner
+        null;
+
+    void TogglePassowrdVisibility()
+        => showPassword = !showPassword;
+
+    async Task OnLogin()
+    {
+        // Add the spinner to the login button
+        loading = true;
+        loginError = null;
+
+        var result = await Auth.Login(login);
+
+        if (!result.Succeeded)
+        {
+            login.Password = null;
+            loginError = result.Error;
+            return;
+        }
+
+        Nav.NavigateTo("/");
+    }
+}

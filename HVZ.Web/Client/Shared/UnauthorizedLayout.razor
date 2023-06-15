@@ -1,0 +1,22 @@
+﻿@inherits LayoutComponentBase
+@using MudBlazor
+
+<MudThemeProvider IsDarkMode="true" />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Dense="true" Fixed="true" Elevation="1">
+        <MudText typeof="Typo.h6">PlayHVZ</MudText>
+        <MudSpacer />
+    </MudAppBar>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.Large">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+
+}

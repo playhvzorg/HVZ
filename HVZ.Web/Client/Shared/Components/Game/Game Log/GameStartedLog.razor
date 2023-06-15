@@ -1,0 +1,10 @@
+﻿@inherits GameLogBase
+
+<EventLogMessage
+    TimeStamp="@GameLog.Timestamp"
+    Title="@EventInfoTitle"
+    Users="@(new[] { GameLog.User })"/>
+
+@code {
+    string EventInfoTitle => $"{GameLog.User.FullName} started the game. Good luck!";
+}

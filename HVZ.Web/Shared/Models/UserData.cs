@@ -6,5 +6,8 @@
         public required string Email { get; set; }
         public required string UserId { get; set; }
         // TODO: Default image and avatar
+
+        public string DefaultAvatar
+            => $"https://ui-avatars.com/api/?name={FullName.Replace(" ", "+")}";
     }
 }

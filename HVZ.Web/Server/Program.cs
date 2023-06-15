@@ -5,13 +5,13 @@ using HVZ.Persistence.MongoDB.Repos;
 using HVZ.Web.Server.Hubs;
 using HVZ.Web.Server.Identity;
 using HVZ.Web.Server.JsonConverters;
+using HVZ.Web.Server.Services;
 using HVZ.Web.Server.Services.Settings;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
-using Newtonsoft.Json;
 using System.Reflection;
 using System.Text;
 
@@ -20,15 +20,13 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllersWithViews()
-    .AddNewtonsoftJson(opts =>
+    .AddJsonOptions(opts =>
     {
-        opts.SerializerSettings.Converters = new List<JsonConverter>
-        {
-            new InstantConverter(),
-            new EnumConverter<Player.gameRole>(),
-            new EnumConverter<Game.GameStatus>(),
-            new EnumConverter<GameEvent>(),
-        };
+        opts.JsonSerializerOptions.Converters.Add(new InstantConverter());
+        opts.JsonSerializerOptions.Converters.Add(new EnumConverter<Player.gameRole>());
+        opts.JsonSerializerOptions.Converters.Add(new EnumConverter<Game.GameStatus>());
+        opts.JsonSerializerOptions.Converters.Add(new EnumConverter<GameEvent>());
+        //opts.JsonSerializerOptions.Converters.Add(new EventLogInfoConverter());
     });
 builder.Services.AddRazorPages();
 
@@ -118,6 +116,14 @@ builder.Services.AddAuthentication().AddJwtBearer(options =>
     };
 });
 
+builder.Services.AddAuthorization();
+
+#endregion
+
+#region Images
+
+builder.Services.AddSingleton<ImageService>();
+
 #endregion
 
 #region Discord Integration
@@ -187,7 +193,7 @@ app.MapRazorPages();
 app.MapControllers();
 app.MapFallbackToFile("index.html");
 
-app.UseResponseCompression();
+//app.UseResponseCompression();
 app.MapHub<GameHub>("/gamehub");
 app.MapHub<OrgHub>("/orghub");
 

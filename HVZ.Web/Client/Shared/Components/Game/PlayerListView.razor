@@ -1,0 +1,80 @@
+﻿@using Interfaces
+@using HVZ.Web.Shared.Models
+@inject IGameService GameService
+@inject ISnackbar Snackbar
+
+<MudTextField @ref="textfield"
+    T="string" 
+    Adornment="Adornment.End" 
+    AdornmentIcon="@Icons.Material.Filled.Search"
+    Placeholder="Search..."
+    Class="mb-2 sticky"
+    @bind-Value="listQuery"
+    Immediate="true"/>
+
+@if (players is not null && !ShowSkeleton)
+{
+    @* TODO: Container that fills remaining vertical height *@
+    
+    @foreach(var player in FilteredPlayerList!)
+    {
+        <PlayerListItem Player="player" />
+    }
+}
+else
+{
+    @for(int i = 0; i < 25; i++)
+    {
+        <MudCard Class="mb-3">
+            <MudCardHeader>
+                <CardHeaderAvatar>
+                    <MudSkeleton SkeletonType="SkeletonType.Circle" Height="40px" Width="40px" Animation="Animation.Wave" />
+                </CardHeaderAvatar>
+                <CardHeaderContent>
+                    <MudSkeleton Class="mb-1" Height="20px" Width="150px" SkeletonType="SkeletonType.Text" Animation="Animation.Wave" />
+                    <MudSkeleton Class="mb-1" Height="18.016px" Width="200px" SkeletonType="SkeletonType.Text" Animation="Animation.Wave" />
+                </CardHeaderContent>
+            </MudCardHeader>
+        </MudCard>
+    }
+}
+
+@code {
+    [CascadingParameter(Name = "GameId")]
+    public required string GameId { get; set; }
+
+    [CascadingParameter(Name = "ShowSkeleton")]
+    public bool ShowSkeleton { get; set; }
+
+    MudTextField<string>? textfield;
+
+    List<PlayerData>? players = null;
+
+    string? listQuery;
+
+    IEnumerable<PlayerData>? FilteredPlayerList => GetFilteredList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var playersResult = await GameService.GetPlayers(GameId);
+
+        players = playersResult switch
+        {
+            { IsSuccess: true } => (List<PlayerData>)playersResult.Value,
+            _ => null
+        };
+
+        if (players is null)
+        {
+            Snackbar.Add($"Error getting players: {playersResult.Errors.ToArray()[0].Message}", Severity.Error, (opts) => { opts.CloseAfterNavigation = true; });
+        }
+    }
+
+    IEnumerable<PlayerData>? GetFilteredList()
+    {
+        if (string.IsNullOrEmpty(listQuery))
+            return players;
+
+        return players?.Where(p => p.User.FullName.Contains(listQuery));
+    }
+}

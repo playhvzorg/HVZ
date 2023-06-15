@@ -1,0 +1,119 @@
+﻿@inject IOrgService OrgService
+@inject IGameService GameService
+@inject ISnackbar Snackbar
+@page "/org/{url}"
+@using HVZ.Web.Client.Shared.Components.Game
+@using HVZ.Web.Shared.Models;
+@using Interfaces
+@using HVZ.Web.Client.Shared.Components.Authorization
+
+<PageTitle>@(info?.Name ?? "Play HvZ")</PageTitle>
+
+<CascadingOrgAuthorization OrgId="@orgId">
+    <CascadingValue Value="@showSkeleton" Name="ShowSkeleton">
+        @if (info is not null)
+        {
+            <div class="d-flex flex-row align-center">
+                <MudAvatar Image="@info?.DefaultAvatar" Size="Size.Medium" />
+                <div class="d-block ml-3">
+                    <MudText Typo="Typo.h6">@info?.Name</MudText>
+                    <MudText Typo="Typo.subtitle1">
+                        @if (gameInfo is not null)
+                        {
+                            <span>@gameInfo.Name &bull; @gameInfo.StartedAt?.ToDateTimeUtc().ToLocalTime().ToString("MMM dd")</span>
+                        }
+                        else
+                        {
+                            <span>No active game</span>
+                        }
+                    </MudText>
+                </div>
+            </div>
+            @if (info?.ActiveGameId is null)
+            {
+                <CreateGame />
+            }
+            else
+            {
+                <CascadingValue Value="@info.ActiveGameId" Name="GameId">
+                    <GameView />
+                </CascadingValue>
+            }
+        }
+        else
+        {
+            <div class="d-flex flex-row align-center" style="height:60px;">
+                <MudSkeleton Animation="Animation.Wave" SkeletonType="SkeletonType.Circle" Height="40px" Width="40px" />
+                <div class="d-block ml-3">
+                    <MudSkeleton SkeletonType="SkeletonType.Text" Height="35px" Width="150px" Animation="Animation.Wave" />
+                    <MudSkeleton SkeletonType="SkeletonType.Text" Height="25px" Width="65px" Animation="Animation.Wave" />
+                </div>
+            </div>
+            <div class="mt-3">
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="45px" Animation="Animation.Wave" />
+            </div>
+        }
+
+    </CascadingValue>
+</CascadingOrgAuthorization>
+
+<MudSwitch T="bool" @bind-CHecked="showSkeleton" Label="Show skeleton" />
+
+@code {
+    [Parameter]
+    public string? Url { get; set; }
+
+    string? orgId;
+    OrgInfo? info;
+    GameInfo? gameInfo;
+
+    bool showSkeleton = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var orgIdRequest = await OrgService.GetOrgIdFromUrl(Url!);
+
+        orgId = orgIdRequest switch
+        {
+            { IsSuccess: true } => orgIdRequest.Value,
+            _ => null
+        };
+
+        if (orgId is null)
+        {
+            Snackbar.Add(orgIdRequest.Errors.ToArray()[0].Message, Severity.Error);
+            return;
+        }
+
+        var orgInfoRequest = await OrgService.GetOrgInfo(orgId);
+
+        info = orgInfoRequest switch
+        {
+            { IsSuccess: true } => orgInfoRequest.Value,
+            _ => null
+        };
+
+        if (info is null)
+        {
+            Snackbar.Add(orgInfoRequest.Errors.ToArray()[0].Message, Severity.Error);
+            return;
+        }
+
+        if (info.ActiveGameId is not null)
+        {
+            var gameInfoResult = await GameService.GetGameInfo(info.ActiveGameId);
+
+            gameInfo = gameInfoResult switch
+            {
+                { IsSuccess: true } => gameInfoResult.Value,
+                _ => null
+            };
+
+            if (gameInfo is null)
+            {
+                Snackbar.Add(gameInfoResult.Errors.ToArray()[0].Message, Severity.Error);
+                return;
+            }
+        }
+    }
+}

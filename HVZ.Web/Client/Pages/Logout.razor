@@ -1,0 +1,10 @@
+﻿@page "/logout"
+@inject Interfaces.IAuthService Auth
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await Auth.Logout();
+    }
+}

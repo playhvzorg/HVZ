@@ -1,0 +1,78 @@
+﻿@using HVZ.Web.Shared.Models
+@using System.ComponentModel.DataAnnotations
+@inject Interfaces.IAuthService Auth
+
+<MudText Typo="Typo.h4">Signup</MudText>
+
+<MudForm @ref="form" @bind-IsValid="@success">
+    <MudTextField
+        @bind-Value="register.FullName"
+        Label="Full Name"
+        Required="true"
+        RequiredError="Full name is required" />
+    <MudTextField
+        @bind-Value="register.Email"
+        Label="Email"
+        Required="true"
+        RequiredError="Email is required"
+        Validation="@(new EmailAddressAttribute() { ErrorMessage = "Invalid email address"})" />
+    <MudTextField
+        @bind-Value="register.Password"
+        InputType="@PasswordInput"
+        Label="Password"
+        Adornment="Adornment.End"
+        AdornmentIcon="@PasswordInputIcon"
+        OnAdornmentClick="TogglePasswordVisibility"
+        Required="true" /> @*TODO: Password validation attribute*@
+    <MudTextField
+        @bind-Value="register.ConfirmPassword"
+        InputType="@ConfirmPasswordInput"
+        Label="Confirm Password"
+        Adornment="Adornment.End"
+        AdornmentIcon="@ConfirmPasswordInputIcon"
+        OnAdornmentClick="ToggleConfirmPasswordVisibility"
+        Required="true" /> @*TODO: Matches password*@
+    <MudCheckBox 
+        T="bool" 
+        ChildContent="TosChildContent" 
+        Required="true"
+        RequiredError="You must read and agree to the Terms of Service"/>
+    <MudCheckBox 
+        T="bool" 
+        ChildContent="PrivacyPolicyChildContent" 
+        Required="true"
+        RequiredError="You must read and agree to the Privacy Policy"/>
+    <div class="d-flex flex-row-reverse">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!success)" OnClick="OnSignup">@LoadingSpinner Signup</MudButton>
+    </div>
+</MudForm>
+
+@code {
+    MudForm? form;
+    bool success;
+
+    RegisterModel register = new();
+
+    RenderFragment TosChildContent = @<span>I have read and agree to the <MudLink Href="/termsofservice">Terms of Service</MudLink></span>;
+    RenderFragment PrivacyPolicyChildContent =@<span>I have read and agree to the <MudLink Href="/privacy">Privacy Policy</MudLink></span>;
+
+    bool loading = false;
+    RenderFragment? LoadingSpinner => loading ?
+        @<MudProgressCircular Size="Size.Small" Color="Color.Default" Indeterminate="true" Class="mr-3" /> :
+        null;
+
+    bool showPassword = false;
+    InputType PasswordInput => showPassword ? InputType.Text : InputType.Password;
+    string PasswordInputIcon => showPassword ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
+    void TogglePasswordVisibility() => showPassword = !showPassword;
+
+    bool showConfirmPassword = false;
+    InputType ConfirmPasswordInput => showConfirmPassword ? InputType.Text : InputType.Password;
+    string ConfirmPasswordInputIcon => showConfirmPassword ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
+    void ToggleConfirmPasswordVisibility() => showConfirmPassword = !showConfirmPassword;
+
+    async Task OnSignup()
+    {
+        loading = true;
+    }
+}

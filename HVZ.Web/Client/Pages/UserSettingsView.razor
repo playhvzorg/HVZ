@@ -1,0 +1,73 @@
+﻿@inject IUserService UserService
+@inject NavigationManager NavManager
+@using HVZ.Web.Client.Shared.Components
+@page "/settings"
+
+@if (user is not null)
+{
+    <InputImage @ref="image" @bind-Value="file">
+        <UserImage Size="160" User="@user" />
+    </InputImage>
+    @if (file is not null)
+    {
+        <div>
+            <MudButton Variant="Variant.Filled" Disabled="@savingImage" Color="Color.Success" OnClick="SaveImage">
+                @if (savingImage)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate />
+                }
+                else
+                {
+                    <MudText>Save</MudText>
+                }
+            </MudButton>
+        </div>
+    }
+}
+
+@code {
+    UserData? user;
+    InputImage? image;
+
+    IBrowserFile? file;
+
+    bool savingImage = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userResult = await UserService.GetCurrentUser();
+        user = userResult switch
+        {
+            { IsSuccess: true } => userResult.Value,
+            _ => null
+        };
+
+        // display error message if user is null
+    }
+
+    async Task SaveImage()
+    {
+        if (file is null) return;
+
+        savingImage = true;
+        var saveResult = await UserService.SetImage(file);
+        // Process result
+
+        var success = saveResult switch
+        {
+            { IsSuccess: true } => saveResult.Value,
+            _ => false
+        };
+
+        savingImage = false;
+
+        if (success)
+        {
+            file = null;
+            return;
+        }
+
+        // TODO display error in snackbar
+        Console.WriteLine(saveResult.Errors.ToArray()[0].Message);
+    }
+}

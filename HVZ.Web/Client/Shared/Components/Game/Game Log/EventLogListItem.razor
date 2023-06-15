@@ -1,0 +1,28 @@
+﻿@using HVZ.Web.Shared.Models
+@using HVZ.Persistence.Models
+
+<DynamicComponent Type="@ComponentType" Parameters="@Parameters" />
+
+@code {
+    [Parameter, EditorRequired]
+    public required GameLogData GameLog { get; set; }
+
+    // Follows order of GameEvent
+    Type[] ComponentTypes =
+    {
+        typeof(GameCreatedLog),
+        typeof(PlayerJoinedLog),
+        typeof(PlayerLeftLog),
+        typeof(TagLog),
+        typeof(RoleChangedLog),
+        typeof(ActiveStatusChangedLog),
+        typeof(GameStartedLog)
+    };
+
+    Type ComponentType => ComponentTypes[(int)GameLog.EventType];
+
+    IDictionary<System.String, Object> Parameters => new Dictionary<string, object>
+    {
+        { "GameLog", GameLog }
+    };
+}
