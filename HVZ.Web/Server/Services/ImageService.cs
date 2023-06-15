@@ -120,10 +120,10 @@ namespace HVZ.Web.Server.Services
         }
 
         /// <summary>
-        /// Rotate an image based on its EXIF header
+        /// Rotate an image based on its EXIF header. Prevents captured by phone cameras from being saved in the wrong orientation
         /// </summary>
         /// <remarks>
-        /// Assumes the image is already cropped to a square
+        /// Assumes src height and width are equal
         /// </remarks>
         private SKBitmap CorrectImageRotation(SKBitmap src, SKEncodedOrigin origin)
         {
@@ -141,8 +141,6 @@ namespace HVZ.Web.Server.Services
             Console.WriteLine(SKEncodedOrigin.Default == SKEncodedOrigin.TopLeft);
 
             // This is fast but ugly - just don't look at it...
-            // Transfer pixels based on the rotation header
-            // Prevents images captured by a cellphone from being saved in the wrong orientation
             unsafe
             {
                 uint* srcPtr = (uint*)srcPixelAddr.ToPointer();
