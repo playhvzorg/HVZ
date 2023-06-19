@@ -1,0 +1,14 @@
+﻿
+@if (IsAdmin)
+{
+    @ChildContent
+}
+
+@code {
+
+    [CascadingParameter(Name = "IsAdmin")]
+    public bool IsAdmin { get; set; }
+
+    [Parameter, EditorRequired]
+    public required RenderFragment ChildContent { get; set; }
+}

@@ -25,6 +25,14 @@
                 </TitleContent>
                 <DialogContent>
                     TODO: Show join requirements
+                    <MudList>
+                        <MudListItem Icon="@Icons.Material.Filled.Check" IconColor="@Color.Success">
+                            <MudText>Custom profile picture</MudText>
+                        </MudListItem>
+                        <MudListItem Icon="@Icons.Material.Filled.Close" IconColor="@Color.Error">
+                            <MudText>Confirmed email</MudText>
+                        </MudListItem>
+                    </MudList>
                 </DialogContent>
                 <DialogActions>
                     <MudButton OnClick="() => { joinGameDialog?.Close(); }">Cancel</MudButton>
@@ -69,6 +77,14 @@
 @code {
     [CascadingParameter(Name = "GameId")]
     public required string GameId { get; set; }
+
+    [CascadingParameter(Name = "RequireProfilePicture")]
+    public bool RequireProfilePicture { get; set; } = true;
+    bool hasProfilePicture = false;
+
+    [CascadingParameter(Name = "RequireEmail")]
+    public bool RequireEmail { get; set; } = true;
+    bool hasEmail = false;
 
     PlayerData? player;
 

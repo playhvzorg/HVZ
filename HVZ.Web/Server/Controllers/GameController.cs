@@ -1,8 +1,11 @@
 ﻿using HVZ.Persistence;
 using HVZ.Persistence.Models;
+using HVZ.Web.Server.Identity;
+using HVZ.Web.Server.Services;
 using HVZ.Web.Shared.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -18,15 +21,17 @@ namespace HVZ.Web.Server.Controllers
         private readonly IGameRepo _gameRepo;
         private readonly IOrgRepo _orgRepo;
         private readonly IUserRepo _userRepo;
-        private readonly HttpContextAccessor _contextAccessor;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ImageService _imageService;
 
-        public GameController(ILogger<GameController> logger, IGameRepo gameRepo, IOrgRepo orgRepo, IUserRepo userRepo)
+        public GameController(ILogger<GameController> logger, IGameRepo gameRepo, IOrgRepo orgRepo, IUserRepo userRepo, UserManager<ApplicationUser> userManager, ImageService imageService)
         {
             _logger = logger;
             _gameRepo = gameRepo;
-            _contextAccessor = new HttpContextAccessor();
             _orgRepo = orgRepo;
             _userRepo = userRepo;
+            _userManager = userManager;
+            _imageService = imageService;
         }
 
         /// <summary>
@@ -777,9 +782,13 @@ namespace HVZ.Web.Server.Controllers
             return Ok(new PostResult { Succeeded = true });
         }
 
-        // TODO
+        /// <summary>
+        /// Add the currently authenticated user to the specified game
+        /// </summary>
+        /// <param name="id">The ID of the game to join</param>
+        /// <returns></returns>
         [HttpPost("{id}/join")]
-        public async Task<ActionResult<PostResult>> JoinGame(string id)
+        public async Task<ActionResult<JoinGameResult>> JoinGame(string id)
         {
             Game? game = await _gameRepo.FindGameById(id);
             if (game is null) return NotFound(new PostResult
@@ -805,9 +814,28 @@ namespace HVZ.Web.Server.Controllers
                 Errors = new List<string> { $"Already in {game.Name}" }
             });
 
-            // TODO: Check email verification
+            Organization org = await _orgRepo.GetOrgById(game.OrgId);
+            
+            List<string> errors = new();
+            if (org.RequireVerifiedEmailForPlayer)
+            {
+                bool userEmailVerified = await EmailConfirmed(User);
+                if (!userEmailVerified)
+                    errors.Add("Confirmed email required");
+            }
 
-            // TODO: Check profile image
+            if (org.RequireProfilePictureForPlayer)
+            {
+                bool hasProfilePicture = _imageService.GetImagePath(userId, "user") is not null;
+                if (!hasProfilePicture)
+                    errors.Add("Profile picture required");
+            }
+
+            if (errors.Count != 0)
+                return BadRequest(new JoinGameResult {
+                    Succeeded = false,
+                    Errors = errors
+                });
 
             try
             {
@@ -873,7 +901,8 @@ namespace HVZ.Web.Server.Controllers
 
         private async Task<bool> UserIsModerator(string orgId, string userId)
         {
-            return await _orgRepo.IsModOfOrg(orgId, userId);
+            return await _orgRepo.IsModOfOrg(orgId, userId) ||
+            await _orgRepo.IsAdminOfOrg(orgId, userId);
         }
 
         private bool UserIsAuthenticated(HttpContext context)
@@ -888,6 +917,9 @@ namespace HVZ.Web.Server.Controllers
         //=> user.Claims.FirstOrDefault(
         //    c => c.Type == "DatabaseId"
         //)?.Value ?? "Can't find ID";
+
+        private async Task<bool> EmailConfirmed(ClaimsPrincipal user)
+            => (await _userManager.GetUserAsync(user))?.EmailConfirmed ?? false;
 
         private async Task<bool> GameExists(string id)
             => await _gameRepo.FindGameById(id) is not null;

@@ -53,8 +53,11 @@
             Snackbar.Add("Game Name is null", Severity.Error);
             return;
         }
+        // 63cc14deb663d5fdb345418b
+        // 63cc1538b663d5fdb345418c
+        // 63cc1538b663d5fdb345418c
 
-        var createGameResult = await OrgService.CreateGame("wrongid", 
+        var createGameResult = await OrgService.CreateGame(OrgId!, 
             new CreateGameRequest
             {
                 Name = gameName

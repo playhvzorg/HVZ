@@ -24,7 +24,7 @@ namespace HVZ.Web.Client.Services
         {
             await Task.Delay(1200);
 
-            return false;
+            return true;
         }
 
         public async Task<Result<UserData>> GetCurrentUser()

@@ -3,13 +3,13 @@
 @inject ISnackbar Snackbar
 @page "/org/{url}"
 @using HVZ.Web.Client.Shared.Components.Game
-@using HVZ.Web.Shared.Models;
-@using Interfaces
+@using HVZ.Web.Shared.Models
 @using HVZ.Web.Client.Shared.Components.Authorization
 
 <PageTitle>@(info?.Name ?? "Play HvZ")</PageTitle>
 
 <CascadingOrgAuthorization OrgId="@orgId">
+    @orgId
     <CascadingValue Value="@showSkeleton" Name="ShowSkeleton">
         @if (info is not null)
         {
@@ -20,7 +20,7 @@
                     <MudText Typo="Typo.subtitle1">
                         @if (gameInfo is not null)
                         {
-                            <span>@gameInfo.Name &bull; @gameInfo.StartedAt?.ToDateTimeUtc().ToLocalTime().ToString("MMM dd")</span>
+                            <span>@gameInfo.Name &bull; @gameInfo.Status</span>
                         }
                         else
                         {
@@ -31,7 +31,9 @@
             </div>
             @if (info?.ActiveGameId is null)
             {
-                <CreateGame />
+                <AuthorizedAdmin>
+                    <CreateGame />
+                </AuthorizedAdmin>
             }
             else
             {

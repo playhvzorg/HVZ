@@ -35,7 +35,7 @@ namespace HVZ.Web.Client.Services
             }
             catch
             {
-                return Result.Fail("Could not deserialize response");
+                return Result.Fail("Internal server error occurred");
             }
 
         }

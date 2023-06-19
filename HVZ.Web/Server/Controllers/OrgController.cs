@@ -97,14 +97,14 @@ namespace HVZ.Web.Server.Controllers
 
             string userId = GetDatabaseId(User);
 
-            if (!await UserIsAdmin(id, GetDatabaseId(User)))
+            if (!await UserIsAdmin(org.Id, GetDatabaseId(User)))
                 return Unauthorized(new CreateGameResult
                 {
                     Succeeded = false,
                     Error = $"You do not have permission to create a new game for {org.Name}"
                 });
 
-            var game = await _orgRepo.CreateGame(create.Name, id, userId, create.OzTags);
+            var game = await _orgRepo.CreateGame(create.Name, userId, id, create.OzTags);
 
             return Ok(new CreateGameResult
             {

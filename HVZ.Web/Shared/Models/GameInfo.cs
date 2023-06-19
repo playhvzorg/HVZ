@@ -12,6 +12,7 @@ namespace HVZ.Web.Shared.Models
         public Instant? EndedAt { get; set; }
         public bool IsActive { get; set; }
         public bool IsCurrent { get; set; }
+        public Game.GameStatus Status { get; set;}
 
         public GameInfo(Game game)
         {
@@ -21,10 +22,11 @@ namespace HVZ.Web.Shared.Models
             EndedAt = game.EndedAt;
             IsActive = game.IsActive;
             IsCurrent = game.IsCurrent;
+            Status = game.Status;
         }
 
         [JsonConstructor]
-        public GameInfo(string name, string id, Instant? startedAt, Instant? endedAt, bool isActive, bool isCurrent)
+        public GameInfo(string name, string id, Instant? startedAt, Instant? endedAt, bool isActive, bool isCurrent, Game.GameStatus status)
         {
             Name = name;
             Id = id;
@@ -32,6 +34,7 @@ namespace HVZ.Web.Shared.Models
             EndedAt = endedAt;
             IsActive = isActive;
             IsCurrent = isCurrent;
+            Status = status;
         }
     }
 }

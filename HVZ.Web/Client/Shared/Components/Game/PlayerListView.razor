@@ -11,6 +11,9 @@
     Class="mb-2 sticky"
     @bind-Value="listQuery"
     Immediate="true"/>
+    
+<DynamicContainer>
+
 
 @if (players is not null && !ShowSkeleton)
 {
@@ -38,6 +41,7 @@ else
         </MudCard>
     }
 }
+</DynamicContainer>
 
 @code {
     [CascadingParameter(Name = "GameId")]

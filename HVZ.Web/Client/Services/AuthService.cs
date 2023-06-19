@@ -18,6 +18,7 @@ namespace HVZ.Web.Client.Services
             _httpClient = httpClient;
             _authStateProvider = authStateProvider;
             _localStorage = localStorage;
+            // Check if the auth token is valid, if not, log the user out
         }
 
         public async Task<RegisterResult> Register(RegisterModel registerModel)

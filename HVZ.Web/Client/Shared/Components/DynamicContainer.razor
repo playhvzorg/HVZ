@@ -1,0 +1,24 @@
+﻿@inject IJSRuntime JS
+
+<div style="overflow:scroll;" @ref="container">
+    @ChildContent
+</div>
+
+@code {
+
+    ElementReference? container;
+
+    [Parameter, EditorRequired]
+    public required RenderFragment ChildContent { get; set; }
+
+    IJSObjectReference? module;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            module = await JS.InvokeAsync<IJSObjectReference>("import", "./Shared/Components/DynamicContainer.razor.js");
+            module?.InvokeVoidAsync("initializeContainer", container, 5);
+        }
+    }
+}
