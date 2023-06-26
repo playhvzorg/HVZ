@@ -1,4 +1,5 @@
-﻿@inject Interfaces.IGameService GameService
+﻿@using HVZ.Persistence.Models;
+@inject Interfaces.IGameService GameService
 @inject ISnackbar Snackbar
 
 <div class="mt-2">
@@ -8,10 +9,17 @@
         {
             <PlayerListItem Player="@player" />
             @* If the player is an OZ or Zombie, tag button (disabled when game has not started) *@
+            @if (player.Role is not Player.gameRole.Human)
+            {
+                <MudButton Variant="Variant.Filled" Disabled="@(!GameInfo.IsActive)" FullWidth Color="Color.Primary" Class="mb-2">Tag</MudButton>
+            }
             @* If the game has not started, join/leave oz pool button *@
-            @* Leave game button *@
+            @if (GameInfo.Status is Game.GameStatus.New)
+            {
+                <JoinOzPoolButton />
+            }
 
-            <MudButton Variant="Variant.Filled" FullWidth Color="Color.Error">Leave game</MudButton>
+            <MudButton Variant="Variant.Filled" FullWidth  Class="mt-4">Leave game</MudButton>
         }
         else
         {
@@ -77,6 +85,9 @@
 @code {
     [CascadingParameter(Name = "GameId")]
     public required string GameId { get; set; }
+
+    [CascadingParameter(Name = "GameInfo")]
+    public required GameInfo GameInfo { get; set; }
 
     [CascadingParameter(Name = "RequireProfilePicture")]
     public bool RequireProfilePicture { get; set; } = true;

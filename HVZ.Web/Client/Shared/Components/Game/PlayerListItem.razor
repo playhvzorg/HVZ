@@ -1,7 +1,9 @@
-﻿@using HVZ.Web.Shared.Models;
+﻿@using HVZ.Persistence.Models;
+@using HVZ.Web.Shared.Models
 @using HVZ.Web.Client.Shared.Components.Authorization
+@inject IGameService GameService
 
-<MudCard Class="mb-3">
+<MudCard Class="mb-3" @onclick="OpenDialog">
     <MudCardHeader Class="pb-2">
         <CardHeaderAvatar>
             @if (Player is not null)
@@ -26,8 +28,71 @@
     </MudCardActions>
 </MudCard>
 
+<Dialog @ref="detailsDialog">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@Player.User.FullName</MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (Player.User.Email is not null)
+        {
+            <MudText>Email: @Player.User.Email</MudText>
+        }
+        <MudText>Tags: @Player.Tags</MudText>
+        @* I have no clue why the authorization component is not working here but this is the same thing *@
+        @if (IsMod)
+        {
+            <MudSelect T="Player.gameRole" Value="@Player.Role" ValueChanged="SetRole">
+                @if (Player.Role is not HVZ.Persistence.Models.Player.gameRole.Human)
+                {
+                    <MudSelectItem Value="HVZ.Persistence.Models.Player.gameRole.Human" />
+                }
+                @if (Player.Role is not HVZ.Persistence.Models.Player.gameRole.Zombie)
+                {
+                    <MudSelectItem Value="HVZ.Persistence.Models.Player.gameRole.Zombie" />
+                }
+                @if (Player.Role is not HVZ.Persistence.Models.Player.gameRole.Oz)
+                {
+                    <MudSelectItem Value="HVZ.Persistence.Models.Player.gameRole.Oz">OZ</MudSelectItem>
+                }
+            </MudSelect>
+        }
+    </DialogContent>
+</Dialog>
+
 @code {
-    
+
+    [CascadingParameter(Name = "IsModerator")]
+    public bool IsMod { get; set; }
+
+    [CascadingParameter(Name = "GameId")]
+    public required string GameId { get; set; }
+
     [Parameter, EditorRequired]
     public required PlayerData Player { get; set; }
+
+    Dialog? detailsDialog;
+    Player.gameRole playerRole;
+
+    void OpenDialog() => detailsDialog?.Show();
+    void CloseDialog() => detailsDialog?.Close();
+
+    protected override void OnInitialized()
+    {
+        playerRole = Player.Role;
+    }
+
+    public async Task SetRole(Player.gameRole role)
+    {
+        var previousRole = Player.Role;
+        Player.Role = role;
+        await InvokeAsync(StateHasChanged);
+
+        var setRoleResult = await GameService.SetPlayerToRole(GameId, Player.User.UserId, role);
+
+        if (setRoleResult.IsFailed)
+        {
+            Player.Role = previousRole;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
 }

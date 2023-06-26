@@ -9,7 +9,6 @@
 <PageTitle>@(info?.Name ?? "Play HvZ")</PageTitle>
 
 <CascadingOrgAuthorization OrgId="@orgId">
-    @orgId
     <CascadingValue Value="@showSkeleton" Name="ShowSkeleton">
         @if (info is not null)
         {
@@ -37,9 +36,14 @@
             }
             else
             {
-                <CascadingValue Value="@info.ActiveGameId" Name="GameId">
-                    <GameView />
-                </CascadingValue>
+                @if (gameInfo is not null)
+                {
+                    <CascadingValue Value="@gameInfo" Name="GameInfo">
+                        <CascadingValue Value="@info.ActiveGameId" Name="GameId">
+                            <GameView />
+                        </CascadingValue>
+                    </CascadingValue>
+                }
             }
         }
         else
@@ -59,7 +63,7 @@
     </CascadingValue>
 </CascadingOrgAuthorization>
 
-<MudSwitch T="bool" @bind-CHecked="showSkeleton" Label="Show skeleton" />
+@*<MudSwitch T="bool" @bind-CHecked="showSkeleton" Label="Show skeleton" />*@
 
 @code {
     [Parameter]

@@ -641,6 +641,15 @@ namespace HVZ.Web.Server.Controllers
             return Ok(new PostResult { Succeeded = true });
         }
 
+        [HttpGet("{id}/ozs/inpool")]
+        public async Task<ActionResult<bool>> UserInOzPool(string id)
+        {
+            Game? game = await _gameRepo.FindGameById(id);
+            if (game is null) return NotFound();
+            string userId = GetDatabaseId(User);
+            return Ok(game.OzPool.Contains(userId));
+        }
+
         /// <summary>
         /// Start a new game
         /// </summary>
@@ -815,7 +824,7 @@ namespace HVZ.Web.Server.Controllers
             });
 
             Organization org = await _orgRepo.GetOrgById(game.OrgId);
-            
+
             List<string> errors = new();
             if (org.RequireVerifiedEmailForPlayer)
             {
@@ -832,7 +841,8 @@ namespace HVZ.Web.Server.Controllers
             }
 
             if (errors.Count != 0)
-                return BadRequest(new JoinGameResult {
+                return BadRequest(new JoinGameResult
+                {
                     Succeeded = false,
                     Errors = errors
                 });
@@ -870,6 +880,26 @@ namespace HVZ.Web.Server.Controllers
                     }
                 }
             });
+        }
+
+        [HttpPost("{id}/setrole")]
+        public async Task<ActionResult> SetGameRole(string id, SetGameRoleRequest request)
+        {
+            Game? game = await _gameRepo.FindGameById(id);
+            if (game is null)
+                return NotFound();
+
+            string userId = GetDatabaseId(User);
+            if (!await UserIsModerator(game.OrgId, userId))
+                return Forbid();
+
+            Player? player = await _gameRepo.FindPlayerByUserId(id, request.UserId);
+            if (player is null)
+                return BadRequest();
+
+            await _gameRepo.SetPlayerToRole(id, request.UserId, request.Role, GetDatabaseId(User));
+
+            return Ok();
         }
 
         [HttpGet("{id}/myinfo")]

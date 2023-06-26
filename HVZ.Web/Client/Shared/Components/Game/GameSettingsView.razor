@@ -1,0 +1,221 @@
+﻿@using HVZ.Persistence.Models
+@inject IGameService GameService
+@inject IDialogService DialogService
+@inject ISnackbar SnackBar
+
+<MudGrid Spacing="2" Class="mt-2">
+    <MudItem sm="5" xs="12">
+        <MudPaper Class="mud-width-full pa-2">
+            <MudText>Game is currently <b>@GameInfo.Status</b></MudText>
+            @if (GameInfo.Status is Game.GameStatus.New)
+            {
+                <MudButton Variant="Variant.Filled" FullWidth Color="@Color.Primary" Class="mt-2">Start</MudButton>
+            }
+            <MudButton Variant="Variant.Filled" FullWidth Color="@Color.Primary" Class="mt-2">Pause</MudButton>
+            <MudButton Variant="Variant.Filled" FullWidth Color="@Color.Error" Class="mt-2">End Game</MudButton>
+        </MudPaper>
+        <MudPaper Class="mud-width-full pa-2 mt-2">
+            <MudText>Current default role is <b>Human</b></MudText>
+            <MudSelect @bind-Value="defaultRole">
+                <MudSelectItem Value="@Player.gameRole.Human" />
+                <MudSelectItem Value="@Player.gameRole.Zombie" />
+                <MudSelectItem Value="@Player.gameRole.Oz">
+                    OZ
+                </MudSelectItem>
+            </MudSelect>
+        </MudPaper>
+    </MudItem>
+    <MudItem sm="7" xs="12">
+        <MudPaper Class="mud-width-full pa-2">
+            <MudText>OZ Settings</MudText>
+            <MudNumericField @bind-Value="ozMaxTags" Label="OZ Max Tags" Min="1" />
+            <MudTextField @bind-Value="ozPassword" Label="OZ Password" />
+        </MudPaper>
+
+        <MudText>OZ Pool</MudText>
+        <MudButtonGroup Variant="@Variant.Filled" Class="mt-2" OverrideStyles="false">
+            <MudButton StartIcon="@Icons.Material.Filled.Casino" Color="@Color.Primary" OnClick="OpenRandomOzDialog" Disabled="@((ozPool?.Count ?? 0) <= 0)">Random OZs</MudButton>
+            <MudButton StartIcon="@Icons.Material.Filled.Delete" Color="@Color.Error" Disabled="@((ozPool?.Count ?? 0) <= 0)">Clear</MudButton>
+        </MudButtonGroup>
+        <div style="max-height:500px;overflow:scroll;margin-top:8px;">
+            
+            @if (ozPool is not null)
+            {
+                @if (ozPool.Count == 0)
+                {
+                    <MudPaper Class="pa-2">No players in OZ pool</MudPaper>
+                }
+                @foreach (var user in ozPool)
+                {
+                    <MudCard Class="mb-2">
+                        <MudCardHeader>
+                            <CardHeaderAvatar>
+                                <MudAvatar>
+                                    <UserImage User="@user" />
+                                </MudAvatar>
+                            </CardHeaderAvatar>
+                            <CardHeaderActions>
+                                <MudMenu Icon="@Icons.Material.Filled.MoreVert">
+                                    <MudMenuItem OnClick="@(() => OpenSetOzDialog(user))">Set OZ</MudMenuItem>
+                                    <MudMenuItem>Remove</MudMenuItem>
+                                </MudMenu>
+                            </CardHeaderActions>
+                            <CardHeaderContent>
+                                <MudText>@user.FullName</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                    </MudCard>
+                }
+            }
+
+        </div>
+    </MudItem>
+</MudGrid>
+
+@if ((ozPool?.Count ?? 0) > 0)
+{
+    <Dialog @ref="randomOzDialog">
+        <TitleContent>
+            <MudText Typo="Typo.h6">Set random OZs</MudText>
+        </TitleContent>
+        <DialogContent>
+            <MudText>How many OZs</MudText>
+            <MudNumericField @bind-Value="numRandomOzs" Min="1" Max="@ozPool!.Count" />
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="CloseRandomOzDialog">Cancel</MudButton>
+            <MudButton OnClick="SetRandomOzs" Variant="@Variant.Filled" Color="@Color.Primary">Select</MudButton>
+        </DialogActions>
+    </Dialog>
+}
+
+@if (selectedOzs is not null)
+{
+    <Dialog @ref="selectedOzsDialog">
+        <TitleContent>
+            <MudText Typo="Typo.h6">Picked @selectedOzs.Count OZs</MudText>
+        </TitleContent>
+        <DialogContent>
+            @foreach (var user in selectedOzs)
+            {
+                <MudCard Class="mb-2">
+                    <MudCardHeader>
+                        <CardHeaderAvatar>
+                            <MudAvatar>
+                                <UserImage User="@user" />
+                            </MudAvatar>
+                        </CardHeaderAvatar>
+                        <CardHeaderContent>
+                            <MudText>@user.FullName</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                </MudCard>
+            }
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="@(() => selectedOzsDialog?.Close())">Close</MudButton>
+        </DialogActions>
+    </Dialog>
+}
+
+@code {
+
+    [CascadingParameter(Name = "GameId")]
+    public required string GameId { get; set; }
+
+    [CascadingParameter(Name = "GameInfo")]
+    public required GameInfo GameInfo { get; set; }
+
+    int ozMaxTags = 3;
+    int numRandomOzs = 1;
+    string? ozPassword;
+    Player.gameRole defaultRole;
+
+    GameConfig? config;
+    List<UserData>? ozPool = new();
+    List<UserData>? selectedOzs = new();
+
+    Dialog? randomOzDialog;
+    Dialog? selectedOzsDialog;
+
+    void OpenRandomOzDialog() => randomOzDialog?.Show();
+    void CloseRandomOzDialog() => randomOzDialog?.Close();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ozPoolResult = await GameService.GetOzPool(GameId);
+        var gameConfigResult = await GameService.GetGameConfig(GameId);
+
+        ozPool = ozPoolResult.Value.ToList();
+        config = gameConfigResult.Value;
+
+        if (config is not null)
+        {
+            ozMaxTags = config.OzMaxTags;
+            ozPassword = config.OzPassword;
+            defaultRole = config.DefaultRole;
+        }
+    }
+
+    async void OpenSetOzDialog(UserData user)
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            $"Set {user.FullName} to OZ?",
+            $"This will remove {user.FullName} from the OZ pool",
+            yesText: "Set to OZ", cancelText: "Cancel");
+        if (result is null) return; // Cancelled action
+
+        var setPlayerToRoleResult = await GameService.SetPlayerToRole(GameId, user.UserId, Player.gameRole.Oz);
+
+        if (setPlayerToRoleResult.IsFailed)
+        {
+            SnackBar.Add(
+            setPlayerToRoleResult.Errors.ToArray()[0].Message,
+            Severity.Error,
+            (opts) =>
+            {
+                opts.CloseAfterNavigation = true;
+            });
+            return;
+        }
+
+        // TODO: Remove from OZ pool on server
+
+        // Snackbar
+        SnackBar.Add(
+            $"Successfully set {user.FullName} to OZ",
+            Severity.Success,
+            (opts) =>
+            {
+                opts.CloseAfterNavigation = true;
+            }
+        );
+    }
+
+    bool randomOzsLoading = false;
+    async Task SetRandomOzs()
+    {
+        randomOzsLoading = true;
+
+        var result = await GameService.SetRandomOzs(GameId, numRandomOzs);
+
+        // Remove selected users from list
+        selectedOzs = result switch
+        {
+            { IsSuccess: true } => result.Value.ToList(),
+            _ => null
+        };
+
+        if (selectedOzs is null)
+        {
+            SnackBar.Add(result.Errors.ToArray()[0].Message, Severity.Error, (opts) => { opts.CloseAfterNavigation = true; });
+            randomOzsLoading = false;
+            return;
+        }
+
+        // Display the selected ozs
+
+        // Finish loading
+        randomOzsLoading = false;
+    }
+}

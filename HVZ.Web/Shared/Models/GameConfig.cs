@@ -1,4 +1,5 @@
 ﻿using HVZ.Persistence.Models;
+using System.Text.Json.Serialization;
 
 namespace HVZ.Web.Shared.Models
 {
@@ -13,6 +14,14 @@ namespace HVZ.Web.Shared.Models
             DefaultRole = game.DefaultRole;
             OzMaxTags = game.OzMaxTags;
             OzPassword = game.OzPassword;
+        }
+
+        [JsonConstructor]
+        public GameConfig(Player.gameRole defaultRole, int ozMaxTags, string? ozPassword)
+        {
+            DefaultRole = defaultRole;
+            OzMaxTags = ozMaxTags;
+            OzPassword = ozPassword;
         }
     }
 }

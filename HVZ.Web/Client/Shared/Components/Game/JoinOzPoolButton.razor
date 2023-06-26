@@ -1,0 +1,93 @@
+﻿@inject IGameService GameService
+@inject ISnackbar Snackbar
+
+<MudButton Variant="Variant.Filled" Disabled="@loading" FullWidth Color="@BtnColor" OnClick="ToggleOzPool">
+    @if (!loading)
+    {
+        @BtnText
+    }
+    else
+    {
+        <MudProgressCircular Indeterminate Size="Size.Small" />
+    }
+</MudButton>
+
+@code {
+
+    [CascadingParameter(Name = "GameInfo")]
+    public required GameInfo GameInfo { get; set; }
+
+    bool isInOzPool = false;
+
+    Color BtnColor => isInOzPool ? Color.Secondary : Color.Tertiary;
+    string BtnText => isInOzPool ? "Leave OZ Pool" : "Join OZ Pool";
+
+    bool loading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        loading = true;
+        var inOzPoolResult = await GameService.IsInOzPool(GameInfo.Id);
+
+        isInOzPool = inOzPoolResult.IsSuccess ? inOzPoolResult.Value : false;
+
+        if (inOzPoolResult.IsFailed)
+            Snackbar.Add(
+                inOzPoolResult.Errors.ToArray()[0].Message,
+                Severity.Error,
+                (opts) =>
+                {
+                    opts.CloseAfterNavigation = true;
+                });
+
+        loading = false;
+    }
+
+    async Task ToggleOzPool()
+    {
+        loading = true;
+
+        if (isInOzPool) await LeaveOzPool();
+        else await JoinOzPool();
+
+        loading = false;
+    }
+
+    async Task JoinOzPool()
+    {
+        var result = await GameService.JoinOzPool(GameInfo.Id);
+        if (result.IsSuccess)
+        {
+            isInOzPool = true;
+            Snackbar.Add("Joined OZ pool");
+            return;
+        }
+
+        Snackbar.Add(
+            result.Errors.ToArray()[0].Message,
+            Severity.Error,
+            (opts) =>
+            {
+                opts.CloseAfterNavigation = true;
+            });
+    }
+
+    async Task LeaveOzPool()
+    {
+        var result = await GameService.LeaveOzPool(GameInfo.Id);
+        if (result.IsSuccess)
+        {
+            isInOzPool = false;
+            Snackbar.Add("Left OZ pool");
+            return;
+        }
+
+        Snackbar.Add(
+            result.Errors.ToArray()[0].Message,
+            Severity.Error,
+            (opts) =>
+            {
+                opts.CloseAfterNavigation = true;
+            });
+    }
+}
