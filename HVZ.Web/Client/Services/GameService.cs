@@ -100,9 +100,17 @@ namespace HVZ.Web.Client.Services
             return Result.Ok(playersList);
         }
 
-        public Task<Result<string>> LogTag(string gameId, string receiverId)
+        public async Task<Result<TagResult>> LogTag(string gameId, string receiverId)
         {
-            throw new NotImplementedException();
+            var tagResult = await _http.PostAsJsonAsync($"/api/Game/{gameId}/tag", new TagModel { ReceiverGameId = receiverId });
+            if (tagResult.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                return await Logout();
+
+            var result = await tagResult.Content.ReadFromJsonAsync<TagResult>(_jsonOptions);
+            if (result is not null)
+                return Result.Ok(result);
+
+            return Result.Fail("Could not deserialize response");
         }
 
         public async Task<Result<PlayerData?>> Me(string gameId)

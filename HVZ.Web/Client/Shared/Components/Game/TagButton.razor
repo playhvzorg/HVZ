@@ -1,0 +1,81 @@
+﻿@inject IGameService GameService
+@inject ISnackbar Snackbar
+
+<MudButton Variant="Variant.Filled" FullWidth Class="mb-2" Color="Color.Primary" OnClick="OpenDialog">Tag</MudButton>
+
+<Dialog @ref="tagDialog">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Log Tag</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudTextField @bind-Value="receiverId" Mask="@idMask" Label="Receiver ID" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!ValidIdEntered || loading)" OnClick="LogTag">
+            @if (!loading)
+            {
+                <span>Log Tag</span>
+            }
+            else
+            {
+                <MudProgressCircular Indeterminate Size="Size.Small" />
+            }
+        </MudButton>
+    </DialogActions>
+</Dialog>
+
+@code {
+    [CascadingParameter(Name = "GameInfo")]
+    public required GameInfo GameInfo { get; set; }
+
+    Dialog? tagDialog;
+
+    PatternMask idMask = new PatternMask("0 0 0 0");
+
+    string? receiverId;
+
+    string? ReceiverGameId => receiverId?.Replace(" ", "");
+    bool ValidIdEntered => receiverId?.Replace(" ", "").Length == 4;
+    bool loading = false;
+
+    void OpenDialog() 
+    {
+        receiverId = null;
+        tagDialog?.Show();
+    }
+    void CloseDialog() => tagDialog?.Close();
+
+    async Task LogTag()
+    {
+        if (ReceiverGameId is null) return; // Display error
+        loading = true;
+        var result = await GameService.LogTag(GameInfo.Id, ReceiverGameId);
+        loading = false;
+
+        TagResult? tagResult = result switch
+        {
+            { IsSuccess: true } => result.Value,
+            _ => null
+        };
+
+        if (tagResult is null)
+        {
+            Snackbar.Add(result.Errors.ToArray()[0].Message, Severity.Error, (opts) => { opts.CloseAfterNavigation = true; });
+            return;
+        }
+
+        if (tagResult.Succeeded)
+        {
+            Snackbar.Add($"You tagged Random Player!<br/>You have {tagResult.Tags} tags");
+            CloseDialog();
+            return;
+        }
+
+        Snackbar.Add(tagResult.Error, Severity.Error);
+
+        //loading = false;
+        //CloseDialog();
+        //Snackbar.Add("You tagged Your Mom!<br/>You have 69 tags!", Severity.Success);
+    }
+}

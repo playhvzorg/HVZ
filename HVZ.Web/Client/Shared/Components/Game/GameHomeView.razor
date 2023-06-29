@@ -11,7 +11,8 @@
             @* If the player is an OZ or Zombie, tag button (disabled when game has not started) *@
             @if (player.Role is not Player.gameRole.Human)
             {
-                <MudButton Variant="Variant.Filled" Disabled="@(!GameInfo.IsActive)" FullWidth Color="Color.Primary" Class="mb-2">Tag</MudButton>
+                @*<MudButton Variant="Variant.Filled" Disabled="@(!GameInfo.IsActive)" FullWidth Color="Color.Primary" Class="mb-2">Tag</MudButton>*@
+                <TagButton />
             }
             @* If the game has not started, join/leave oz pool button *@
             @if (GameInfo.Status is Game.GameStatus.New)
@@ -19,7 +20,7 @@
                 <JoinOzPoolButton />
             }
 
-            <MudButton Variant="Variant.Filled" FullWidth  Class="mt-4">Leave game</MudButton>
+            <MudButton Variant="Variant.Filled" FullWidth Class="mt-4">Leave game</MudButton>
         }
         else
         {
