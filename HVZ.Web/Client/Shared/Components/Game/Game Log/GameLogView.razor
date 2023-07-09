@@ -1,6 +1,7 @@
 ﻿@inject Interfaces.IGameService GameService
 @using HVZ.Web.Shared.Models
 
+<DynamicContainer>
 @if (logData is not null)
 {
     @foreach (var logItem in logData)
@@ -8,6 +9,7 @@
         <EventLogListItem GameLog="@logItem" />
     }
 }
+</DynamicContainer>
 
 @code {
     IEnumerable<GameLogData>? logData;

@@ -6,13 +6,14 @@
 <MudGrid Spacing="2" Class="mt-2">
     <MudItem sm="5" xs="12">
         <MudPaper Class="mud-width-full pa-2">
-            <MudText>Game is currently <b>@GameInfo.Status</b></MudText>
+            @* <MudText>Game is currently <b>@GameInfo.Status</b></MudText>
             @if (GameInfo.Status is Game.GameStatus.New)
             {
                 <MudButton Variant="Variant.Filled" FullWidth Color="@Color.Primary" Class="mt-2">Start</MudButton>
             }
             <MudButton Variant="Variant.Filled" FullWidth Color="@Color.Primary" Class="mt-2">Pause</MudButton>
-            <MudButton Variant="Variant.Filled" FullWidth Color="@Color.Error" Class="mt-2">End Game</MudButton>
+            <MudButton Variant="Variant.Filled" FullWidth Color="@Color.Error" Class="mt-2">End Game</MudButton> *@
+            <GameStatusControl GameInfo="@GameInfo" />
         </MudPaper>
         <MudPaper Class="mud-width-full pa-2 mt-2">
             <MudText>Current default role is <b>Human</b></MudText>

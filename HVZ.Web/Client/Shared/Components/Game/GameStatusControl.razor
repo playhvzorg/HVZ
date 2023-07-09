@@ -1,0 +1,141 @@
+@using HVZ.Persistence.Models
+@using HVZ.Web.Client.Shared.Components
+@inject IGameService GameService
+@inject ISnackbar Snackbar
+
+<MudText>
+    Game is currently <b>@GameInfo.Status</b>
+</MudText>
+
+@if (GameInfo.Status is Game.GameStatus.New)
+{
+    <MudButton Color="Color.Tertiary" Variant="Variant.Filled" FullWidth Class="mb-2" OnClick="OpenStartDialog">
+        Start Game
+    </MudButton>
+}
+
+<Dialog @ref="startDialog">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Start Game?</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText>
+            Starting the game will close the OZ pool.
+        </MudText>
+        <MudText Color="Color.Warning">This cannot be undone!</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton>Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@startGameLoading" OnClick="StartGame">
+            @if(!startGameLoading)
+            {
+                <span>Start</span>
+            }
+            else
+            {
+                <MudProgressCircular Indeterminate Size="Size.Small" />
+            }
+        </MudButton>
+    </DialogActions>
+</Dialog>
+
+@if (GameInfo.Status is Game.GameStatus.Active)
+{
+    <MudButton Color="Color.Primary" Variant="Variant.Filled" FullWidth Class="mb-2" Disabled="@toggleLoading" OnClick="PauseGame">
+        @if (!toggleLoading)
+        {
+            <span>Pause Game</span>
+        }
+        else
+        {
+            <MudProgressCircular Indeterminate Size="Size.Small" />
+        }
+    </MudButton>
+}
+
+@if (GameInfo.Status is Game.GameStatus.Paused)
+{
+    <MudButton Variant="Variant.Filled" FullWidth Class="mb-2" Disabled="@toggleLoading" OnClick="ResumeGame">
+        @if (!toggleLoading)
+        {
+            <span>Resume Game</span>
+        }
+        else
+        {
+            <MudProgressCircular Indeterminate Size="Size.Small" />
+        }
+    </MudButton>
+}
+
+@if (GameInfo.Status is not Game.GameStatus.New)
+{
+    <AuthorizedAdmin>
+        <MudButton Color="Color.Secondary" Variant="Variant.Filled" FullWidth>
+            End Game
+        </MudButton>
+    </AuthorizedAdmin>
+    
+}
+
+@code 
+{
+    [Parameter]
+    public required GameInfo GameInfo { get; set; }
+
+    bool startGameLoading = false;
+    bool toggleLoading = false;
+
+    Dialog? startDialog;
+    void OpenStartDialog() => startDialog?.Show();
+    void CloseStartDialog() => startDialog?.Close();
+
+    async Task StartGame() 
+    {
+        startGameLoading = true;
+        var startResult = await GameService.StartGame(GameInfo.Id);
+        startGameLoading = false;
+
+        if (startResult.IsSuccess)
+        {
+            CloseStartDialog();
+            Snackbar.Add($"Started {GameInfo.Name}", Severity.Success);
+            GameInfo.Status = Game.GameStatus.Active; // TODO: Replace with event listener in IGameService
+            return;
+        }
+
+        Snackbar.Add(startResult.Errors.ToArray()[0].Message, Severity.Error, (opts) => { opts.CloseAfterNavigation = true; } );
+    }
+
+    async Task PauseGame()
+    {
+        toggleLoading = true;
+        var pauseResult = await GameService.PauseGame(GameInfo.Id);
+        toggleLoading = false;
+
+        if (pauseResult.IsSuccess)
+        {
+            Snackbar.Add("Paused game", Severity.Success);
+            GameInfo.Status = Game.GameStatus.Paused; // TODO: Replace with event listener in IGameService
+            return;
+        }
+
+        Snackbar.Add(pauseResult.Errors.ToArray()[0].Message, Severity.Error, (opts) => { opts.CloseAfterNavigation = true; });
+    }
+
+    async Task ResumeGame()
+    {
+        toggleLoading = true;
+        var resumeResult = await GameService.ResumeGame(GameInfo.Id);
+        toggleLoading = false;
+
+        if (resumeResult.IsSuccess)
+        {
+            Snackbar.Add("Resumed game", Severity.Success);
+            GameInfo.Status = Game.GameStatus.Active;
+            return;
+        }
+
+        Snackbar.Add(resumeResult.Errors.ToArray()[0].Message, Severity.Error, (opts) => { opts.CloseAfterNavigation = true; });
+    }
+
+}

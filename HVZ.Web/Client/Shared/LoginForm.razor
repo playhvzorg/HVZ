@@ -1,5 +1,6 @@
 ﻿@using System.ComponentModel.DataAnnotations
 @using HVZ.Web.Shared.Models
+@using HVZ.Web.Client.Shared.Components
 @inject Interfaces.IAuthService Auth
 @inject NavigationManager Nav
 
@@ -23,6 +24,7 @@
         OnAdornmentClick="TogglePassowrdVisibility" 
         Required="true" />
     <MudSwitch T="bool" Color="Color.Primary" Label="Remember Me" Class="mt-3" />
+    <ForgotPasswordForm />
     <div class="d-flex flex-row-reverse">
         <MudButton Class="ml-auto" Variant="Variant.Filled" Color="Color.Primary" Disabled="@Disabled" OnClick="OnLogin">@LoginButtonChildContent Login</MudButton>
     </div>
@@ -35,7 +37,7 @@
     InputType PasswordInput => showPassword ? InputType.Text : InputType.Password;
     string PasswordInputIcon => showPassword ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
 
-    bool Disabled => login.Email is null && login.Password is null;
+    bool Disabled => login.Email is null || login.Password is null;
 
     string? loginError;
 

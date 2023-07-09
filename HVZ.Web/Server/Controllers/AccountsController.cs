@@ -1,12 +1,14 @@
 ﻿using HVZ.Persistence;
 using HVZ.Persistence.Models;
 using HVZ.Web.Server.Identity;
+using HVZ.Web.Server.Services;
 using HVZ.Web.Server.Services.Settings;
 using HVZ.Web.Shared.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -22,13 +24,15 @@ namespace HVZ.Web.Server.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly JwtConfig _jwtConfig;
         private readonly IUserRepo _userRepo;
+        private readonly EmailService _emailService;
 
-        public AccountsController(UserManager<ApplicationUser> userManager, IUserRepo userRepo, SignInManager<ApplicationUser> signInManager, JwtConfig jwtConfig)
+        public AccountsController(UserManager<ApplicationUser> userManager, IUserRepo userRepo, SignInManager<ApplicationUser> signInManager, JwtConfig jwtConfig, EmailService emailService)
         {
             _userManager = userManager;
             _userRepo = userRepo;
             _signInManager = signInManager;
             _jwtConfig = jwtConfig;
+            _emailService = emailService;
         }
 
         /// <summary>
@@ -130,6 +134,40 @@ namespace HVZ.Web.Server.Controllers
                 Succeeded = true,
                 Token = new JwtSecurityTokenHandler().WriteToken(token)
             });
+        }
+
+        [HttpPost("forgotpassword")]
+        [AllowAnonymous]
+        public async Task<ActionResult> ForgotPassword([FromBody] ForgotPasswordRequest forgotPassword)
+        {
+            if (forgotPassword.Email is null)
+            {
+                return BadRequest("Email is required");
+            }
+
+            EmailAddressAttribute emailValidation = new();
+            if (!emailValidation.IsValid(forgotPassword.Email))
+            {
+                return BadRequest("Invalid email");
+            }
+
+            var user = await _userManager.FindByEmailAsync(forgotPassword.Email);
+            if (user is null)
+            {
+                return NotFound($"Could not find account with email {forgotPassword.Email}");
+            }
+
+            var requestId = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            await _emailService.SendForgotPasswordEmailAsync(
+                forgotPassword.Email,
+                user.FullName,
+                requestId,
+                user.Id.ToString()
+            );
+
+            return Ok();
+
         }
 
         /// <summary>

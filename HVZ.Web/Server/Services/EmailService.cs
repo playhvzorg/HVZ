@@ -18,14 +18,16 @@ namespace HVZ.Web.Server.Services
         {
             var opts = options.Value;
             domainName = webConfig.Value.DomainName;
-            smtpClient = new SmtpClient(opts.SmtpHost, opts.Port);
-            smtpClient.UseDefaultCredentials = false;
-            smtpClient.Credentials = new NetworkCredential(opts.EmailId, opts.Password);
+            smtpClient = new SmtpClient(opts.SmtpHost, opts.Port)
+            {
+                UseDefaultCredentials = false,
+                Credentials = new NetworkCredential(opts.EmailId, opts.Password)
+            };
             mailAddress = new MailAddress(opts.EmailId, opts.EmailAlais);
             smtpClient.EnableSsl = true;
 
             // Load Resources
-            emailTemplate = ReadTextResourceFromAssembly("HVZ.Web.Services.Resources.email_template.html");
+            emailTemplate = ReadTextResourceFromAssembly("HVZ.Web.Server.Services.Resources.email_template.html");
             contentTemplates = new Dictionary<EmailType, string> {
                 { EmailType.ConfirmEmail, ReadEmailTemplate("confirm_email") },
                 { EmailType.ForgotPassword, ReadEmailTemplate("forgot_password") },
@@ -56,9 +58,11 @@ namespace HVZ.Web.Server.Services
         private async Task SendHtmlEmailAsync(string to, string subject, string body)
         {
             string formattedBody = emailTemplate.Replace("%BODY%", body);
-            MailMessage msg = new MailMessage();
-            msg.Subject = subject;
-            msg.Body = formattedBody;
+            MailMessage msg = new()
+            {
+                Subject = subject,
+                Body = formattedBody
+            };
             msg.To.Add(to);
             msg.From = mailAddress;
             msg.IsBodyHtml = true;
@@ -66,19 +70,16 @@ namespace HVZ.Web.Server.Services
             await smtpClient.SendMailAsync(msg);
         }
 
-        private string ReadTextResourceFromAssembly(string name)
+        private static string ReadTextResourceFromAssembly(string name)
         {
-            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(name))
-            {
-                if (stream is null)
-                    throw new ArgumentException($"Resource '{name}' not found", "name");
-                return new StreamReader(stream).ReadToEnd();
-            }
+            using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(name) 
+                ?? throw new ArgumentException($"Resource '{name}' not found", nameof(name));
+            return new StreamReader(stream).ReadToEnd();
         }
 
-        private string ReadEmailTemplate(string fileName)
+        private static string ReadEmailTemplate(string fileName)
         {
-            return ReadTextResourceFromAssembly($"HVZ.Web.Services.Resources.{fileName}.html");
+            return ReadTextResourceFromAssembly($"HVZ.Web.Server.Services.Resources.{fileName}.html");
         }
 
         private enum EmailType

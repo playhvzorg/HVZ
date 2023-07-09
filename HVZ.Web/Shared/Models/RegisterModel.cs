@@ -14,7 +14,7 @@ namespace HVZ.Web.Shared.Models
         public string? FullName { get; set; }
 
         [Required]
-        // TODO: Password validator attribute
+        [PasswordValidation]
         [DataType(DataType.Password)]
         [Display(Name = "Password")]
         public string? Password { get; set; }

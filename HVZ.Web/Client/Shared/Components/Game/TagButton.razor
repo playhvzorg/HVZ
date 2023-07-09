@@ -1,7 +1,7 @@
 ﻿@inject IGameService GameService
 @inject ISnackbar Snackbar
 
-<MudButton Variant="Variant.Filled" FullWidth Class="mb-2" Color="Color.Primary" OnClick="OpenDialog">Tag</MudButton>
+<MudButton Variant="Variant.Filled" FullWidth Class="mb-2" Color="Color.Primary" OnClick="OpenDialog" Disabled="@(!GameInfo.IsActive)">Tag</MudButton>
 
 <Dialog @ref="tagDialog">
     <TitleContent>

@@ -31,7 +31,9 @@ builder.Services.AddControllersWithViews()
 builder.Services.AddRazorPages();
 
 #region Generic Options
-// TODO
+builder.Services.Configure<WebConfig>(
+    builder.Configuration.GetSection(nameof(WebConfig))
+);
 #endregion
 
 #region Logging
@@ -94,11 +96,8 @@ builder.Services.AddIdentity<ApplicationUser, MongoIdentityRole<Guid>>()
 builder.Services
     .AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, ApplicationClaimsPrincipalFactory>();
 
-var jwtConfig = builder.Configuration.GetSection(nameof(JwtConfig)).Get<JwtConfig>();
-if (jwtConfig is null)
-{
-    throw new ArgumentNullException("JwtConfig must be defined in appsettings.json");
-}
+var jwtConfig = builder.Configuration.GetSection(nameof(JwtConfig)).Get<JwtConfig>() 
+    ?? throw new ArgumentNullException("JwtConfig must be defined in appsettings.json");
 
 builder.Services.AddSingleton(jwtConfig);
 
@@ -122,6 +121,9 @@ builder.Services.AddAuthorization();
 
 #region Images
 
+builder.Services.Configure<ImageConfig>(
+    builder.Configuration.GetSection(nameof(ImageConfig))
+);
 builder.Services.AddSingleton<ImageService>();
 
 #endregion
@@ -131,7 +133,12 @@ builder.Services.AddSingleton<ImageService>();
 #endregion
 
 #region Email
-// TODO
+
+builder.Services.Configure<EmailConfig>(
+    builder.Configuration.GetSection(nameof(EmailConfig))
+);
+builder.Services.AddSingleton<EmailService>();
+
 #endregion
 
 #region API Documentation

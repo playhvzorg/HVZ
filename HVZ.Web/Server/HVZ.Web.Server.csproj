@@ -39,10 +39,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Services\Resources\confirm_email.html" />
-    <Resource Include="Services\Resources\email_template.html" />
-    <Resource Include="Services\Resources\forgot_password.html" />
-    <Resource Include="Services\Resources\password_changed.html" />
+    <EmbeddedResource Include="Services\Resources\confirm_email.html" />
+    <EmbeddedResource Include="Services\Resources\email_template.html" />
+    <EmbeddedResource Include="Services\Resources\forgot_password.html" />
+    <EmbeddedResource Include="Services\Resources\password_changed.html" />
   </ItemGroup>
 
 

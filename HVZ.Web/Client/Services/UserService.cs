@@ -32,6 +32,8 @@ namespace HVZ.Web.Client.Services
             if (_currentUser is not null)
                 return Result.Ok(_currentUser);
 
+            Console.WriteLine(_http.BaseAddress + "api/accounts/me");
+
             var userResult = await _http.GetFromJsonAsync<UserData>("/api/accounts/me");
             if (userResult is not null)
             {
@@ -55,10 +57,10 @@ namespace HVZ.Web.Client.Services
 
             Console.WriteLine(imageFile.ContentType);
 
-            StreamContent fileContent = new StreamContent(imageFile.OpenReadStream());
+            StreamContent fileContent = new(imageFile.OpenReadStream());
             fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(imageFile.ContentType);
 
-            MultipartFormDataContent content = new MultipartFormDataContent();
+            MultipartFormDataContent content = new();
             content.Add(
                 content: fileContent,
                 name: "\"file\"",
@@ -69,6 +71,15 @@ namespace HVZ.Web.Client.Services
             if (response.IsSuccessStatusCode)
                 return Result.Ok(true);
 
+            return Result.Fail(await response.Content.ReadAsStringAsync());
+        }
+
+        public async Task<Result> ForgotPassword(ForgotPasswordRequest request)
+        {
+            var response = await _http.PostAsJsonAsync("/api/accounts/forgotpassword", request, _jsonOptions);
+            if (response.IsSuccessStatusCode)
+                return Result.Ok();
+            
             return Result.Fail(await response.Content.ReadAsStringAsync());
         }
     }

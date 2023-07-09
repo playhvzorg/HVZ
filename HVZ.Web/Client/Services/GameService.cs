@@ -221,6 +221,7 @@ namespace HVZ.Web.Client.Services
 
         public async Task<Result<string>> RemovePlayerFromOzPool(string gameId, string userId)
         {
+            await Task.Delay(1000);
             return Result.Fail("Not implemented");
         }
 
@@ -263,6 +264,57 @@ namespace HVZ.Web.Client.Services
 
             return Result.Fail(await leaveResult.Content.ReadAsStringAsync());
 
+        }
+
+        public async Task<Result> StartGame(string gameId)
+        {
+            var startResult = await _http.PostAsync($"/api/Game/{gameId}/start", null);
+            if (startResult.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                return await Logout();
+
+            var resultObj = await startResult.Content.ReadFromJsonAsync<PostResult>();
+            if (resultObj is null)
+            {
+                return Result.Fail("Could not deserialize response");
+            }
+            if (resultObj.Succeeded)
+                return Result.Ok();
+            
+            return Result.Fail(resultObj.Error);
+        }
+
+        public async Task<Result> ResumeGame(string gameId)
+        {
+            var resumeResult = await _http.PostAsync($"/api/Game/{gameId}/resume", null);
+            if (resumeResult.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                return await Logout();
+
+            var resultObj = await resumeResult.Content.ReadFromJsonAsync<PostResult>();
+            if (resultObj is null)
+            {
+                return Result.Fail("Could not deserialize response");
+            }
+            if (resultObj.Succeeded)
+                return Result.Ok();
+            
+            return Result.Fail(resultObj.Error);
+        }
+
+        public async Task<Result> PauseGame(string gameId)
+        {
+            var pauseResult = await _http.PostAsync($"/api/Game/{gameId}/pause", null);
+            if (pauseResult.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                return await Logout();
+
+            var resultObj = await pauseResult.Content.ReadFromJsonAsync<PostResult>();
+            if (resultObj is null)
+            {
+                return Result.Fail("Could not deserialize response");
+            }
+            if (resultObj.Succeeded)
+                return Result.Ok();
+            
+            return Result.Fail(resultObj.Error);
         }
 
         private async Task<Result> Logout()

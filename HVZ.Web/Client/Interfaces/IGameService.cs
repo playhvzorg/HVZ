@@ -20,5 +20,8 @@ namespace HVZ.Web.Client.Interfaces
         public Task<Result<bool>> IsInOzPool(string gameId);
         public Task<Result> JoinOzPool(string gameId);
         public Task<Result> LeaveOzPool(string gameId);
+        public Task<Result> StartGame(string gameId);
+        public Task<Result> PauseGame(string gameId);
+        public Task<Result> ResumeGame(string gameId);
     }
 }
