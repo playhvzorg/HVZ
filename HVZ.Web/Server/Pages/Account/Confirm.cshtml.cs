@@ -37,7 +37,6 @@ namespace HVZ.Web.Server.Pages.Account
             if (user is null)
                 return NotFound();
             
-            System.Console.WriteLine(RequestId);
             var result = await _userManager.ConfirmEmailAsync(user, RequestId);
 
             Loading = false;
