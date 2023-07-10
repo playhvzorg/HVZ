@@ -22,15 +22,18 @@ namespace HVZ.Web.Server.Pages.Account
         public UpdatePasswordRequest RequestModel { get; set; }
 
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ILogger<ResetModel> _logger;
 
-        public ResetModel(UserManager<ApplicationUser> userManager)
+        public ResetModel(UserManager<ApplicationUser> userManager, ILogger<ResetModel> logger)
         {
             _userManager = userManager;
+            _logger = logger;
             RequestModel = new();
         }
 
         public IActionResult OnGet()
         {
+            // Web developer moment
             ModelState.Clear();
             return Page();
         }
@@ -43,8 +46,8 @@ namespace HVZ.Web.Server.Pages.Account
             var appUser = await _userManager.FindByIdAsync(UserId);
             if (appUser is null)
             {
-                System.Console.WriteLine("Could not find user");
-                return Page();
+                _logger.LogError("Could not find user with ID: {userId}", UserId);
+                return NotFound();
             }
 
             // Error if the UserName is the user's full name (Don't ask me why...)
@@ -53,14 +56,14 @@ namespace HVZ.Web.Server.Pages.Account
             var result = await _userManager.ResetPasswordAsync(appUser, RequestId, RequestModel.Password);
             if (result.Succeeded)
             {
-                // TODO: Log
+                _logger.LogInformation("User {email} has changed their password", appUser.Email);
                 return Redirect("/");
             }
             else
             {
                 foreach(var error in result.Errors)
                 {
-                    System.Console.WriteLine($"{error.Code}: {error.Description}");
+                    _logger.LogError("Error resetting password for {email}\n\t{errorCode}: {errorDescription}", appUser.Email, error.Code, error.Description);
                 }
             }
 
