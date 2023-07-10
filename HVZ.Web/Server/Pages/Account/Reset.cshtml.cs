@@ -13,10 +13,10 @@ namespace HVZ.Web.Server.Pages.Account
     public class ResetModel : PageModel
     {
         [FromQuery(Name = "requestId")]
-        public string RequestId { get; set; }
+        public string RequestId { get; set; } = default!;
 
         [FromQuery(Name = "userId")]
-        public string UserId { get; set; }
+        public string UserId { get; set; } = default!;
 
         [BindProperty]
         public UpdatePasswordRequest RequestModel { get; set; }
