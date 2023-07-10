@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Diagnostics;
+using System.Net;
 
 namespace HVZ.Web.Server.Pages.Account
 {
@@ -36,21 +37,31 @@ namespace HVZ.Web.Server.Pages.Account
 
         public async Task<IActionResult> OnPostAsync()
         {
-
             if (!ModelState.IsValid)
                 return Page();
 
             var appUser = await _userManager.FindByIdAsync(UserId);
             if (appUser is null)
             {
+                System.Console.WriteLine("Could not find user");
                 return Page();
             }
+
+            // Error if the UserName is the user's full name (Don't ask me why...)
+            appUser.UserName = appUser.Email;
 
             var result = await _userManager.ResetPasswordAsync(appUser, RequestId, RequestModel.Password);
             if (result.Succeeded)
             {
                 // TODO: Log
                 return Redirect("/");
+            }
+            else
+            {
+                foreach(var error in result.Errors)
+                {
+                    System.Console.WriteLine($"{error.Code}: {error.Description}");
+                }
             }
 
             return Page();
