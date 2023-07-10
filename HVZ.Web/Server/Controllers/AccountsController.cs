@@ -170,6 +170,43 @@ namespace HVZ.Web.Server.Controllers
 
         }
 
+        [HttpPost("confirmemail")]
+        public async Task<ActionResult> ConfirmEmail()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user is null)
+                return Unauthorized();
+            
+            var requestId = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+            await _emailService.SendVerificationEmailAsync(
+                user.Email!,
+                user.FullName,
+                requestId,
+                user.Id.ToString());
+
+            return Ok();
+        }
+
+        [HttpGet("confirmedemail")]
+        [Produces("application/json")]
+        public async Task<ActionResult> ConfirmedEmail()
+        {
+            string userId = User.Claims.FirstOrDefault(c => c.Type == "DatabaseId")?.Value ?? string.Empty;
+            if (userId == string.Empty)
+            {
+                return Unauthorized();
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user is null)
+            {
+                return Unauthorized();
+            }
+
+            return Ok(user.EmailConfirmed);
+        }
+
         /// <summary>
         /// Logout currently signed in user
         /// </summary>

@@ -22,9 +22,15 @@ namespace HVZ.Web.Client.Services
 
         public async Task<Result<bool>> EmailIsConfirmed()
         {
-            await Task.Delay(1200);
+            var result = await _http.GetAsync("/api/accounts/confirmedemail");
+            if (result.IsSuccessStatusCode)
+            {
+                string str = await result.Content.ReadAsStringAsync();
+                bool emailConfirmed = bool.Parse(str);
+                return Result.Ok(emailConfirmed);
+            }
 
-            return true;
+            return Result.Fail(await result.Content.ReadAsStringAsync());
         }
 
         public async Task<Result<UserData>> GetCurrentUser()
@@ -77,6 +83,15 @@ namespace HVZ.Web.Client.Services
         public async Task<Result> ForgotPassword(ForgotPasswordRequest request)
         {
             var response = await _http.PostAsJsonAsync("/api/accounts/forgotpassword", request, _jsonOptions);
+            if (response.IsSuccessStatusCode)
+                return Result.Ok();
+            
+            return Result.Fail(await response.Content.ReadAsStringAsync());
+        }
+
+        public async Task<Result> ConfirmEmail()
+        {
+            var response = await _http.PostAsync("/api/accounts/confirmemail", null);
             if (response.IsSuccessStatusCode)
                 return Result.Ok();
             

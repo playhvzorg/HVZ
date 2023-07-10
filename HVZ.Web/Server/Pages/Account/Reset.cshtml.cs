@@ -1,12 +1,8 @@
 using HVZ.Web.Server.Identity;
 using HVZ.Web.Shared.Models;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.Diagnostics;
-using System.Net;
 
 namespace HVZ.Web.Server.Pages.Account
 {
@@ -50,10 +46,10 @@ namespace HVZ.Web.Server.Pages.Account
                 return NotFound();
             }
 
-            // Error if the UserName is the user's full name (Don't ask me why...)
+            // Error if the UserName is the user's full name (This can happen, don't ask me why...)
             appUser.UserName = appUser.Email;
 
-            var result = await _userManager.ResetPasswordAsync(appUser, RequestId, RequestModel.Password);
+            var result = await _userManager.ResetPasswordAsync(appUser, RequestId, RequestModel.Password!);
             if (result.Succeeded)
             {
                 _logger.LogInformation("User {email} has changed their password", appUser.Email);

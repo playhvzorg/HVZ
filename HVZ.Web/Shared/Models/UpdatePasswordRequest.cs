@@ -9,13 +9,13 @@ namespace HVZ.Web.Shared.Models
         [DataType(DataType.Password)]
         [Display(Name = "Password")]
         [PasswordValidation]
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
         [Required]
         [DataType(DataType.Password)]
         [Display(Name = "Confirm password")]
         [Compare("Password", ErrorMessage = "Passwords must match")]
-        public string ConfirmPassword { get; set; }
+        public string? ConfirmPassword { get; set; }
     }
 
 }

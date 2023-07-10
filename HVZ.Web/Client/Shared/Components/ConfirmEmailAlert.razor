@@ -1,0 +1,36 @@
+@inject IUserService UserService
+@inject ISnackbar Snackbar
+
+@if (verifiedEmail is not null && verifiedEmail is false)
+{
+    <MudAlert Severity="Severity.Warning" Class="mb-5">You have not confirmed your email. <MudLink OnClick="SendEmail">Click here</MudLink> to resend verification email</MudAlert>
+}
+
+@code
+{
+    bool? verifiedEmail = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await UserService.EmailIsConfirmed();
+        if (result.IsSuccess)
+        {
+            verifiedEmail = result.Value;
+            return;
+        }
+    }
+
+    async Task SendEmail()
+    {
+        var result = await UserService.ConfirmEmail();
+        if (result.IsSuccess)
+        {
+            Snackbar.Add("Sent a confirmation email to your address");
+        }
+        else
+        {
+            Snackbar.Add(result.Errors.ToArray()[0].Message, Severity.Error, (opts) => { opts.CloseAfterNavigation = true; });
+        }
+    }
+
+}

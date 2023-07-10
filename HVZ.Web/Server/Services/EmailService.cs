@@ -35,16 +35,15 @@ namespace HVZ.Web.Server.Services
             };
         }
 
-        public async Task SendVerificationEmailAsync(string to, string name, string requestId)
+        public async Task SendVerificationEmailAsync(string to, string name, string requestId, string userId)
         {
-            string requestUrl = $"{domainName}/Account/Verify?requestId={requestId}";
+            string requestUrl = $"{domainName}/Account/Confirm?requestId={WebUtility.UrlEncode(requestId)}&userId={WebUtility.UrlEncode(userId)}";
             string htmlBody = emailTemplate.Replace("%BODY%", string.Format(contentTemplates[EmailType.ConfirmEmail], name, requestUrl));
             await SendHtmlEmailAsync(to, "PlayHVZ: Confirm your email", htmlBody);
         }
 
         public async Task SendForgotPasswordEmailAsync(string to, string name, string requestId, string userId)
         {
-            System.Console.WriteLine(requestId);
             string requestUrl = $"{domainName}/Account/Reset?requestId={WebUtility.UrlEncode(requestId)}&userId={WebUtility.UrlEncode(userId)}";
             string htmlBody = emailTemplate.Replace("%BODY%", string.Format(contentTemplates[EmailType.ForgotPassword], name, requestUrl));
             await SendHtmlEmailAsync(to, "PlayHVZ: Reset your password", htmlBody);
