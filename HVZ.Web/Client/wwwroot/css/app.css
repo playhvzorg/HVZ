@@ -99,3 +99,14 @@ a, .btn-link {
     .loading-progress-text:after {
         content: var(--blazor-load-percentage-text, "Loading");
     }
+
+.fab-container {
+    position: fixed;
+    bottom: 16px;
+    right: -300px;
+    transition: right cubic-bezier(0.075, 0.82, 0.165, 1) .2s;
+}
+
+.fab-container.active {
+    right: 16px;
+}

@@ -1,0 +1,13 @@
+<MudImage Height="@Size" Class="rounded-lg" Width="@Size" Src="@ImageSrc" onerror="@LoadError" />
+
+@code 
+{
+    [Parameter, EditorRequired]
+    public required OrgInfo Org { get; set; }
+
+    [Parameter]
+    public int Size { get; set; } = 80;
+
+    string ImageSrc => $"/image/org/{Org.Id}?{DateTime.Now}";
+    string LoadError => $"this.src=\"{Org?.DefaultAvatar}\"";
+}

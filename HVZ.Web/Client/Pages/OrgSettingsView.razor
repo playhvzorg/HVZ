@@ -1,0 +1,72 @@
+@using HVZ.Web.Client.Interfaces
+@page "/org/{url}/settings"
+@inject IOrgService OrgService
+@inject IUserService UserService
+
+@* Redirect if user is not an admin *@
+@* Disable editing for non admins? *@
+
+@if (info is not null)
+{
+    <CascadingValue Name="OrgInfo" Value="info">
+        <MudTabs MinimumTabWidth="20">
+            <MudTabPanel Icon="@Icons.Material.Filled.Build">
+                <HVZ.Web.Client.Shared.Components.Org.GeneralOrgSettings />
+            </MudTabPanel>
+            <MudTabPanel Icon="@Icons.Material.Filled.People">
+                <HVZ.Web.Client.Shared.Components.Org.ModSettings />
+            </MudTabPanel>
+        </MudTabs>
+    </CascadingValue>
+}
+
+
+
+@* Org general settings *@
+@* Mods settings *@
+@* Discord settings *@
+
+@code {
+    [Parameter]
+    public string? Url { get; set; }
+
+    OrgInfo? info;
+    string? orgId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userResult = await UserService.GetCurrentUser();
+
+        var orgIdResult = await OrgService.GetOrgIdFromUrl(Url);
+
+        orgId = orgIdResult switch 
+        {
+            {IsSuccess: true} => orgIdResult.Value,
+            _ => null
+        };
+
+        if (orgId is null)
+        {
+            return;
+        }
+
+        var infoResult = await OrgService.GetOrgInfo(orgId);
+
+        info = infoResult switch 
+        {
+            {IsSuccess: true} => infoResult.Value,
+            _ => null
+        };
+
+        if (info is null)
+        {
+            return;
+        }
+
+        if (userResult.IsSuccess)
+        {
+            var user = userResult.Value;
+            var id = user.UserId;
+        }
+    }
+}

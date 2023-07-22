@@ -1,20 +1,22 @@
 ﻿@inject IOrgService OrgService
 @inject IGameService GameService
 @inject ISnackbar Snackbar
+@inject NavigationManager Nav
 @page "/org/{url}"
 @using HVZ.Web.Client.Shared.Components.Game
 @using HVZ.Web.Shared.Models
 @using HVZ.Web.Client.Shared.Components.Authorization
 
 <PageTitle>@(info?.Name ?? "Play HvZ")</PageTitle>
-
 <CascadingOrgAuthorization OrgId="@orgId">
     <CascadingValue Value="@showSkeleton" Name="ShowSkeleton">
         @if (info is not null)
         {
             <div class="d-flex flex-row align-center">
-                <MudAvatar Image="@info?.DefaultAvatar" Size="Size.Medium" />
-                <div class="d-block ml-3">
+                <div style="flex-grow:0;">
+                    <MudAvatar Image="@info?.DefaultAvatar" Size="Size.Medium" />
+                </div>
+                <div class="d-block ml-3" style="flex-grow:1;">
                     <MudText Typo="Typo.h6">@info?.Name</MudText>
                     <MudText Typo="Typo.subtitle1">
                         @if (gameInfo is not null)
@@ -26,6 +28,15 @@
                             <span>No active game</span>
                         }
                     </MudText>
+                </div>
+                <div style="flex-grow:0">
+                    <AuthorizedAdmin>
+                        @if (info is not null)
+                        {
+                            <MudIconButton Icon="@Icons.Material.Filled.Settings" aria-label="settings" OnClick="NavigateToSettings" />
+                        }
+                        
+                    </AuthorizedAdmin>
                 </div>
             </div>
             @if (info?.ActiveGameId is null)
@@ -122,4 +133,6 @@
             }
         }
     }
+
+    void NavigateToSettings() => Nav.NavigateTo($"org/{Url}/settings");
 }

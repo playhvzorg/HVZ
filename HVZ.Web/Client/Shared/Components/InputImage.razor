@@ -1,4 +1,5 @@
 ﻿@inject IJSRuntime JS
+@using HVZ.Web.Client.Shared.Components
 
 <MudBadge Icon="@Icons.Material.Filled.Image" Color="Color.Tertiary" Overlap="true" Bordered="true" Class="p-0">
     <MudFileUpload T="IBrowserFile" @ref="fileUpload" FilesChanged="UploadFile" Style="margin:0px!important" Accept="image/*">

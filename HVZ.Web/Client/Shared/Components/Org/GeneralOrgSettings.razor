@@ -1,0 +1,99 @@
+@using HVZ.Web.Client.Shared.Components
+@inject ISnackbar Snackbar
+@inject IOrgService OrgService
+
+<MudText Typo="Typo.h6">General Settings</MudText>
+
+<InputImage @bind-Value="file" PreviewSize="160">
+    <OrgImage Org="@OrgInfo" Size="160" />
+</InputImage>
+@if (file is not null)
+{
+    <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="@(() => file = null)">Clear</MudButton>
+}
+
+<MudTextField Immediate @bind-Value="name" />
+
+<MudTextField Immediate @bind-Value="desc" Lines="5" />
+
+<MudSwitch Color="Color.Tertiary" @bind-Checked="email">Require verified email to join game</MudSwitch>
+<MudText Typo="Typo.caption">@EmailText</MudText>
+<MudSwitch Color="Color.Tertiary" @bind-Checked="picture">Require profile picture to join game</MudSwitch>
+<MudText Typo="Typo.caption">@PictureText</MudText>
+
+<div class="fab-container @ActiveFab">
+    <MudFab Color="Color.Primary" Disabled="@savingSettings" StartIcon="@Icons.Material.Filled.Save" OnClick="SaveSettings" />
+</div>
+
+@code
+{
+    [CascadingParameter(Name = "OrgInfo")]
+    public required OrgInfo OrgInfo { get; set; }
+
+    string name = "";
+    string desc = "";
+    bool picture = false;
+    bool email = false;
+    IBrowserFile? file;
+    bool savingSettings = false;
+
+    string ActiveFab => InfoModified || file is not null ? "active" : "";
+
+    bool InfoModified => name != OrgInfo.Name || desc != OrgInfo.Description || email != OrgInfo.RequirePlayerEmailConfirmed || picture != OrgInfo.RequirePlayerProfilePicture;
+
+    string? EmailText => email ?
+    "Players will be required to verify their email in order to join games for this org" :
+    null;
+
+    string? PictureText => picture ?
+    "Players will be required to upload a profile picture in order to join games for this org" :
+    null;
+
+    protected override void OnInitialized()
+    {
+        name = OrgInfo.Name;
+        desc = OrgInfo.Description;
+        picture = OrgInfo.RequirePlayerProfilePicture;
+        email = OrgInfo.RequirePlayerEmailConfirmed;
+    }
+
+    async Task SaveSettings()
+    {
+        savingSettings = true;
+        if (file is not null)
+        {
+            var saveImageResult = await OrgService.SetImage(OrgInfo.Id, file);
+            if (!saveImageResult.IsSuccess)
+            {
+                Snackbar.Add($"Failed to save image: {saveImageResult.Errors.ToArray()[0].Message}", Severity.Error, (opts) => { opts.CloseAfterNavigation = true; });
+                savingSettings = false;
+                return;
+            }
+            file = null;
+        }
+        if (InfoModified)
+        {
+            var tempName = OrgInfo.Name;
+            var tempDesc = OrgInfo.Description;
+            var tempEmail = OrgInfo.RequirePlayerEmailConfirmed;
+            var tempPicture = OrgInfo.RequirePlayerProfilePicture;
+            OrgInfo.Name = name;
+            OrgInfo.Description = desc;
+            OrgInfo.RequirePlayerEmailConfirmed = email;
+            OrgInfo.RequirePlayerProfilePicture = picture;
+            var saveInfoResult = await OrgService.UpdateOrgInfo(OrgInfo.Id, OrgInfo);
+            if (!saveInfoResult.IsSuccess)
+            {
+                Snackbar.Add($"Failed to update org info: {saveInfoResult.Errors.ToArray()[0].Message}", Severity.Error, (opts) => { opts.CloseAfterNavigation = true; });
+                OrgInfo.Name = tempName;
+                OrgInfo.Description = tempDesc;
+                OrgInfo.RequirePlayerEmailConfirmed = tempEmail;
+                OrgInfo.RequirePlayerProfilePicture = tempPicture;
+                savingSettings = false;
+                return;
+            }
+        }
+        savingSettings = false;
+        Snackbar.Add("Saved", Severity.Success);
+    }
+}

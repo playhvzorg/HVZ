@@ -1,6 +1,8 @@
 ﻿using FluentResults;
 using HVZ.Web.Client.Interfaces;
 using HVZ.Web.Shared.Models;
+using Microsoft.AspNetCore.Components.Forms;
+using System.IO.Enumeration;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -83,14 +85,57 @@ namespace HVZ.Web.Client.Services
             return Result.Fail(await result.Content.ReadAsStringAsync());
         }
 
-        public Task<Result<bool>> IsAdmin(string? userId)
+        public Task<Result<bool>> IsAdmin(string orgId, string userId)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Result<bool>> IsMod(string? userId)
+        public Task<Result<bool>> IsMod(string orgId, string userId)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<Result> SetImage(string orgId, IBrowserFile file)
+        {
+            IBrowserFile imageFile = await file.RequestImageFileAsync(file.ContentType, 512, 512);
+            if (imageFile is null) return Result.Fail("Not a valid image file");
+
+            StreamContent fileContent = new(imageFile.OpenReadStream());
+            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(imageFile.ContentType);
+
+            MultipartFormDataContent content = new();
+            content.Add(
+                content: fileContent,
+                name: "\"file\"",
+                fileName: file.Name
+            );
+
+            var response = await _http.PostAsync($"image/org/{orgId}/upload", content);
+
+            if (response.IsSuccessStatusCode)
+                return Result.Ok();
+            
+            return Result.Fail(await response.Content.ReadAsStringAsync());
+        }
+
+        public async Task<Result> UpdateOrgInfo(string orgId, OrgInfo orgInfo)
+        {
+            // await Task.Delay(0);
+            // return Result.Fail("Not implemented");
+            var updateRequest = await _http.PostAsJsonAsync($"/api/Org/{orgId}/settings/update", new OrgSettingsUpdateRequest
+            {
+                Name = orgInfo.Name,
+                Description = orgInfo.Description,
+                RequireProfilePicture = orgInfo.RequirePlayerProfilePicture,
+                RequireVerifiedEmail = orgInfo.RequirePlayerEmailConfirmed
+            }, _jsonOptions);
+
+            if (updateRequest.IsSuccessStatusCode)
+            {
+                return Result.Ok();
+            }
+
+            return Result.Fail(await updateRequest.Content.ReadAsStringAsync());
         }
     }
 }
